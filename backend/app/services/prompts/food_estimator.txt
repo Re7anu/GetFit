@@ -1,0 +1,2 @@
+Analyze the input food photo or text description.
+Provide the estimated name, weight in grams, total calories, and macronutrients (protein, carbs, fat) in JSON format.
