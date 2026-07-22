@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GetFit - Fitness Tracking Web App</title>
+    <link rel="stylesheet" href="/static/css/design_tokens.css">
+    <link rel="stylesheet" href="/static/css/main.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="brand">
+            <div class="brand-icon">⚡</div>
+            <span>GetFit</span>
+        </div>
+        <div class="nav-status">
+            <div class="pulse-dot"></div>
+            <span>API Online v1.0</span>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <div class="hero-tag">🚀 Phase 1 Active & Ready</div>
+        <h1>Welcome to GetFit</h1>
+        <p>Your complete AI-powered fitness companion. Track daily calorie budgets, log meals, calculate workout MET burn, and map your progress effortlessly.</p>
+    </section>
+
+    <main class="features-grid">
+        <div class="card">
+            <div>
+                <div class="card-header">
+                    <div class="card-icon" style="background: rgba(59, 130, 246, 0.15); color: #3b82f6;">🎯</div>
+                    <div class="card-title">Interactive API Docs</div>
+                </div>
+                <div class="card-desc">
+                    Explore and test user registration, JWT authentication, profile targets, food logging, and exercise MET calculations directly via Swagger UI.
+                </div>
+            </div>
+            <a href="/docs" class="btn btn-primary" target="_blank">Open Swagger UI &rarr;</a>
+        </div>
+
+        <div class="card">
+            <div>
+                <div class="card-header">
+                    <div class="card-icon" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">🥗</div>
+                    <div class="card-title">Nutrition & Meal Engine</div>
+                </div>
+                <div class="card-desc">
+                    Deterministic Mifflin-St Jeor daily calorie budget engine with macro splits for Weight Loss, Maintenance, and Muscle Gain.
+                </div>
+            </div>
+            <span style="font-size: 0.875rem; color: #10b981; font-weight: 500;">✓ Active Endpoints (/api/v1/nutrition)</span>
+        </div>
+
+        <div class="card">
+            <div>
+                <div class="card-header">
+                    <div class="card-icon" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b;">🔥</div>
+                    <div class="card-title">Exercise & MET Calculator</div>
+                </div>
+                <div class="card-desc">
+                    Log workout sessions and calculate precise calories burned using Metabolic Equivalent of Task equations adjusted for your body weight.
+                </div>
+            </div>
+            <span style="font-size: 0.875rem; color: #f59e0b; font-weight: 500;">✓ Active Endpoints (/api/v1/exercises)</span>
+        </div>
+    </main>
+
+    <footer>
+        GetFit Web App &bull; Built with FastAPI &amp; PostgreSQL
+    </footer>
+</body>
+</html>
