@@ -4,9 +4,9 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from app.core.database import get_db
+from app.db.models.base import Base
+from app.db.session import get_db
 from app.main import app
-from app.models.base import Base
 
 # Use local file-based SQLite database for tests to ensure smooth isolation
 SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"

@@ -1,4 +1,4 @@
-"""Pydantic schemas for User registration, login, and profile response serialization."""
+"""Pydantic schemas for User Authentication registration, login, and response serialization."""
 
 from datetime import datetime
 from typing import Optional
@@ -6,26 +6,26 @@ from pydantic import BaseModel, ConfigDict, Field
 from app.schemas.profile import UserProfileCreate, UserProfileResponse
 
 
-class UserBase(BaseModel):
-    """Base Pydantic model containing common user fields."""
+class UserAuthBase(BaseModel):
+    """Base Pydantic model containing common user authentication fields."""
 
     email: str
 
 
-class UserRegister(UserBase):
-    """Pydantic model for user registration request payload."""
+class UserAuthRegister(UserAuthBase):
+    """Pydantic model for user authentication registration request payload."""
 
     password: str = Field(..., min_length=6)
     profile: UserProfileCreate
 
 
-class UserLogin(UserBase):
+class UserAuthLogin(UserAuthBase):
     """Pydantic model for user authentication login request payload."""
 
     password: str
 
 
-class UserResponse(UserBase):
+class UserAuthResponse(UserAuthBase):
     """Pydantic model for user account responses."""
 
     id: str
@@ -35,4 +35,3 @@ class UserResponse(UserBase):
     profile: Optional[UserProfileResponse] = None
 
     model_config = ConfigDict(from_attributes=True)
-

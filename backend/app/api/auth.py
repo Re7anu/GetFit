@@ -4,7 +4,6 @@ import hashlib
 from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from app.core.database import get_db
 from app.core.formulas import calculate_targets
 from app.core.security import (
     create_access_token,
@@ -13,11 +12,12 @@ from app.core.security import (
     get_password_hash,
     verify_password,
 )
-from app.models.profile import UserProfile
-from app.models.token import RefreshToken
-from app.models.user import User
+from app.db.models.profile import UserProfile
+from app.db.models.token import RefreshToken
+from app.db.models.user_auth import UserAuth
+from app.db.session import get_db
 from app.schemas.token import Token, TokenRefreshRequest
-from app.schemas.user import UserLogin, UserRegister, UserResponse
+from app.schemas.user_auth import UserAuthLogin, UserAuthRegister, UserAuthResponse
 
 router = APIRouter()
 
@@ -34,8 +34,8 @@ def hash_token(token: str) -> str:
     return hashlib.sha256(token.encode()).hexdigest()
 
 
-@router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
-def register(user_in: UserRegister, db: Session = Depends(get_db)):
+@router.post("/register", response_model=UserAuthResponse, status_code=status.HTTP_201_CREATED)
+def register(user_in: UserAuthRegister, db: Session = Depends(get_db)):
     """Registers a new user account and calculates initial daily nutrition targets.
 
     Args:
@@ -43,21 +43,21 @@ def register(user_in: UserRegister, db: Session = Depends(get_db)):
         db: Database session instance.
 
     Returns:
-        Created User model instance with profile and calculated targets.
+        Created UserAuth model instance with profile and calculated targets.
 
     Raises:
         HTTPException: If email is already registered.
     """
     # Check if user exists
-    user = db.query(User).filter(User.email == user_in.email).first()
+    user = db.query(UserAuth).filter(UserAuth.email == user_in.email).first()
     if user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="The user with this email already exists in the system.",
         )
 
-    # Create User
-    db_user = User(
+    # Create UserAuth
+    db_user = UserAuth(
         email=user_in.email,
         password_hash=get_password_hash(user_in.password),
     )
@@ -98,7 +98,7 @@ def register(user_in: UserRegister, db: Session = Depends(get_db)):
 
 
 @router.post("/login", response_model=Token)
-def login(user_in: UserLogin, db: Session = Depends(get_db)):
+def login(user_in: UserAuthLogin, db: Session = Depends(get_db)):
     """Authenticates user credentials and issues Access + Refresh token pair.
 
     Args:
@@ -111,7 +111,7 @@ def login(user_in: UserLogin, db: Session = Depends(get_db)):
     Raises:
         HTTPException: If credentials are invalid or user account is inactive.
     """
-    user = db.query(User).filter(User.email == user_in.email).first()
+    user = db.query(UserAuth).filter(UserAuth.email == user_in.email).first()
     if not user or not verify_password(user_in.password, user.password_hash):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

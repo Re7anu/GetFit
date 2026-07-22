@@ -1,11 +1,11 @@
 """Database table initialization bootstrap script module."""
 
-from app.core.database import engine
-from app.models.base import Base
+from app.db.session import engine
+from app.db.models.base import Base
 # Import all models to ensure they are registered on Base metadata
-from app.models.profile import UserProfile
-from app.models.token import RefreshToken
-from app.models.user import User
+from app.db.models.profile import UserProfile
+from app.db.models.token import RefreshToken
+from app.db.models.user_auth import UserAuth
 
 
 def init_db() -> None:
