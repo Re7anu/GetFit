@@ -3,7 +3,7 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from app.api import auth, users
-from app.core.settings import settings
+from app.config.settings import settings
 from app.db.init_db import init_db
 
 
