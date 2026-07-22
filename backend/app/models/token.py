@@ -1,9 +1,24 @@
+"""SQLAlchemy model definition for Refresh Token revocation tracking."""
+
 import uuid
-from sqlalchemy import Column, String, DateTime, ForeignKey, func
+from sqlalchemy import Column, DateTime, ForeignKey, String, func
 from sqlalchemy.orm import relationship
 from app.models.base import Base
 
+
 class RefreshToken(Base):
+    """SQLAlchemy model representing a stored refresh token hash.
+
+    Attributes:
+        id: Primary key UUID string.
+        user_id: Foreign key linking to associated User.
+        token_hash: SHA-256 hash string of the refresh token.
+        issued_at: Token issue timestamp.
+        expires_at: Token expiration timestamp.
+        revoked_at: Optional revocation timestamp.
+        user: Relationship back to associated User model instance.
+    """
+
     __tablename__ = "refresh_tokens"
 
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
@@ -14,3 +29,4 @@ class RefreshToken(Base):
     revoked_at = Column(DateTime(timezone=True), nullable=True)
 
     user = relationship("User", back_populates="refresh_tokens")
+

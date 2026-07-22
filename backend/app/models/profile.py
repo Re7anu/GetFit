@@ -1,9 +1,33 @@
+"""SQLAlchemy model definition for User Profiles and nutrition targets."""
+
 import uuid
-from sqlalchemy import Column, String, Float, Integer, Date, DateTime, ForeignKey, func
+from sqlalchemy import Column, Date, DateTime, Float, ForeignKey, Integer, String, func
 from sqlalchemy.orm import relationship
 from app.models.base import Base
 
+
 class UserProfile(Base):
+    """SQLAlchemy model representing user physical metrics and calculated targets.
+
+    Attributes:
+        id: Primary key UUID string.
+        user_id: Foreign key linking to associated User.
+        name: User display name.
+        sex: Biological sex ('male' or 'female').
+        birth_date: User birth date.
+        height_cm: Height in centimeters.
+        weight_kg: Current weight in kilograms.
+        activity_level: Activity multiplier descriptor.
+        goal_type: Primary fitness goal ('lose_weight', 'maintain', 'gain_muscle').
+        target_weight_kg: Goal target weight in kilograms.
+        calculated_calorie_target: Mifflin-St Jeor daily calorie budget.
+        calculated_protein_target_g: Daily target protein in grams.
+        calculated_carb_target_g: Daily target carbohydrates in grams.
+        calculated_fat_target_g: Daily target fat in grams.
+        updated_at: Timestamp of last metric or target update.
+        user: Relationship back to associated User model instance.
+    """
+
     __tablename__ = "user_profiles"
 
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
@@ -23,3 +47,4 @@ class UserProfile(Base):
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
 
     user = relationship("User", back_populates="profile")
+

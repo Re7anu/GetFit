@@ -1,9 +1,26 @@
+"""SQLAlchemy model definition for User accounts."""
+
 import uuid
-from sqlalchemy import Column, String, Boolean, DateTime, func
+from sqlalchemy import Boolean, Column, DateTime, String, func
 from sqlalchemy.orm import relationship
 from app.models.base import Base
 
+
 class User(Base):
+    """SQLAlchemy model representing a system User entity.
+
+    Attributes:
+        id: Primary key UUID string.
+        email: Unique user email address.
+        password_hash: Bcrypt hashed password string.
+        timezone: Preferred timezone string (default 'UTC').
+        is_active: Account status flag.
+        created_at: Creation timestamp.
+        updated_at: Last update timestamp.
+        profile: One-to-one relationship with UserProfile.
+        refresh_tokens: One-to-many relationship with RefreshToken records.
+    """
+
     __tablename__ = "users"
 
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
@@ -16,3 +33,4 @@ class User(Base):
 
     profile = relationship("UserProfile", back_populates="user", uselist=False, cascade="all, delete-orphan")
     refresh_tokens = relationship("RefreshToken", back_populates="user", cascade="all, delete-orphan")
+
