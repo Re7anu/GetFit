@@ -5,15 +5,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 from app.config.settings import settings
 
-try:
-    engine = create_engine(settings.DATABASE_URL, pool_pre_ping=True)
-    # Verify connection
-    with engine.connect() as conn:
-        pass
-except Exception:
-    # Fallback to SQLite for zero-config local testing if PostgreSQL is unavailable
-    engine = create_engine("sqlite:///./getfit.db", connect_args={"check_same_thread": False})
-
+engine = create_engine(settings.DATABASE_URL, pool_pre_ping=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
