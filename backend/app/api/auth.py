@@ -5,7 +5,7 @@ from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.core.formulas import calculate_targets
-from app.core.security import (
+from app.core.auth_security import (
     create_access_token,
     create_refresh_token,
     decode_token,

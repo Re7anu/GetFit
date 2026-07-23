@@ -3,7 +3,7 @@
 from datetime import date
 from app.db.models.user_auth import UserAuth
 from app.db.models.profile import UserProfile
-from app.core.security import get_password_hash, create_access_token
+from app.core.auth_security import get_password_hash, create_access_token
 
 
 def create_test_user(db_session, email="nutritionuser@getfit.com") -> UserAuth:

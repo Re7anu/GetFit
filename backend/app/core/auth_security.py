@@ -1,4 +1,4 @@
-"""Security utilities module for password hashing and JWT token management."""
+"""Authentication security utilities module for password hashing and JWT token management."""
 
 from datetime import datetime, timedelta
 from typing import Any, Optional, Union
@@ -88,4 +88,3 @@ def decode_token(token: str) -> Optional[dict]:
         return decoded_token
     except JWTError:
         return None
-
