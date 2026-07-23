@@ -1,4 +1,4 @@
-"""API Dependencies module for authentication and authorization guards."""
+"""Authentication dependency injection guards module for FastAPI request validation."""
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer

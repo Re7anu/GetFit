@@ -5,7 +5,7 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import func
 from sqlalchemy.orm import Session
-from app.api.dependencies import get_current_user
+from app.core.auth_dependencies import get_current_user
 from app.db.models.food_log import FoodLog
 from app.db.models.user_auth import UserAuth
 from app.db.session import get_db
