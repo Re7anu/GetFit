@@ -146,11 +146,18 @@ def test_ai_food_and_exercise_logging_flow(client, db_session, monkeypatch):
     access_token = create_access_token(user.id)
     headers = {"Authorization": f"Bearer {access_token}"}
 
-    # 1. Mock Gemini food response
+    # 1. Mock Gemini food json response
     def mock_food_gemini(prompt):
-        return '{"meal_type": "breakfast", "description": "2 boiled eggs and toast", "calories": 320, "protein_g": 16.0, "carbs_g": 25.0, "fat_g": 12.0}'
+        return {
+            "meal_type": "breakfast",
+            "description": "2 boiled eggs and toast",
+            "calories": 320,
+            "protein_g": 16.0,
+            "carbs_g": 25.0,
+            "fat_g": 12.0,
+        }
 
-    monkeypatch.setattr("app.services.gemini_service._call_gemini_api", mock_food_gemini)
+    monkeypatch.setattr("app.services.gemini_service.generate_json", mock_food_gemini)
 
     res_food = client.post(
         "/api/v1/nutrition/meals/ai-parse",
@@ -162,11 +169,16 @@ def test_ai_food_and_exercise_logging_flow(client, db_session, monkeypatch):
     assert f_data["calories"] == 320
     assert f_data["input_method"] == "ai_nlp"
 
-    # 2. Mock Gemini exercise response
+    # 2. Mock Gemini exercise json response
     def mock_ex_gemini(prompt):
-        return '{"exercise_name": "Heavy Squats Workout", "duration_minutes": 45.0, "met_value": 6.0, "notes": "Leg day"}'
+        return {
+            "exercise_name": "Heavy Squats Workout",
+            "duration_minutes": 45.0,
+            "met_value": 6.0,
+            "notes": "Leg day",
+        }
 
-    monkeypatch.setattr("app.services.gemini_service._call_gemini_api", mock_ex_gemini)
+    monkeypatch.setattr("app.services.gemini_service.generate_json", mock_ex_gemini)
 
     res_ex = client.post(
         "/api/v1/exercises/logs/ai-parse",

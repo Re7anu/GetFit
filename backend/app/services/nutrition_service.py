@@ -50,9 +50,11 @@ def create_meal_entry_via_ai(db: Session, user: UserAuth, prompt_in: AIFoodParse
     Returns:
         Created FoodLog model instance.
     """
-    from app.services.gemini_service import parse_food_description
+    from app.core.prompts import FOOD_PARSING_PROMPT_TEMPLATE
+    from app.services import gemini_service
 
-    ai_parsed = parse_food_description(prompt_in.text_prompt)
+    prompt = FOOD_PARSING_PROMPT_TEMPLATE.format(text_prompt=prompt_in.text_prompt)
+    ai_parsed = gemini_service.generate_json(prompt)
 
     meal_in = FoodLogCreate(
         meal_type=ai_parsed.get("meal_type", "snack"),

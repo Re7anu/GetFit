@@ -65,9 +65,11 @@ def create_workout_entry_via_ai(db: Session, user: UserAuth, prompt_in: AIExerci
     Returns:
         Created ExerciseLog model instance.
     """
-    from app.services.gemini_service import parse_exercise_description
+    from app.core.prompts import EXERCISE_PARSING_PROMPT_TEMPLATE
+    from app.services import gemini_service
 
-    ai_parsed = parse_exercise_description(prompt_in.text_prompt)
+    prompt = EXERCISE_PARSING_PROMPT_TEMPLATE.format(text_prompt=prompt_in.text_prompt)
+    ai_parsed = gemini_service.generate_json(prompt)
 
     workout_in = ExerciseLogCreate(
         exercise_name=ai_parsed.get("exercise_name", prompt_in.text_prompt),
