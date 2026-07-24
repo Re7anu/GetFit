@@ -31,4 +31,5 @@ class UserAuth(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
 
+    profile = relationship("UserProfile", back_populates="user_auth", uselist=False, cascade="all, delete-orphan")
     refresh_tokens = relationship("RefreshToken", back_populates="user_auth", cascade="all, delete-orphan")

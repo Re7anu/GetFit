@@ -2,7 +2,7 @@
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from app.config.settings import settings
 from app.db.models.base import Base
@@ -16,9 +16,14 @@ TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engin
 @pytest.fixture(scope="function", autouse=True)
 def init_test_db():
     """Autouse fixture that initializes and drops test database tables before/after each test."""
+    with engine.connect() as conn:
+        conn.execute(text("DROP SCHEMA public CASCADE; CREATE SCHEMA public;"))
+        conn.commit()
     Base.metadata.create_all(bind=engine)
     yield
-    Base.metadata.drop_all(bind=engine)
+    with engine.connect() as conn:
+        conn.execute(text("DROP SCHEMA public CASCADE; CREATE SCHEMA public;"))
+        conn.commit()
 
 
 @pytest.fixture(scope="function")
