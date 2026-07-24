@@ -6,6 +6,7 @@ from typing import Any, Dict
 import httpx
 from fastapi import HTTPException, status
 from app.config.settings import settings
+from app.core.prompts import EXERCISE_PARSING_PROMPT_TEMPLATE, FOOD_PARSING_PROMPT_TEMPLATE
 
 GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
 
@@ -83,21 +84,7 @@ def parse_food_description(text_prompt: str) -> Dict[str, Any]:
     Returns:
         Dictionary containing meal_type, description, calories, protein_g, carbs_g, fat_g, quantity_g.
     """
-    prompt = f"""
-You are an expert nutritionist AI. Analyze the following food or meal description text and estimate its nutritional breakdown accurately.
-User Input: "{text_prompt}"
-
-Return ONLY a valid JSON object with the following exact keys:
-- "meal_type": string (must be one of: "breakfast", "lunch", "dinner", "snack")
-- "description": string (concise clean summary of the food items)
-- "calories": integer (estimated total kilocalories, minimum 0)
-- "protein_g": float (estimated protein in grams, rounded to 1 decimal)
-- "carbs_g": float (estimated carbohydrates in grams, rounded to 1 decimal)
-- "fat_g": float (estimated fat in grams, rounded to 1 decimal)
-- "quantity_g": float or null (estimated total weight/mass in grams if inferrable)
-
-Do not include any markdown formatting, explanations, or text outside the JSON object.
-"""
+    prompt = FOOD_PARSING_PROMPT_TEMPLATE.format(text_prompt=text_prompt)
     raw_response = _call_gemini_api(prompt)
     return _clean_json_response(raw_response)
 
@@ -111,17 +98,6 @@ def parse_exercise_description(text_prompt: str) -> Dict[str, Any]:
     Returns:
         Dictionary containing exercise_name, duration_minutes, met_value, notes.
     """
-    prompt = f"""
-You are an expert exercise physiologist AI. Analyze the following workout description text and extract exercise parameters.
-User Input: "{text_prompt}"
-
-Return ONLY a valid JSON object with the following exact keys:
-- "exercise_name": string (concise clean exercise title or sport name)
-- "duration_minutes": float (workout duration in minutes, default 30.0 if not specified)
-- "met_value": float (scientific Metabolic Equivalent of Task value based on Ainsworth Compendium, e.g. 3.8 for walking, 8.0 for running, 6.0 for heavy weightlifting, 7.0 for soccer)
-- "notes": string (brief summary or workout intensity notes)
-
-Do not include any markdown formatting, explanations, or text outside the JSON object.
-"""
+    prompt = EXERCISE_PARSING_PROMPT_TEMPLATE.format(text_prompt=text_prompt)
     raw_response = _call_gemini_api(prompt)
     return _clean_json_response(raw_response)
