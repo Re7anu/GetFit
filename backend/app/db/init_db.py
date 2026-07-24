@@ -2,6 +2,7 @@
 
 from app.db.session import engine
 from app.db.models.base import Base
+from app.db.models.profile import UserProfile
 from app.db.models.token import RefreshToken
 from app.db.models.user_auth import UserAuth
 
