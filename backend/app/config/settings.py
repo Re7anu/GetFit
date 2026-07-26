@@ -31,6 +31,7 @@ class Settings(BaseSettings):
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
     DATABASE_URL: str = "postgresql://postgres:postgrespassword@localhost:5433/getfit"
     GEMINI_API_KEY: Optional[str] = None
+    GEMINI_MODEL_NAME: str = "gemini-2.5-flash"
     EMAIL_SMTP_HOST: str = "smtp.gmail.com"
     EMAIL_SMTP_PORT: int = 587
     EMAIL_SMTP_USER: str = ""

@@ -1,59 +1,60 @@
-"""Google Gemini AI Service module for low-level Gemini API communication."""
+"""Google Gemini AI Service module using the official google-genai SDK."""
 
 import json
 import re
 from typing import Any, Dict
-import httpx
 from fastapi import HTTPException, status
+from google import genai
 from app.config.settings import settings
 
-GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
 
-
-def generate_content(prompt: str) -> str:
-    """Executes a raw content generation HTTP request to Google Gemini API.
-
-    Args:
-        prompt: Prompt string.
+def get_genai_client() -> genai.Client:
+    """Initializes and returns an instance of the official Google GenAI SDK Client.
 
     Returns:
-        Generated text response.
+        genai.Client instance.
+
+    Raises:
+        HTTPException: If GEMINI_API_KEY is missing.
     """
     if not settings.GEMINI_API_KEY:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="GEMINI_API_KEY is not configured on the server.",
         )
+    return genai.Client(api_key=settings.GEMINI_API_KEY)
 
-    url = f"{GEMINI_API_URL}?key={settings.GEMINI_API_KEY}"
-    payload = {"contents": [{"parts": [{"text": prompt}]}]}
 
+def generate_content(prompt: str) -> str:
+    """Executes a content generation request using the official Google GenAI SDK (gemini-2.5-flash).
+
+    Args:
+        prompt: Prompt string.
+
+    Returns:
+        Generated text response string.
+
+    Raises:
+        HTTPException: If API key is missing or request fails.
+    """
+    client = get_genai_client()
     try:
-        with httpx.Client(timeout=30.0) as client:
-            response = client.post(url, json=payload)
-            if response.status_code != 200:
-                fallback_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={settings.GEMINI_API_KEY}"
-                response = client.post(fallback_url, json=payload)
-
-            if response.status_code != 200:
-                raise HTTPException(
-                    status_code=status.HTTP_502_BAD_GATEWAY,
-                    detail=f"Gemini API request failed: {response.text}",
-                )
-
-            data = response.json()
-            return data["candidates"][0]["content"]["parts"][0]["text"]
+        response = client.models.generate_content(
+            model=settings.GEMINI_MODEL_NAME,
+            contents=prompt,
+        )
+        return response.text
     except Exception as e:
         if isinstance(e, HTTPException):
             raise e
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error communicating with Gemini AI service: {str(e)}",
+            detail=f"Error communicating with Google GenAI service: {str(e)}",
         )
 
 
 def generate_json(prompt: str) -> Dict[str, Any]:
-    """Generates structured JSON from Gemini API, stripping markdown code fences.
+    """Generates structured JSON using Google GenAI SDK, stripping markdown code fences.
 
     Args:
         prompt: Structured JSON prompt text.
