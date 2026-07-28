@@ -125,11 +125,28 @@ def calculate_profile_targets(
             is_safe_pace = False
             suggested_min_weeks = math.ceil(abs(weight_diff) / max_safe_weekly_loss)
 
-    # Macro Split Calculation (Carbs, Protein, Fat)
-    carb_ratio, protein_ratio, fat_ratio = MACRO_RATIOS.get(goal_type, MACRO_RATIOS["maintain"])
-    carbs_g = (calculated_calorie_target * carb_ratio) / KCAL_PER_G_CARBS
-    protein_g = (calculated_calorie_target * protein_ratio) / KCAL_PER_G_PROTEIN
-    fat_g = (calculated_calorie_target * fat_ratio) / KCAL_PER_G_FAT
+    # Evidence-Based Body-Weight Macro Allocation Engine (g/kg body weight)
+    if goal_type == "lose_weight":
+      protein_per_kg = 2.0  # High protein to protect lean muscle mass in deficit
+      fat_pct = 0.25
+    elif goal_type == "gain_muscle":
+      protein_per_kg = 1.8  # Optimal rate for muscle protein synthesis
+      fat_pct = 0.25
+    else:
+      protein_per_kg = 1.6  # Maintenance baseline
+      fat_pct = 0.30
+
+    # Calculate protein grams based on body weight (capped at max 2.2 g/kg)
+    protein_g = min(weight_kg * protein_per_kg, weight_kg * 2.2)
+    protein_kcal = protein_g * KCAL_PER_G_PROTEIN
+
+    # Calculate fat grams based on healthy percentage of daily budget
+    fat_kcal = calculated_calorie_target * fat_pct
+    fat_g = fat_kcal / KCAL_PER_G_FAT
+
+    # Calculate remaining energy allocated to carbohydrates
+    carb_kcal = max(calculated_calorie_target - (protein_kcal + fat_kcal), 0.0)
+    carbs_g = carb_kcal / KCAL_PER_G_CARBS
 
     return {
         "bmr": round(bmr, 1),

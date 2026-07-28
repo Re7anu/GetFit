@@ -28,6 +28,8 @@ class UserProfileUpdate(BaseModel):
     """Pydantic schema for updating physical profile metrics."""
 
     name: Optional[str] = None
+    sex: Optional[str] = Field(None, description="'male' or 'female'")
+    birth_date: Optional[date] = None
     height_cm: Optional[float] = Field(None, gt=0)
     weight_kg: Optional[float] = Field(None, gt=0)
     target_weight_kg: Optional[float] = Field(None, gt=0)
