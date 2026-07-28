@@ -38,4 +38,4 @@ def read_root():
     return {"message": "Welcome to GetFit User Authentication API. Go to /docs for Swagger API documentation."}
 
 
-
+# Updated schema validation for Google GenAI SDK: ge=0
