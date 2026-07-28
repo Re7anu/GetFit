@@ -143,3 +143,28 @@ def calculate_profile_targets(
         "is_safe_pace": is_safe_pace,
         "suggested_min_weeks": suggested_min_weeks,
     }
+
+
+def calculate_net_exercise_calories(
+    met: float,
+    weight_kg: float,
+    duration_minutes: float,
+    activity_level: str = "sedentary",
+) -> int:
+    """Calculates net calories burned from an exercise workout using Solution A (Net MET).
+
+    Net MET = max(Exercise MET - Baseline Activity Multiplier, 0.0)
+
+    Args:
+        met: Scientific MET (Metabolic Equivalent of Task) value of exercise.
+        weight_kg: User body weight in kilograms.
+        duration_minutes: Workout duration in minutes.
+        activity_level: User baseline activity level descriptor.
+
+    Returns:
+        Net calories burned in kcal (integer rounded).
+    """
+    base_multiplier = ACTIVITY_MULTIPLIERS.get(activity_level.lower(), ACTIVITY_MULTIPLIERS["sedentary"])
+    net_met = max(met - base_multiplier, 0.0)
+    burn = net_met * weight_kg * (duration_minutes / 60.0)
+    return int(round(burn))
