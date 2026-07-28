@@ -1,4 +1,4 @@
-# GetFit — Personalized Fitness & Nutrition Intelligence API
+# GetFit: Personalized Fitness & Nutrition Intelligence API
 
 **GetFit** is a high-performance backend application for personalized health tracking, dynamic caloric pace calculations, meal/workout logging, and natural-language AI parsing powered by the official **Google GenAI SDK**.
 
@@ -6,7 +6,7 @@ Built with **FastAPI**, **PostgreSQL**, **SQLAlchemy 2.0**, **Pydantic v2**, and
 
 ---
 
-## 🌟 Core Features
+## Core Features
 
 ### 1. Pure Authentication & Token Security
 - **Email/Password Registration:** Strict email pattern validation, strong password checks, and Bcrypt hashing.
@@ -36,7 +36,7 @@ Built with **FastAPI**, **PostgreSQL**, **SQLAlchemy 2.0**, **Pydantic v2**, and
 
 ---
 
-## 🏗️ 3-Tier Layered Architecture
+## 3-Tier Layered Architecture
 
 GetFit enforces strict separation of concerns across 3 independent tiers:
 
@@ -70,7 +70,7 @@ GetFit/
 
 ---
 
-## 🛠️ Technology Stack
+## Technology Stack
 
 - **Framework:** FastAPI (Python 3.10+)
 - **Database:** PostgreSQL (SQLAlchemy 2.0 ORM + Psycopg2)
@@ -81,7 +81,7 @@ GetFit/
 
 ---
 
-## 🚀 Setup & Installation Guide
+## Setup & Installation Guide
 
 ### 1. Prerequisites
 - Python 3.10+
@@ -124,7 +124,7 @@ uvicorn app.main:app --reload --port 8000
 
 ---
 
-## 🧪 Running Automated Tests
+## Running Automated Tests
 
 Run the complete Pytest integration & unit test suite:
 
