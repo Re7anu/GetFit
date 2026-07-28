@@ -211,3 +211,29 @@ def calculate_user_today_nutrition_summary(db: Session, user: UserAuth) -> Daily
         consumed_fat_g=round(consumed_fat, 1),
         meals_logged_today=meal_responses,
     )
+
+
+def delete_meal_entry(db: Session, user: UserAuth, meal_id: str) -> bool:
+    """Deletes a logged meal entry owned by authenticated user.
+
+    Args:
+        db: Database session.
+        user: Authenticated UserAuth entity.
+        meal_id: UUID of meal log.
+
+    Returns:
+        True if deleted successfully.
+
+    Raises:
+        HTTPException: If meal entry is not found.
+    """
+    meal = db.query(FoodLog).filter(FoodLog.id == meal_id, FoodLog.user_id == user.id).first()
+    if not meal:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Meal entry not found or unauthorized.",
+        )
+
+    db.delete(meal)
+    db.commit()
+    return True

@@ -48,3 +48,13 @@ def get_today_nutrition_summary(
 ):
     """Calculates today's consumed calories/macros vs adjusted target budget incorporating Net MET exercise credits."""
     return nutrition_service.calculate_user_today_nutrition_summary(db=db, user=current_user)
+
+
+@router.delete("/meals/{meal_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_meal_log(
+    meal_id: str,
+    current_user: UserAuth = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Deletes a logged meal entry and automatically recalculates daily caloric budget and macros."""
+    nutrition_service.delete_meal_entry(db=db, user=current_user, meal_id=meal_id)

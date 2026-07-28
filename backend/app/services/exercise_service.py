@@ -204,3 +204,29 @@ def calculate_user_today_exercise_summary(db: Session, user: UserAuth) -> DailyE
         total_net_calories_burned=total_burn,
         workouts_logged_today=workout_responses,
     )
+
+
+def delete_workout_entry(db: Session, user: UserAuth, workout_id: str) -> bool:
+    """Deletes a logged workout entry owned by authenticated user.
+
+    Args:
+        db: Database session.
+        user: Authenticated UserAuth entity.
+        workout_id: UUID of exercise log.
+
+    Returns:
+        True if deleted successfully.
+
+    Raises:
+        HTTPException: If workout entry is not found.
+    """
+    workout = db.query(ExerciseLog).filter(ExerciseLog.id == workout_id, ExerciseLog.user_id == user.id).first()
+    if not workout:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Workout entry not found or unauthorized.",
+        )
+
+    db.delete(workout)
+    db.commit()
+    return True

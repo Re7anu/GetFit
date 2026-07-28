@@ -65,3 +65,13 @@ def get_today_exercise_summary(
 ):
     """Calculates today's total workouts count, total duration, and total net calories burned."""
     return exercise_service.calculate_user_today_exercise_summary(db=db, user=current_user)
+
+
+@router.delete("/logs/{workout_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_exercise_log(
+    workout_id: str,
+    current_user: UserAuth = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Deletes a logged workout entry and automatically recalculates daily caloric budget and macros."""
+    exercise_service.delete_workout_entry(db=db, user=current_user, workout_id=workout_id)

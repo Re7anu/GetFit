@@ -253,6 +253,7 @@ export class DashboardManager {
 
     // Standardize timeline entries
     const mealItems = (meals || []).map(m => ({
+      id: m.id,
       type: 'meal',
       title: m.description,
       subtitle: `${m.meal_type} • ${m.protein_g}g P • ${m.carbs_g}g C • ${m.fat_g}g F`,
@@ -262,6 +263,7 @@ export class DashboardManager {
     }));
 
     const workoutItems = (workouts || []).map(w => ({
+      id: w.id,
       type: 'workout',
       title: w.exercise_name,
       subtitle: `${w.duration_minutes} mins • MET ${w.met_value}${w.notes ? ' • ' + w.notes : ''}`,
@@ -287,10 +289,35 @@ export class DashboardManager {
             ${item.subtitle}
           </div>
         </div>
-        <div style="font-family: var(--font-heading); font-weight: 700; color: ${item.color};">
-          ${item.calories}
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <div style="font-family: var(--font-heading); font-weight: 700; color: ${item.color};">
+            ${item.calories}
+          </div>
+          <button class="delete-activity-btn" data-id="${item.id}" data-type="${item.type}" style="background: transparent; border: none; color: var(--text-muted); font-size: 1.2rem; cursor: pointer; padding: 0 0.25rem; transition: color 0.2s;" title="Delete Entry">
+            &times;
+          </button>
         </div>
       </div>
     `).join('');
+
+    this.bindDeleteHandlers();
+  }
+
+  static bindDeleteHandlers() {
+    document.querySelectorAll('.delete-activity-btn').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        const id = e.target.getAttribute('data-id');
+        const type = e.target.getAttribute('data-type');
+        if (!id || !type) return;
+
+        try {
+          const endpoint = type === 'meal' ? `${ENDPOINTS.MEALS}/${id}` : `${ENDPOINTS.EXERCISES}/${id}`;
+          await APIClient.request(endpoint, { method: 'DELETE' });
+          await this.fetchAndRenderData();
+        } catch (err) {
+          console.error(`Failed to delete ${type}:`, err);
+        }
+      });
+    });
   }
 }
