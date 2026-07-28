@@ -1,4 +1,4 @@
-/* Dashboard Manager: Hero SVG Calorie Ring & Live Budget Renderer */
+/* Dashboard Manager: Hero Calorie Budget Gauge, Embedded Macros & Activity Sidebar with Scrollbar */
 import { APIClient } from './api_client.js';
 import { ENDPOINTS } from './config.js';
 
@@ -6,15 +6,17 @@ export class DashboardManager {
   static async render(container) {
     container.innerHTML = `
       <div class="dashboard-grid">
-        <!-- Main Hero Column -->
+        <!-- Main Left Column: Hero Gauge + Embedded Macros + Logger Cards -->
         <div style="display: flex; flex-direction: column; gap: 1.5rem;">
-          <!-- Hero SVG Gauge Card -->
+          
+          <!-- Consolidated Hero Card: Caloric Budget + Integrated Macros -->
           <div class="glass-card hero-gauge-container">
-            <h3 style="font-size: 0.9rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em;">
-              Daily Net Caloric Budget
+            <h3 style="font-size: 0.85rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem;">
+              Daily Net Caloric Budget & Macronutrients
             </h3>
 
-            <div class="gauge-svg-wrapper" style="margin-top: 1rem;">
+            <!-- SVG Gauge Ring -->
+            <div class="gauge-svg-wrapper" style="margin-top: 0.5rem;">
               <svg class="gauge-svg" viewBox="0 0 240 240">
                 <circle class="gauge-bg-ring" cx="120" cy="120" r="100" />
                 <circle id="hero-progress-ring" class="gauge-progress-ring" cx="120" cy="120" r="100" />
@@ -26,7 +28,7 @@ export class DashboardManager {
             </div>
 
             <!-- Dynamic Equation Row -->
-            <div class="budget-equation-row">
+            <div class="budget-equation-row" style="margin-bottom: 1.5rem;">
               <div class="equation-item">
                 <div id="eq-base-val" class="equation-val text-emerald">0</div>
                 <div class="equation-lbl">Base Target</div>
@@ -42,9 +44,52 @@ export class DashboardManager {
                 <div class="equation-lbl">Food Consumed</div>
               </div>
             </div>
+
+            <!-- Embedded Macronutrient Breakdown Bars inside the same Hero Card -->
+            <div style="width: 100%; border-top: 1px solid var(--border-glass); padding-top: 1.25rem;">
+              <h4 style="font-size: 0.85rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.75rem;">
+                Macronutrient Split
+              </h4>
+              
+              <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+                <!-- Protein -->
+                <div class="macro-group" style="margin-top: 0;">
+                  <div class="macro-header">
+                    <span style="font-weight: 600; font-size: 0.8rem;">Protein</span>
+                    <span id="macro-protein-label" class="text-muted" style="font-size: 0.75rem;">0g / 0g</span>
+                  </div>
+                  <div class="macro-bar-bg">
+                    <div id="macro-protein-bar" class="macro-bar-fill macro-bar-protein" style="width: 0%;"></div>
+                  </div>
+                </div>
+
+                <!-- Carbs -->
+                <div class="macro-group" style="margin-top: 0;">
+                  <div class="macro-header">
+                    <span style="font-weight: 600; font-size: 0.8rem;">Carbs</span>
+                    <span id="macro-carb-label" class="text-muted" style="font-size: 0.75rem;">0g / 0g</span>
+                  </div>
+                  <div class="macro-bar-bg">
+                    <div id="macro-carb-bar" class="macro-bar-fill macro-bar-carbs" style="width: 0%;"></div>
+                  </div>
+                </div>
+
+                <!-- Fats -->
+                <div class="macro-group" style="margin-top: 0;">
+                  <div class="macro-header">
+                    <span style="font-weight: 600; font-size: 0.8rem;">Fats</span>
+                    <span id="macro-fat-label" class="text-muted" style="font-size: 0.75rem;">0g / 0g</span>
+                  </div>
+                  <div class="macro-bar-bg">
+                    <div id="macro-fat-bar" class="macro-bar-fill macro-bar-fat" style="width: 0%;"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
           </div>
 
-          <!-- Food AI Logger & Structured 2-Step Exercise Logger Grid -->
+          <!-- Food AI Logger & Structured Exercise Logger Cards Grid -->
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
             <!-- AI Meal Logger -->
             <div class="glass-card">
@@ -54,7 +99,7 @@ export class DashboardManager {
               <form id="ai-meal-form" class="ai-prompt-bar">
                 <input type="text" id="ai-meal-input" class="ai-prompt-input" placeholder="E.g., '2 eggs and toast'..." required />
                 <button type="submit" id="ai-meal-btn" class="btn btn-primary" style="padding: 0.5rem 0.8rem; font-size: 0.8rem;">
-                  Parse Meal
+                  Log Meal
                 </button>
               </form>
               <div id="ai-meal-status" style="display:none; font-size: 0.8rem; margin-top: 0.5rem; color: var(--accent-health);"></div>
@@ -89,65 +134,31 @@ export class DashboardManager {
               <div id="dash-ex-status" style="display:none; font-size: 0.8rem; margin-top: 0.5rem; color: var(--accent-workout);"></div>
             </div>
           </div>
-
-          <!-- Today's Activity Logged List -->
-          <div class="glass-card">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-              <h3>Today's Meals & Workouts</h3>
-              <div style="display: flex; gap: 0.5rem;">
-                <button id="btn-manual-meal" class="btn" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">+ Manual Meal</button>
-                <button id="btn-manual-exercise" class="btn btn-cobalt" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">+ Manual Workout</button>
-              </div>
-            </div>
-
-            <div id="activity-list" style="display: flex; flex-direction: column; gap: 0.75rem;">
-              <p class="text-muted" style="font-size: 0.85rem;">No meals or workouts logged today yet.</p>
-            </div>
-          </div>
         </div>
 
-        <!-- Sidebar Column: Macro Breakdown & Profile Stats -->
+        <!-- Right Sidebar Column: Physical Profile (Top) + Scrollable Activity Timeline (Bottom) -->
         <div style="display: flex; flex-direction: column; gap: 1.5rem;">
-          <!-- Macro Targets Card -->
+          <!-- 1. Physical Profile Target Card (Positioned at Top) -->
           <div class="glass-card">
-            <h3>Macronutrient Breakdown</h3>
-            
-            <div class="macro-group">
-              <div class="macro-header">
-                <span style="font-weight: 600;">Protein</span>
-                <span id="macro-protein-label" class="text-muted">0g / 0g</span>
-              </div>
-              <div class="macro-bar-bg">
-                <div id="macro-protein-bar" class="macro-bar-fill macro-bar-protein" style="width: 0%;"></div>
-              </div>
-            </div>
-
-            <div class="macro-group">
-              <div class="macro-header">
-                <span style="font-weight: 600;">Carbohydrates</span>
-                <span id="macro-carb-label" class="text-muted">0g / 0g</span>
-              </div>
-              <div class="macro-bar-bg">
-                <div id="macro-carb-bar" class="macro-bar-fill macro-bar-carbs" style="width: 0%;"></div>
-              </div>
-            </div>
-
-            <div class="macro-group">
-              <div class="macro-header">
-                <span style="font-weight: 600;">Fats</span>
-                <span id="macro-fat-label" class="text-muted">0g / 0g</span>
-              </div>
-              <div class="macro-bar-bg">
-                <div id="macro-fat-bar" class="macro-bar-fill macro-bar-fat" style="width: 0%;"></div>
-              </div>
+            <h4 style="font-size: 0.9rem; color: var(--text-secondary); text-transform: uppercase;">Physical Profile</h4>
+            <div id="profile-summary-box" style="margin-top: 0.75rem; font-size: 0.85rem; display: flex; flex-direction: column; gap: 0.4rem;">
+              <p class="text-muted">Loading profile...</p>
             </div>
           </div>
 
-          <!-- Physical Profile Target Card -->
+          <!-- 2. Today's Activity Logged List with Dedicated Glass Scrollbar (Positioned Below Profile) -->
           <div class="glass-card">
-            <h3>Physical Profile & Target</h3>
-            <div id="profile-summary-box" style="margin-top: 1rem; font-size: 0.85rem; display: flex; flex-direction: column; gap: 0.5rem;">
-              <p class="text-muted">Loading profile...</p>
+            <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1rem;">
+              <h3>Today's Meals & Workouts</h3>
+              <div style="display: flex; gap: 0.5rem;">
+                <button id="btn-manual-meal" class="btn" style="flex:1; padding: 0.4rem 0.5rem; font-size: 0.75rem;">+ Manual Meal</button>
+                <button id="btn-manual-exercise" class="btn btn-cobalt" style="flex:1; padding: 0.4rem 0.5rem; font-size: 0.75rem;">+ Manual Workout</button>
+              </div>
+            </div>
+
+            <!-- Scrollable Timeline Container with Fixed Height -->
+            <div id="activity-list" class="scrollable-timeline" style="display: flex; flex-direction: column; gap: 0.75rem;">
+              <p class="text-muted" style="font-size: 0.85rem;">No meals or workouts logged today yet.</p>
             </div>
           </div>
         </div>
@@ -188,10 +199,6 @@ export class DashboardManager {
     if (!box) return;
 
     box.innerHTML = `
-      <div style="display: flex; justify-content: space-between;">
-        <span class="text-muted">Name:</span>
-        <span style="font-weight: 600;">${profile.name}</span>
-      </div>
       <div style="display: flex; justify-content: space-between;">
         <span class="text-muted">Current Weight:</span>
         <span style="font-weight: 600;">${profile.weight_kg} kg</span>
@@ -284,30 +291,30 @@ export class DashboardManager {
     }
 
     container.innerHTML = combined.map(item => `
-      <div class="activity-card-row" style="background: rgba(9, 12, 16, 0.6); border: 1px solid var(--border-glass); border-radius: 10px; padding: 0.75rem 1rem; display: flex; justify-content: space-between; align-items: center; position: relative;">
+      <div class="activity-card-row" style="background: rgba(9, 12, 16, 0.6); border: 1px solid var(--border-glass); border-radius: 10px; padding: 0.65rem 0.85rem; display: flex; justify-content: space-between; align-items: center; position: relative;">
         <div>
-          <div style="font-weight: 600; font-size: 0.9rem; display: flex; align-items: center; gap: 0.4rem;">
+          <div style="font-weight: 600; font-size: 0.85rem; display: flex; align-items: center; gap: 0.35rem;">
             <span>${item.type === 'meal' ? '🥗' : '⚡'}</span> ${item.title}
           </div>
-          <div style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; margin-top: 0.15rem;">
+          <div style="font-size: 0.7rem; color: var(--text-secondary); text-transform: uppercase; margin-top: 0.15rem;">
             ${item.subtitle}
           </div>
         </div>
-        <div style="display: flex; align-items: center; gap: 1rem; position: relative;">
-          <div style="font-family: var(--font-heading); font-weight: 700; color: ${item.color};">
+        <div style="display: flex; align-items: center; gap: 0.5rem; position: relative;">
+          <div style="font-family: var(--font-heading); font-weight: 700; font-size: 0.85rem; color: ${item.color};">
             ${item.calories}
           </div>
           
           <!-- Sleek Kebab 3-Dots Menu -->
           <div class="kebab-wrapper" style="position: relative;">
-            <button class="kebab-btn" style="background: transparent; border: none; color: var(--text-secondary); font-size: 1.25rem; cursor: pointer; padding: 0 0.4rem;" title="Options">
+            <button class="kebab-btn" style="background: transparent; border: none; color: var(--text-secondary); font-size: 1.1rem; cursor: pointer; padding: 0 0.25rem;" title="Options">
               &#8942;
             </button>
-            <div class="kebab-menu" style="display: none; position: absolute; right: 0; top: 110%; background: #161B22; border: 1px solid var(--border-glass); border-radius: 10px; padding: 0.4rem; min-width: 120px; box-shadow: var(--shadow-card); z-index: 100;">
-              <button class="kebab-item action-edit" data-id="${item.id}" data-type="${item.type}" style="width: 100%; text-align: left; background: transparent; border: none; color: var(--text-primary); padding: 0.4rem 0.6rem; font-size: 0.85rem; cursor: pointer; border-radius: 6px; display: flex; align-items: center; gap: 0.4rem;">
+            <div class="kebab-menu" style="display: none; position: absolute; right: 0; top: 110%; background: #161B22; border: 1px solid var(--border-glass); border-radius: 10px; padding: 0.35rem; min-width: 110px; box-shadow: var(--shadow-card); z-index: 100;">
+              <button class="kebab-item action-edit" data-id="${item.id}" data-type="${item.type}" style="width: 100%; text-align: left; background: transparent; border: none; color: var(--text-primary); padding: 0.35rem 0.5rem; font-size: 0.8rem; cursor: pointer; border-radius: 6px; display: flex; align-items: center; gap: 0.35rem;">
                 ✏️ Edit
               </button>
-              <button class="kebab-item action-delete" data-id="${item.id}" data-type="${item.type}" style="width: 100%; text-align: left; background: transparent; border: none; color: #EF4444; padding: 0.4rem 0.6rem; font-size: 0.85rem; cursor: pointer; border-radius: 6px; display: flex; align-items: center; gap: 0.4rem;">
+              <button class="kebab-item action-delete" data-id="${item.id}" data-type="${item.type}" style="width: 100%; text-align: left; background: transparent; border: none; color: #EF4444; padding: 0.35rem 0.5rem; font-size: 0.8rem; cursor: pointer; border-radius: 6px; display: flex; align-items: center; gap: 0.35rem;">
                 🗑️ Delete
               </button>
             </div>

@@ -35,7 +35,7 @@ export class LoggingManager {
         if (!prompt) return;
 
         btn.disabled = true;
-        btn.textContent = '✨ Parsing...';
+        btn.textContent = '✨ Analyzing...';
         statusBox.style.display = 'block';
         statusBox.style.color = 'var(--accent-health)';
         statusBox.textContent = 'Asking Gemini AI...';
@@ -54,7 +54,7 @@ export class LoggingManager {
           statusBox.textContent = `Error: ${err.message}`;
         } finally {
           btn.disabled = false;
-          btn.textContent = 'Parse Meal';
+          btn.textContent = 'Log Meal';
         }
       }
     });

@@ -4,19 +4,24 @@ import { ENDPOINTS } from './config.js';
 
 export class ProfileManager {
   static init() {
-    this.renderOnboardingModal();
+    this.renderModal();
     this.bindEvents();
   }
 
-  static renderOnboardingModal() {
+  static renderModal() {
+    if (document.getElementById('profile-modal')) return;
+
     const modalHTML = `
       <div id="profile-modal" class="modal-overlay">
-        <div class="modal-content" style="max-width: 600px;">
-          <div class="modal-header">
-            <h2>Set Up Your Physical Profile</h2>
+        <div class="modal-content" style="max-width: 600px; position: relative;">
+          
+          <!-- Header with High-Visibility Circle Close Button -->
+          <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; border-bottom: 1px solid var(--border-glass); padding-bottom: 0.75rem; margin-bottom: 1rem;">
+            <h2 id="profile-modal-title" style="margin: 0; font-size: 1.25rem; font-family: var(--font-heading);">Physical Profile & Caloric Pace</h2>
+            <button type="button" id="close-profile-modal" style="background: rgba(255,255,255,0.08); border: 1px solid var(--border-glass); color: var(--text-primary); font-size: 1.25rem; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.2s;" title="Close Modal">&times;</button>
           </div>
 
-          <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.5rem;">
+          <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.25rem;">
             We calculate your BMR, TDEE, and exact daily caloric pace automatically based on your physical metrics.
           </p>
 
@@ -78,9 +83,12 @@ export class ProfileManager {
               </select>
             </div>
 
-            <button type="submit" id="prof-submit-btn" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">
-              Save Physical Profile & Target Budget
-            </button>
+            <div style="display: flex; gap: 0.75rem; margin-top: 1.25rem;">
+              <button type="button" id="btn-cancel-profile" class="btn" style="flex: 1; padding: 0.6rem;">Cancel</button>
+              <button type="submit" id="prof-submit-btn" class="btn btn-primary" style="flex: 2; padding: 0.6rem;">
+                Save Physical Profile
+              </button>
+            </div>
           </form>
         </div>
       </div>
@@ -90,48 +98,98 @@ export class ProfileManager {
   }
 
   static bindEvents() {
-    const modal = document.getElementById('profile-modal');
-    const form = document.getElementById('profile-form');
-    const submitBtn = document.getElementById('prof-submit-btn');
-    const errorBox = document.getElementById('profile-error');
+    const closeModal = () => {
+      const modal = document.getElementById('profile-modal');
+      if (modal) modal.classList.remove('active');
+    };
 
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      errorBox.style.display = 'none';
-      submitBtn.disabled = true;
-      submitBtn.textContent = 'Calculating Targets...';
+    document.addEventListener('click', (e) => {
+      if (e.target && (e.target.id === 'close-profile-modal' || e.target.id === 'btn-cancel-profile' || e.target.closest('#close-profile-modal') || e.target.closest('#btn-cancel-profile'))) {
+        closeModal();
+      }
+    });
 
-      const payload = {
-        name: document.getElementById('prof-name').value.trim(),
-        sex: document.getElementById('prof-sex').value,
-        birth_date: document.getElementById('prof-birthdate').value,
-        height_cm: parseFloat(document.getElementById('prof-height').value),
-        weight_kg: parseFloat(document.getElementById('prof-weight').value),
-        target_weight_kg: parseFloat(document.getElementById('prof-target-weight').value),
-        timeline_weeks: parseInt(document.getElementById('prof-timeline').value, 10),
-        activity_level: document.getElementById('prof-activity').value,
-      };
+    document.addEventListener('submit', async (e) => {
+      if (e.target && e.target.id === 'profile-form') {
+        e.preventDefault();
+        const form = e.target;
+        const submitBtn = document.getElementById('prof-submit-btn');
+        const errorBox = document.getElementById('profile-error');
 
-      try {
-        await APIClient.request(ENDPOINTS.PROFILE, {
-          method: 'POST',
-          body: JSON.stringify(payload),
-        });
+        errorBox.style.display = 'none';
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Calculating Targets...';
 
-        modal.classList.remove('active');
-        window.dispatchEvent(new Event('profile:updated'));
-      } catch (err) {
-        errorBox.textContent = err.message;
-        errorBox.style.display = 'block';
-      } finally {
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Save Physical Profile & Target Budget';
+        const isEdit = form.getAttribute('data-is-edit') === 'true';
+
+        const payload = {
+          name: document.getElementById('prof-name').value.trim(),
+          sex: document.getElementById('prof-sex').value,
+          birth_date: document.getElementById('prof-birthdate').value,
+          height_cm: parseFloat(document.getElementById('prof-height').value),
+          weight_kg: parseFloat(document.getElementById('prof-weight').value),
+          target_weight_kg: parseFloat(document.getElementById('prof-target-weight').value),
+          timeline_weeks: parseInt(document.getElementById('prof-timeline').value, 10),
+          activity_level: document.getElementById('prof-activity').value,
+        };
+
+        try {
+          if (isEdit) {
+            await APIClient.request(`${ENDPOINTS.PROFILE}/me`, {
+              method: 'PUT',
+              body: JSON.stringify(payload),
+            });
+          } else {
+            await APIClient.request(ENDPOINTS.PROFILE, {
+              method: 'POST',
+              body: JSON.stringify(payload),
+            });
+          }
+
+          closeModal();
+          window.dispatchEvent(new Event('profile:updated'));
+        } catch (err) {
+          errorBox.textContent = err.message;
+          errorBox.style.display = 'block';
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Save Physical Profile';
+        }
       }
     });
   }
 
-  static showModal() {
+  static async showModal() {
+    this.renderModal();
     const modal = document.getElementById('profile-modal');
+    const form = document.getElementById('profile-form');
+
     if (modal) modal.classList.add('active');
+
+    // Fetch and pre-populate existing details
+    try {
+      const profile = await APIClient.request(ENDPOINTS.PROFILE_ME);
+      if (profile && form) {
+        document.getElementById('prof-name').value = profile.name || '';
+        document.getElementById('prof-sex').value = profile.sex || 'male';
+        if (profile.birth_date) {
+          document.getElementById('prof-birthdate').value = String(profile.birth_date).substring(0, 10);
+        }
+        document.getElementById('prof-height').value = profile.height_cm || '';
+        document.getElementById('prof-weight').value = profile.weight_kg || '';
+        document.getElementById('prof-target-weight').value = profile.target_weight_kg || '';
+        document.getElementById('prof-timeline').value = profile.timeline_weeks || '';
+        document.getElementById('prof-activity').value = profile.activity_level || 'sedentary';
+
+        form.setAttribute('data-is-edit', 'true');
+        const titleEl = document.getElementById('profile-modal-title');
+        if (titleEl) titleEl.textContent = 'Edit Physical Profile';
+      }
+    } catch (err) {
+      console.warn('First time profile setup or load error:', err.message);
+      if (form) form.removeAttribute('data-is-edit');
+      const titleEl = document.getElementById('profile-modal-title');
+      if (titleEl) titleEl.textContent = 'Set Up Your Physical Profile';
+    }
   }
 }
