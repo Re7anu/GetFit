@@ -16,6 +16,8 @@ export const ENDPOINTS = {
   MEALS_AI: `${API_BASE_URL}/nutrition/meals/ai-parse`,
   MEALS_TODAY: `${API_BASE_URL}/nutrition/meals/today`,
   NUTRITION_SUMMARY: `${API_BASE_URL}/nutrition/summary/today`,
+  NUTRITION_HISTORY: `${API_BASE_URL}/nutrition/history`,
+  DAY_DETAIL: `${API_BASE_URL}/nutrition/day-detail`,
   
   // Exercises & Workouts
   EXERCISES: `${API_BASE_URL}/exercises/logs`,

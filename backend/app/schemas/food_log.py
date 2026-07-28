@@ -71,3 +71,16 @@ class DailyNutritionSummary(BaseModel):
     consumed_fat_g: float
 
     meals_logged_today: List[FoodLogResponse]
+
+
+class DailyHistorySnapshot(BaseModel):
+    """Pydantic schema for historical daily calorie & protein goal performance."""
+
+    date: str
+    goal_type: str
+    adjusted_calorie_target: int
+    consumed_calories: int
+    target_protein_g: float
+    consumed_protein_g: float
+    is_goal_hit: bool
+    status_reason: str

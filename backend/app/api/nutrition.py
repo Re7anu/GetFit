@@ -6,7 +6,13 @@ from sqlalchemy.orm import Session
 from app.core.auth_dependencies import get_current_user
 from app.db.models.user_auth import UserAuth
 from app.db.session import get_db
-from app.schemas.food_log import AIFoodParseRequest, DailyNutritionSummary, FoodLogCreate, FoodLogResponse
+from app.schemas.food_log import (
+    AIFoodParseRequest,
+    DailyHistorySnapshot,
+    DailyNutritionSummary,
+    FoodLogCreate,
+    FoodLogResponse,
+)
 from app.services import nutrition_service
 
 router = APIRouter()
@@ -69,3 +75,24 @@ def update_meal_log(
 ):
     """Updates an existing logged meal entry and recalculates daily caloric budget and macros."""
     return nutrition_service.update_meal_entry(db=db, user=current_user, meal_id=meal_id, meal_in=meal_in)
+
+
+@router.get("/history", response_model=List[DailyHistorySnapshot])
+def get_nutrition_history(
+    days: int = 30,
+    current_user: UserAuth = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Retrieves daily historical snapshots evaluating goal achievement (calories & protein) over past N days."""
+    from app.schemas.food_log import DailyHistorySnapshot
+    return nutrition_service.get_user_nutrition_history(db=db, user=current_user, days=days)
+
+
+@router.get("/day-detail")
+def get_day_detail(
+    target_date: str,
+    current_user: UserAuth = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Retrieves full detailed food and exercise log breakdown for a specific date (YYYY-MM-DD)."""
+    return nutrition_service.get_day_detail_summary(db=db, user=current_user, target_date_str=target_date)
