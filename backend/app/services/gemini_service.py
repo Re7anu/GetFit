@@ -1,11 +1,13 @@
-"""Google Gemini AI Service module using the official google-genai SDK."""
+"""Google Gemini AI Service module using official google-genai SDK structured outputs with response_schema."""
 
-import json
-import re
-from typing import Any, Dict
+from typing import Type, TypeVar
 from fastapi import HTTPException, status
 from google import genai
+from google.genai import types
+from pydantic import BaseModel
 from app.config.settings import settings
+
+T = TypeVar("T", bound=BaseModel)
 
 
 def get_genai_client() -> genai.Client:
@@ -25,14 +27,15 @@ def get_genai_client() -> genai.Client:
     return genai.Client(api_key=settings.GEMINI_API_KEY)
 
 
-def generate_content(prompt: str) -> str:
-    """Executes a content generation request using the official Google GenAI SDK (gemini-2.5-flash).
+def generate_structured_output(prompt: str, response_schema: Type[T]) -> T:
+    """Generates structured output directly parsed into a Pydantic model using official Google GenAI SDK.
 
     Args:
-        prompt: Prompt string.
+        prompt: Prompt string detailing the task or user input.
+        response_schema: Pydantic model class defining the expected response schema.
 
     Returns:
-        Generated text response string.
+        Validated instance of the provided Pydantic model class (response.parsed).
 
     Raises:
         HTTPException: If API key is missing or request fails.
@@ -42,34 +45,21 @@ def generate_content(prompt: str) -> str:
         response = client.models.generate_content(
             model=settings.GEMINI_MODEL_NAME,
             contents=prompt,
+            config=types.GenerateContentConfig(
+                response_mime_type="application/json",
+                response_schema=response_schema,
+            ),
         )
-        return response.text
+        if not response.parsed:
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail="Gemini API returned an empty or unparseable structured response.",
+            )
+        return response.parsed
     except Exception as e:
         if isinstance(e, HTTPException):
             raise e
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error communicating with Google GenAI service: {str(e)}",
-        )
-
-
-def generate_json(prompt: str) -> Dict[str, Any]:
-    """Generates structured JSON using Google GenAI SDK, stripping markdown code fences.
-
-    Args:
-        prompt: Structured JSON prompt text.
-
-    Returns:
-        Parsed dictionary.
-    """
-    raw_text = generate_content(prompt)
-    cleaned = raw_text.strip()
-    cleaned = re.sub(r"^```(?:json)?\s*", "", cleaned, flags=re.IGNORECASE)
-    cleaned = re.sub(r"\s*```$", "", cleaned)
-    try:
-        return json.loads(cleaned)
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_502_BAD_GATEWAY,
-            detail=f"Failed to parse structured JSON from Gemini response: {cleaned}",
         )

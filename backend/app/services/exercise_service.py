@@ -55,7 +55,7 @@ def create_workout_entry(db: Session, user: UserAuth, workout_in: ExerciseLogCre
 
 
 def create_workout_entry_via_ai(db: Session, user: UserAuth, prompt_in: AIExerciseParseRequest) -> ExerciseLog:
-    """Parses natural language workout text using Gemini AI and creates a new ExerciseLog entry.
+    """Parses natural language workout text using Gemini AI response_schema and creates a new ExerciseLog entry.
 
     Args:
         db: Database session.
@@ -66,17 +66,21 @@ def create_workout_entry_via_ai(db: Session, user: UserAuth, prompt_in: AIExerci
         Created ExerciseLog model instance.
     """
     from app.core.prompts import EXERCISE_PARSING_PROMPT_TEMPLATE
+    from app.schemas.exercise_log import AIExerciseParseResult
     from app.services import gemini_service
 
     prompt = EXERCISE_PARSING_PROMPT_TEMPLATE.format(text_prompt=prompt_in.text_prompt)
-    ai_parsed = gemini_service.generate_json(prompt)
+    parsed_result: AIExerciseParseResult = gemini_service.generate_structured_output(
+        prompt=prompt,
+        response_schema=AIExerciseParseResult,
+    )
 
     workout_in = ExerciseLogCreate(
-        exercise_name=ai_parsed.get("exercise_name", prompt_in.text_prompt),
-        duration_minutes=float(ai_parsed.get("duration_minutes", 30.0)),
-        met_value=float(ai_parsed.get("met_value", 3.5)),
+        exercise_name=parsed_result.exercise_name,
+        duration_minutes=parsed_result.duration_minutes,
+        met_value=parsed_result.met_value,
         input_method="ai_nlp",
-        notes=ai_parsed.get("notes"),
+        notes=parsed_result.notes,
     )
     return create_workout_entry(db=db, user=user, workout_in=workout_in)
 

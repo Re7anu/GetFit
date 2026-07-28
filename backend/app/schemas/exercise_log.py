@@ -27,6 +27,15 @@ class AIExerciseParseRequest(BaseModel):
     text_prompt: str = Field(..., min_length=2, description="Natural language description of workout e.g. '45 mins heavy squats'")
 
 
+class AIExerciseParseResult(BaseModel):
+    """Structured Pydantic schema passed to Gemini response_schema for exercise parsing."""
+
+    exercise_name: str = Field(..., description="Concise clean exercise title or sport name")
+    duration_minutes: float = Field(30.0, ge=0, description="Workout duration in minutes")
+    met_value: float = Field(3.5, ge=0, description="Scientific Ainsworth MET value of exercise")
+    notes: Optional[str] = None
+
+
 class ExerciseLogResponse(ExerciseLogBase):
     """Pydantic schema for serialized exercise log entry response."""
 

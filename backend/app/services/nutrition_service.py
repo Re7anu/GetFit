@@ -40,7 +40,7 @@ def create_meal_entry(db: Session, user: UserAuth, meal_in: FoodLogCreate) -> Fo
 
 
 def create_meal_entry_via_ai(db: Session, user: UserAuth, prompt_in: AIFoodParseRequest) -> FoodLog:
-    """Parses natural language meal text using Gemini AI and creates a new FoodLog entry.
+    """Parses natural language meal text using Gemini AI response_schema and creates a new FoodLog entry.
 
     Args:
         db: Database session.
@@ -51,19 +51,23 @@ def create_meal_entry_via_ai(db: Session, user: UserAuth, prompt_in: AIFoodParse
         Created FoodLog model instance.
     """
     from app.core.prompts import FOOD_PARSING_PROMPT_TEMPLATE
+    from app.schemas.food_log import AIFoodParseResult
     from app.services import gemini_service
 
     prompt = FOOD_PARSING_PROMPT_TEMPLATE.format(text_prompt=prompt_in.text_prompt)
-    ai_parsed = gemini_service.generate_json(prompt)
+    parsed_result: AIFoodParseResult = gemini_service.generate_structured_output(
+        prompt=prompt,
+        response_schema=AIFoodParseResult,
+    )
 
     meal_in = FoodLogCreate(
-        meal_type=ai_parsed.get("meal_type", "snack"),
-        description=ai_parsed.get("description", prompt_in.text_prompt),
-        calories=ai_parsed.get("calories", 0),
-        protein_g=ai_parsed.get("protein_g", 0.0),
-        carbs_g=ai_parsed.get("carbs_g", 0.0),
-        fat_g=ai_parsed.get("fat_g", 0.0),
-        quantity_g=ai_parsed.get("quantity_g"),
+        meal_type=parsed_result.meal_type,
+        description=parsed_result.description,
+        calories=parsed_result.calories,
+        protein_g=parsed_result.protein_g,
+        carbs_g=parsed_result.carbs_g,
+        fat_g=parsed_result.fat_g,
+        quantity_g=parsed_result.quantity_g,
         input_method="ai_nlp",
     )
     return create_meal_entry(db=db, user=user, meal_in=meal_in)

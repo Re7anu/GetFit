@@ -30,6 +30,18 @@ class AIFoodParseRequest(BaseModel):
     text_prompt: str = Field(..., min_length=2, description="Natural language description of food/meal e.g. '2 eggs and toast'")
 
 
+class AIFoodParseResult(BaseModel):
+    """Structured Pydantic schema passed to Gemini response_schema for food parsing."""
+
+    meal_type: str = Field(..., description="'breakfast', 'lunch', 'dinner', or 'snack'")
+    description: str = Field(..., description="Concise clean summary of food items")
+    calories: int = Field(..., ge=0, description="Estimated total kilocalories")
+    protein_g: float = Field(0.0, ge=0)
+    carbs_g: float = Field(0.0, ge=0)
+    fat_g: float = Field(0.0, ge=0)
+    quantity_g: Optional[float] = Field(None, ge=0)
+
+
 class FoodLogResponse(FoodLogBase):
     """Pydantic schema for serialized food log entry response."""
 
