@@ -237,3 +237,36 @@ def delete_meal_entry(db: Session, user: UserAuth, meal_id: str) -> bool:
     db.delete(meal)
     db.commit()
     return True
+
+
+def update_meal_entry(db: Session, user: UserAuth, meal_id: str, meal_in: FoodLogCreate) -> FoodLog:
+    """Updates an existing logged meal entry.
+
+    Args:
+        db: Database session.
+        user: Authenticated UserAuth entity.
+        meal_id: UUID of meal log.
+        meal_in: Updated meal values.
+
+    Returns:
+        Updated FoodLog model instance.
+    """
+    meal = db.query(FoodLog).filter(FoodLog.id == meal_id, FoodLog.user_id == user.id).first()
+    if not meal:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Meal entry not found or unauthorized.",
+        )
+
+    meal.meal_type = meal_in.meal_type.lower()
+    meal.description = meal_in.description
+    meal.calories = meal_in.calories
+    meal.protein_g = meal_in.protein_g
+    meal.carbs_g = meal_in.carbs_g
+    meal.fat_g = meal_in.fat_g
+    if meal_in.quantity_g is not None:
+        meal.quantity_g = meal_in.quantity_g
+
+    db.commit()
+    db.refresh(meal)
+    return meal

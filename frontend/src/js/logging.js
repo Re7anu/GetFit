@@ -1,4 +1,4 @@
-/* Logging Manager: Gemini AI Food Logger, 2-Step Structured Exercise Engine & Manual Modals */
+/* Logging Manager: Gemini AI Food Logger, 2-Step Structured Exercise Engine & Manual/Edit Modals */
 import { APIClient } from './api_client.js';
 import { ENDPOINTS } from './config.js';
 import { DashboardManager } from './dashboard.js';
@@ -11,6 +11,7 @@ export class LoggingManager {
     this.renderManualMealModal();
     this.renderManualExerciseModal();
     this.bindManualEvents();
+    this.bindEditEvent();
     this.loadExerciseCatalog();
   }
 
@@ -201,7 +202,7 @@ export class LoggingManager {
       <div id="manual-meal-modal" class="modal-overlay">
         <div class="modal-content">
           <div class="modal-header">
-            <h2>Log Manual Meal</h2>
+            <h2 id="meal-modal-title">Log Meal</h2>
             <button class="close-btn" id="close-meal-modal">&times;</button>
           </div>
           <form id="manual-meal-form">
@@ -238,7 +239,7 @@ export class LoggingManager {
                 <input type="number" step="0.1" id="m-meal-fat" class="form-input" placeholder="10" required />
               </div>
             </div>
-            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Save Meal</button>
+            <button type="submit" id="m-meal-submit-btn" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Save Meal</button>
           </form>
         </div>
       </div>
@@ -251,7 +252,7 @@ export class LoggingManager {
       <div id="manual-exercise-modal" class="modal-overlay">
         <div class="modal-content">
           <div class="modal-header">
-            <h2>Log 100% Manual Workout</h2>
+            <h2 id="ex-modal-title">Log Workout</h2>
             <button class="close-btn" id="close-exercise-modal">&times;</button>
           </div>
           <form id="manual-exercise-form">
@@ -269,7 +270,7 @@ export class LoggingManager {
                 <input type="number" step="0.1" id="m-ex-met" class="form-input" placeholder="7.0" value="7.0" required />
               </div>
             </div>
-            <button type="submit" class="btn btn-cobalt" style="width: 100%; margin-top: 1rem;">Save Manual Workout</button>
+            <button type="submit" id="m-ex-submit-btn" class="btn btn-cobalt" style="width: 100%; margin-top: 1rem;">Save Workout</button>
           </form>
         </div>
       </div>
@@ -277,15 +278,61 @@ export class LoggingManager {
     document.body.insertAdjacentHTML('beforeend', modalHTML);
   }
 
+  static bindEditEvent() {
+    window.addEventListener('activity:edit', (e) => {
+      const { id, type, meals, workouts } = e.detail;
+
+      if (type === 'meal') {
+        const meal = (meals || []).find(m => m.id === id);
+        if (!meal) return;
+
+        document.getElementById('meal-modal-title').textContent = 'Edit Logged Meal';
+        document.getElementById('m-meal-type').value = meal.meal_type.toLowerCase();
+        document.getElementById('m-meal-desc').value = meal.description;
+        document.getElementById('m-meal-cals').value = meal.calories;
+        document.getElementById('m-meal-protein').value = meal.protein_g;
+        document.getElementById('m-meal-carbs').value = meal.carbs_g;
+        document.getElementById('m-meal-fat').value = meal.fat_g;
+
+        const form = document.getElementById('manual-meal-form');
+        form.setAttribute('data-editing-id', id);
+        document.getElementById('manual-meal-modal').classList.add('active');
+      }
+
+      if (type === 'workout') {
+        const workout = (workouts || []).find(w => w.id === id);
+        if (!workout) return;
+
+        document.getElementById('ex-modal-title').textContent = 'Edit Logged Workout';
+        document.getElementById('m-ex-name').value = workout.exercise_name;
+        document.getElementById('m-ex-dur').value = workout.duration_minutes;
+        document.getElementById('m-ex-met').value = workout.met_value;
+
+        const form = document.getElementById('manual-exercise-form');
+        form.setAttribute('data-editing-id', id);
+        document.getElementById('manual-exercise-modal').classList.add('active');
+      }
+    });
+  }
+
   static bindManualEvents() {
     document.addEventListener('click', (e) => {
       if (e.target && e.target.id === 'btn-manual-meal') {
+        const form = document.getElementById('manual-meal-form');
+        form.removeAttribute('data-editing-id');
+        form.reset();
+        document.getElementById('meal-modal-title').textContent = 'Log Manual Meal';
         document.getElementById('manual-meal-modal').classList.add('active');
       }
       if (e.target && e.target.id === 'close-meal-modal') {
         document.getElementById('manual-meal-modal').classList.remove('active');
       }
       if (e.target && e.target.id === 'btn-manual-exercise') {
+        const form = document.getElementById('manual-exercise-form');
+        form.removeAttribute('data-editing-id');
+        form.reset();
+        document.getElementById('ex-modal-title').textContent = 'Log 100% Manual Workout';
+        document.getElementById('manual-exercise-modal').classList.remove('active');
         document.getElementById('manual-exercise-modal').classList.add('active');
       }
       if (e.target && e.target.id === 'close-exercise-modal') {
@@ -296,6 +343,7 @@ export class LoggingManager {
     document.addEventListener('submit', async (e) => {
       if (e.target && e.target.id === 'manual-meal-form') {
         e.preventDefault();
+        const editingId = e.target.getAttribute('data-editing-id');
         const payload = {
           meal_type: document.getElementById('m-meal-type').value,
           description: document.getElementById('m-meal-desc').value,
@@ -304,20 +352,35 @@ export class LoggingManager {
           carbs_g: parseFloat(document.getElementById('m-meal-carbs').value),
           fat_g: parseFloat(document.getElementById('m-meal-fat').value),
         };
-        await APIClient.request(ENDPOINTS.MEALS, { method: 'POST', body: JSON.stringify(payload) });
+
+        if (editingId) {
+          await APIClient.request(`${ENDPOINTS.MEALS}/${editingId}`, { method: 'PUT', body: JSON.stringify(payload) });
+          e.target.removeAttribute('data-editing-id');
+        } else {
+          await APIClient.request(ENDPOINTS.MEALS, { method: 'POST', body: JSON.stringify(payload) });
+        }
+
         document.getElementById('manual-meal-modal').classList.remove('active');
         await DashboardManager.fetchAndRenderData();
       }
 
       if (e.target && e.target.id === 'manual-exercise-form') {
         e.preventDefault();
+        const editingId = e.target.getAttribute('data-editing-id');
         const payload = {
           exercise_name: document.getElementById('m-ex-name').value,
           duration_minutes: parseFloat(document.getElementById('m-ex-dur').value),
           met_value: parseFloat(document.getElementById('m-ex-met').value),
           input_method: 'manual',
         };
-        await APIClient.request(ENDPOINTS.EXERCISES, { method: 'POST', body: JSON.stringify(payload) });
+
+        if (editingId) {
+          await APIClient.request(`${ENDPOINTS.EXERCISES}/${editingId}`, { method: 'PUT', body: JSON.stringify(payload) });
+          e.target.removeAttribute('data-editing-id');
+        } else {
+          await APIClient.request(ENDPOINTS.EXERCISES, { method: 'POST', body: JSON.stringify(payload) });
+        }
+
         document.getElementById('manual-exercise-modal').classList.remove('active');
         await DashboardManager.fetchAndRenderData();
       }

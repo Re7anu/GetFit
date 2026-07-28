@@ -251,6 +251,10 @@ export class DashboardManager {
     const container = document.getElementById('activity-list');
     if (!container) return;
 
+    // Store raw lists for editing lookup
+    this.rawMeals = meals || [];
+    this.rawWorkouts = workouts || [];
+
     // Standardize timeline entries
     const mealItems = (meals || []).map(m => ({
       id: m.id,
@@ -280,7 +284,7 @@ export class DashboardManager {
     }
 
     container.innerHTML = combined.map(item => `
-      <div style="background: rgba(9, 12, 16, 0.6); border: 1px solid var(--border-glass); border-radius: 10px; padding: 0.75rem 1rem; display: flex; justify-content: space-between; align-items: center;">
+      <div class="activity-card-row" style="background: rgba(9, 12, 16, 0.6); border: 1px solid var(--border-glass); border-radius: 10px; padding: 0.75rem 1rem; display: flex; justify-content: space-between; align-items: center; position: relative;">
         <div>
           <div style="font-weight: 600; font-size: 0.9rem; display: flex; align-items: center; gap: 0.4rem;">
             <span>${item.type === 'meal' ? '🥗' : '⚡'}</span> ${item.title}
@@ -289,34 +293,85 @@ export class DashboardManager {
             ${item.subtitle}
           </div>
         </div>
-        <div style="display: flex; align-items: center; gap: 0.75rem;">
+        <div style="display: flex; align-items: center; gap: 1rem; position: relative;">
           <div style="font-family: var(--font-heading); font-weight: 700; color: ${item.color};">
             ${item.calories}
           </div>
-          <button class="delete-activity-btn" data-id="${item.id}" data-type="${item.type}" style="background: transparent; border: none; color: var(--text-muted); font-size: 1.2rem; cursor: pointer; padding: 0 0.25rem; transition: color 0.2s;" title="Delete Entry">
-            &times;
-          </button>
+          
+          <!-- Sleek Kebab 3-Dots Menu -->
+          <div class="kebab-wrapper" style="position: relative;">
+            <button class="kebab-btn" style="background: transparent; border: none; color: var(--text-secondary); font-size: 1.25rem; cursor: pointer; padding: 0 0.4rem;" title="Options">
+              &#8942;
+            </button>
+            <div class="kebab-menu" style="display: none; position: absolute; right: 0; top: 110%; background: #161B22; border: 1px solid var(--border-glass); border-radius: 10px; padding: 0.4rem; min-width: 120px; box-shadow: var(--shadow-card); z-index: 100;">
+              <button class="kebab-item action-edit" data-id="${item.id}" data-type="${item.type}" style="width: 100%; text-align: left; background: transparent; border: none; color: var(--text-primary); padding: 0.4rem 0.6rem; font-size: 0.85rem; cursor: pointer; border-radius: 6px; display: flex; align-items: center; gap: 0.4rem;">
+                ✏️ Edit
+              </button>
+              <button class="kebab-item action-delete" data-id="${item.id}" data-type="${item.type}" style="width: 100%; text-align: left; background: transparent; border: none; color: #EF4444; padding: 0.4rem 0.6rem; font-size: 0.85rem; cursor: pointer; border-radius: 6px; display: flex; align-items: center; gap: 0.4rem;">
+                🗑️ Delete
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     `).join('');
 
-    this.bindDeleteHandlers();
+    this.bindKebabHandlers();
   }
 
-  static bindDeleteHandlers() {
-    document.querySelectorAll('.delete-activity-btn').forEach(btn => {
+  static bindKebabHandlers() {
+    // Toggle Kebab Menu Dropdown
+    document.querySelectorAll('.kebab-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const menu = btn.nextElementSibling;
+        document.querySelectorAll('.kebab-menu').forEach(m => {
+          if (m !== menu) m.style.display = 'none';
+        });
+        menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+      });
+    });
+
+    // Close menus when clicking outside
+    document.addEventListener('click', () => {
+      document.querySelectorAll('.kebab-menu').forEach(m => m.style.display = 'none');
+    });
+
+    // Handle Delete Click
+    document.querySelectorAll('.action-delete').forEach(btn => {
       btn.addEventListener('click', async (e) => {
-        const id = e.target.getAttribute('data-id');
-        const type = e.target.getAttribute('data-type');
+        const id = btn.getAttribute('data-id');
+        const type = btn.getAttribute('data-type');
         if (!id || !type) return;
+
+        const card = btn.closest('.activity-card-row');
+        if (card) {
+          card.style.opacity = '0.3';
+          card.style.pointerEvents = 'none';
+        }
 
         try {
           const endpoint = type === 'meal' ? `${ENDPOINTS.MEALS}/${id}` : `${ENDPOINTS.EXERCISES}/${id}`;
           await APIClient.request(endpoint, { method: 'DELETE' });
-          await this.fetchAndRenderData();
+          await DashboardManager.fetchAndRenderData();
         } catch (err) {
           console.error(`Failed to delete ${type}:`, err);
+          if (card) {
+            card.style.opacity = '1';
+            card.style.pointerEvents = 'auto';
+          }
         }
+      });
+    });
+
+    // Handle Edit Click
+    document.querySelectorAll('.action-edit').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const id = btn.getAttribute('data-id');
+        const type = btn.getAttribute('data-type');
+        if (!id || !type) return;
+
+        window.dispatchEvent(new CustomEvent('activity:edit', { detail: { id, type, meals: this.rawMeals, workouts: this.rawWorkouts } }));
       });
     });
   }

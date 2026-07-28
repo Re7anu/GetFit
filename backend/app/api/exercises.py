@@ -75,3 +75,14 @@ def delete_exercise_log(
 ):
     """Deletes a logged workout entry and automatically recalculates daily caloric budget and macros."""
     exercise_service.delete_workout_entry(db=db, user=current_user, workout_id=workout_id)
+
+
+@router.put("/logs/{workout_id}", response_model=ExerciseLogResponse)
+def update_exercise_log(
+    workout_id: str,
+    workout_in: ExerciseLogCreate,
+    current_user: UserAuth = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Updates an existing logged workout entry and recalculates Net MET calories burned."""
+    return exercise_service.update_workout_entry(db=db, user=current_user, workout_id=workout_id, workout_in=workout_in)

@@ -230,3 +230,48 @@ def delete_workout_entry(db: Session, user: UserAuth, workout_id: str) -> bool:
     db.delete(workout)
     db.commit()
     return True
+
+
+def update_workout_entry(db: Session, user: UserAuth, workout_id: str, workout_in: ExerciseLogCreate) -> ExerciseLog:
+    """Updates an existing logged workout entry and recalculates Net MET calories burned.
+
+    Args:
+        db: Database session.
+        user: Authenticated UserAuth entity.
+        workout_id: UUID of exercise log.
+        workout_in: Updated workout values.
+
+    Returns:
+        Updated ExerciseLog model instance.
+    """
+    profile = user.profile
+    if not profile:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Physical profile not found.",
+        )
+
+    workout = db.query(ExerciseLog).filter(ExerciseLog.id == workout_id, ExerciseLog.user_id == user.id).first()
+    if not workout:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Workout entry not found or unauthorized.",
+        )
+
+    net_calories_burned = calculate_net_exercise_calories(
+        met=workout_in.met_value,
+        weight_kg=profile.weight_kg,
+        duration_minutes=workout_in.duration_minutes,
+        activity_level=profile.activity_level,
+    )
+
+    workout.exercise_name = workout_in.exercise_name
+    workout.duration_minutes = workout_in.duration_minutes
+    workout.met_value = workout_in.met_value
+    workout.calories_burned = net_calories_burned
+    if workout_in.notes is not None:
+        workout.notes = workout_in.notes
+
+    db.commit()
+    db.refresh(workout)
+    return workout

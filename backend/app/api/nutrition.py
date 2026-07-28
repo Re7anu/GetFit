@@ -58,3 +58,14 @@ def delete_meal_log(
 ):
     """Deletes a logged meal entry and automatically recalculates daily caloric budget and macros."""
     nutrition_service.delete_meal_entry(db=db, user=current_user, meal_id=meal_id)
+
+
+@router.put("/meals/{meal_id}", response_model=FoodLogResponse)
+def update_meal_log(
+    meal_id: str,
+    meal_in: FoodLogCreate,
+    current_user: UserAuth = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Updates an existing logged meal entry and recalculates daily caloric budget and macros."""
+    return nutrition_service.update_meal_entry(db=db, user=current_user, meal_id=meal_id, meal_in=meal_in)

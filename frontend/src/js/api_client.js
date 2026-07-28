@@ -62,6 +62,10 @@ export class APIClient {
         throw new Error(message);
       }
 
+      if (response.status === 204) {
+        return null;
+      }
+
       return await response.json();
     } catch (error) {
       console.error(`[API Client Error] ${url}:`, error.message);
