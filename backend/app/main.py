@@ -28,14 +28,11 @@ app.include_router(nutrition.router, prefix=f"{settings.API_V1_STR}/nutrition", 
 app.include_router(exercises.router, prefix=f"{settings.API_V1_STR}/exercises", tags=["exercises"])
 
 
-@app.get("/")
-def read_root():
-    """Root welcome endpoint for API status check.
+import os
+from fastapi.staticfiles import StaticFiles
 
-    Returns:
-        Welcome message JSON response.
-    """
-    return {"message": "Welcome to GetFit User Authentication API. Go to /docs for Swagger API documentation."}
+# Mount Frontend Web Application
+frontend_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "frontend"))
+if os.path.exists(frontend_dir):
+    app.mount("/", StaticFiles(directory=frontend_dir, html=True), name="frontend")
 
-
-# Updated schema validation for Google GenAI SDK: ge=0
