@@ -6,10 +6,27 @@ from sqlalchemy.orm import Session
 from app.core.auth_dependencies import get_current_user
 from app.db.models.user_auth import UserAuth
 from app.db.session import get_db
-from app.schemas.exercise_log import AIExerciseParseRequest, DailyExerciseSummary, ExerciseLogCreate, ExerciseLogResponse
+from app.core.exercise_catalog import get_exercise_catalog_list
+from app.schemas.exercise_log import AIExerciseParseRequest, DailyExerciseSummary, ExerciseLogCreate, ExerciseLogResponse, StructuredExerciseCreate
 from app.services import exercise_service
 
 router = APIRouter()
+
+
+@router.get("/catalog")
+def get_exercise_catalog():
+    """Retrieves the list of supported structured exercise catalog items."""
+    return get_exercise_catalog_list()
+
+
+@router.post("/logs/structured", response_model=ExerciseLogResponse, status_code=status.HTTP_201_CREATED)
+def create_structured_exercise_log(
+    structured_in: StructuredExerciseCreate,
+    current_user: UserAuth = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Creates a workout entry using structured exercise catalog metrics."""
+    return exercise_service.create_structured_workout_entry(db=db, user=current_user, structured_in=structured_in)
 
 
 @router.post("/logs", response_model=ExerciseLogResponse, status_code=status.HTTP_201_CREATED)

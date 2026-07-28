@@ -152,6 +152,48 @@ def calculate_user_today_nutrition_summary(db: Session, user: UserAuth) -> Daily
     adjusted_target = base_target + exercise_burn
     remaining_cals = adjusted_target - consumed_cals
 
+    # Activity-Specific Sports Nutrition Macro Recovery Allocation Engine
+    today_workouts = (
+        db.query(ExerciseLog)
+        .filter(
+            ExerciseLog.user_id == user.id,
+            ExerciseLog.logged_at >= today_start,
+            ExerciseLog.logged_at <= today_end,
+        )
+        .all()
+    )
+
+    cardio_burn = 0
+    strength_burn = 0
+    general_burn = 0
+
+    from app.core.exercise_catalog import EXERCISE_CATALOG
+
+    for w in today_workouts:
+        # Match exercise catalog category or fallback based on name
+        matched_cat = "general"
+        name_lower = w.exercise_name.lower()
+        for cat_id, cat_info in EXERCISE_CATALOG.items():
+            if cat_info["name"].lower() in name_lower or cat_id in name_lower:
+                matched_cat = cat_info["category"]
+                break
+        
+        if matched_cat == "distance" or any(k in name_lower for k in ["run", "cycle", "swim", "row", "walk", "hiit", "soccer"]):
+            cardio_burn += w.calories_burned
+        elif matched_cat == "reps" or any(k in name_lower for k in ["push", "pull", "squat", "bench", "lift", "press", "curl", "lunge", "dip", "crunch", "burpee"]):
+            strength_burn += w.calories_burned
+        else:
+            general_burn += w.calories_burned
+
+    # Calculate specific recovery macro additions (in grams)
+    extra_protein_g = ((strength_burn * 0.50) + (cardio_burn * 0.20) + (general_burn * 0.30)) / 4.0
+    extra_carbs_g = ((cardio_burn * 0.65) + (strength_burn * 0.35) + (general_burn * 0.40)) / 4.0
+    extra_fat_g = ((cardio_burn * 0.15) + (strength_burn * 0.15) + (general_burn * 0.30)) / 9.0
+
+    adj_target_protein = round(profile.calculated_protein_target_g + extra_protein_g, 1)
+    adj_target_carb = round(profile.calculated_carb_target_g + extra_carbs_g, 1)
+    adj_target_fat = round(profile.calculated_fat_target_g + extra_fat_g, 1)
+
     # Format meal responses for Pydantic serialization
     meal_responses = [FoodLogResponse.model_validate(m) for m in meals]
 
@@ -161,11 +203,11 @@ def calculate_user_today_nutrition_summary(db: Session, user: UserAuth) -> Daily
         adjusted_calorie_target=adjusted_target,
         consumed_calories=consumed_cals,
         remaining_calories=remaining_cals,
-        target_protein_g=profile.calculated_protein_target_g,
+        target_protein_g=adj_target_protein,
         consumed_protein_g=round(consumed_protein, 1),
-        target_carb_g=profile.calculated_carb_target_g,
+        target_carb_g=adj_target_carb,
         consumed_carb_g=round(consumed_carbs, 1),
-        target_fat_g=profile.calculated_fat_target_g,
+        target_fat_g=adj_target_fat,
         consumed_fat_g=round(consumed_fat, 1),
         meals_logged_today=meal_responses,
     )

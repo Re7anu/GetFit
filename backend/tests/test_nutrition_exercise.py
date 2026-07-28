@@ -194,3 +194,39 @@ def test_ai_food_and_exercise_logging_flow(client, db_session, monkeypatch):
     assert ex_data["exercise_name"] == "Heavy Squats Workout"
     # Net MET = 6.0 - 1.2 = 4.8 * 80 * 0.75 = 288 kcal
     assert ex_data["calories_burned"] == 288
+
+
+def test_exercise_catalog_and_structured_logging(client, db_session):
+    """Tests GET /exercises/catalog and POST /exercises/logs/structured for rep-based and distance-based activities."""
+    user = create_user_with_profile(db_session, email="cataloguser@getfit.com")
+    access_token = create_access_token(user.id)
+    headers = {"Authorization": f"Bearer {access_token}"}
+
+    # 1. Fetch catalog
+    res_cat = client.get("/api/v1/exercises/catalog")
+    assert res_cat.status_code == 200
+    catalog = res_cat.json()
+    assert len(catalog) >= 20
+
+    # 2. Log 3 sets x 20 reps Pushups (Total 60 reps)
+    pushup_payload = {
+        "exercise_id": "pushups",
+        "sets": 3,
+        "reps": 20,
+    }
+    res_p = client.post("/api/v1/exercises/logs/structured", json=pushup_payload, headers=headers)
+    assert res_p.status_code == 201
+    p_data = res_p.json()
+    assert p_data["exercise_name"] == "Push-ups"
+    assert "3 sets × 20 reps" in p_data["notes"]
+
+    # 3. Log 10 km outdoor running
+    run_payload = {
+        "exercise_id": "running_outdoor",
+        "distance_km": 10.0,
+    }
+    res_r = client.post("/api/v1/exercises/logs/structured", json=run_payload, headers=headers)
+    assert res_r.status_code == 201
+    r_data = res_r.json()
+    assert r_data["exercise_name"] == "Outdoor Running"
+    assert r_data["duration_minutes"] == 60.0  # 10 km at 10 km/h = 60 mins
