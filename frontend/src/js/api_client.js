@@ -58,7 +58,7 @@ export class APIClient {
 
       if (!response.ok) {
         const errData = await response.json().catch(() => ({}));
-        const message = errData.detail || `HTTP Error ${response.status}`;
+        const message = this.formatErrorMessage(errData, response.status);
         throw new Error(message);
       }
 
@@ -92,5 +92,45 @@ export class APIClient {
     } catch (err) {
       return false;
     }
+  }
+
+  static formatErrorMessage(errData, status) {
+    if (!errData) return `HTTP Error ${status}`;
+
+    // 1. Direct string detail
+    if (typeof errData.detail === 'string') {
+      return errData.detail;
+    }
+
+    // 2. Single detail object: { msg: "..." } or { loc: [...], msg: "..." }
+    if (errData.detail && typeof errData.detail === 'object' && !Array.isArray(errData.detail)) {
+      let msg = errData.detail.msg || errData.detail.message || JSON.stringify(errData.detail);
+      if (typeof msg === 'string' && msg.startsWith('Value error, ')) {
+        msg = msg.replace('Value error, ', '');
+      }
+      return msg;
+    }
+
+    // 3. Array of detail objects: [{ msg: "..." }, ...]
+    if (Array.isArray(errData.detail)) {
+      return errData.detail
+        .map(item => {
+          if (typeof item === 'string') return item;
+          let msg = item.msg || item.message || 'Invalid input value';
+          if (typeof msg === 'string' && msg.startsWith('Value error, ')) {
+            msg = msg.replace('Value error, ', '');
+          }
+          const field = item.loc ? item.loc[item.loc.length - 1] : '';
+          const fieldName = (field && field !== 'body') ? field.charAt(0).toUpperCase() + field.slice(1) : '';
+          return fieldName ? `${fieldName}: ${msg}` : msg;
+        })
+        .join('\n');
+    }
+
+    // 4. Other string error properties
+    if (typeof errData.message === 'string') return errData.message;
+    if (typeof errData.error === 'string') return errData.error;
+
+    return `HTTP Error ${status}`;
   }
 }

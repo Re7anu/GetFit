@@ -102,7 +102,8 @@ export class AuthManager {
         modal.classList.remove('active');
         window.dispatchEvent(new Event('auth:success'));
       } catch (err) {
-        errorBox.textContent = err.message;
+        errorBox.innerText = err.message;
+        errorBox.style.whiteSpace = 'pre-line';
         errorBox.style.display = 'block';
       } finally {
         submitBtn.disabled = false;
