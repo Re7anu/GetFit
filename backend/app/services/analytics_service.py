@@ -4,7 +4,7 @@ from datetime import date, datetime, time, timedelta
 from typing import List, Dict, Any
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
-from app.db.models.food_log import FoodLog
+from app.db.models.nutrition_log import FoodLog
 from app.db.models.workout_log import WorkoutLog
 from app.db.models.user_auth import UserAuth
 from app.schemas.analytics import DailyHistorySnapshot
@@ -196,24 +196,45 @@ def get_day_detail_summary(db: Session, user: UserAuth, target_date_str: str) ->
         is_goal_hit = hit_cals and hit_protein
         reason = f"Consumed {consumed_cals} kcal vs {adjusted_target} target."
 
-    meal_responses = [FoodLogResponse.model_validate(m) for m in meals]
-    workout_responses = [WorkoutLogResponse.model_validate(w) for w in workouts]
+    from app.schemas.analytics import DayDetailResponse, DayDetailMealItem, DayDetailWorkoutItem
 
-    return {
-        "date": target_date_str,
-        "is_goal_hit": is_goal_hit,
-        "status_reason": reason,
-        "totals": {
-            "consumed_calories": consumed_cals,
-            "exercise_net_calories_burned": exercise_burn,
-            "base_calorie_target": base_target,
-            "adjusted_calorie_target": adjusted_target,
-            "remaining_calories": remaining_cals,
-            "consumed_protein_g": round(consumed_protein, 1),
-            "target_protein_g": target_protein,
-            "consumed_carb_g": round(consumed_carbs, 1),
-            "consumed_fat_g": round(consumed_fat, 1),
-        },
-        "meals": meal_responses,
-        "workouts": workout_responses,
-    }
+    return DayDetailResponse(
+        date=target_date_str,
+        goal_type=goal_type,
+        base_calorie_target=base_target,
+        exercise_net_calories_burned=exercise_burn,
+        adjusted_calorie_target=adjusted_target,
+        consumed_calories=consumed_cals,
+        remaining_calories=remaining_cals,
+        target_protein_g=target_protein,
+        consumed_protein_g=round(consumed_protein, 1),
+        target_carb_g=profile.calculated_carb_target_g,
+        consumed_carb_g=round(consumed_carbs, 1),
+        target_fat_g=profile.calculated_fat_target_g,
+        consumed_fat_g=round(consumed_fat, 1),
+        is_goal_hit=is_goal_hit,
+        status_reason=reason,
+        meals=[
+            DayDetailMealItem(
+                id=m.id,
+                meal_type=m.meal_type,
+                description=m.description,
+                calories=m.calories,
+                protein_g=m.protein_g,
+                carbs_g=m.carbs_g,
+                fat_g=m.fat_g,
+                time=m.logged_at.strftime("%I:%M %p"),
+            )
+            for m in meals
+        ],
+        workouts=[
+            DayDetailWorkoutItem(
+                id=w.id,
+                exercise_name=w.exercise_name,
+                duration_minutes=w.duration_minutes,
+                calories_burned=w.calories_burned,
+                time=w.logged_at.strftime("%I:%M %p"),
+            )
+            for w in workouts
+        ],
+    )

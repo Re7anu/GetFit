@@ -1,9 +1,7 @@
 """Pydantic schemas for Health & Workout Analytics reporting."""
 
-from typing import List, Dict, Any, Optional
+from typing import List, Optional
 from pydantic import BaseModel, ConfigDict, Field
-from app.schemas.food_log import FoodLogResponse
-from app.schemas.workout_log import WorkoutLogResponse
 
 
 class DailyHistorySnapshot(BaseModel):
@@ -19,15 +17,51 @@ class DailyHistorySnapshot(BaseModel):
     status_reason: str
 
 
+class DayDetailMealItem(BaseModel):
+    """Pydantic schema for individual meal summary item in day detail breakdown."""
+
+    id: str
+    meal_type: str
+    description: str
+    calories: int
+    protein_g: float
+    carbs_g: float
+    fat_g: float
+    time: str
+
+
+class DayDetailWorkoutItem(BaseModel):
+    """Pydantic schema for individual workout summary item in day detail breakdown."""
+
+    id: str
+    exercise_name: str
+    duration_minutes: float
+    calories_burned: int
+    time: str
+
+
 class DayDetailResponse(BaseModel):
     """Pydantic schema for single-day granular log breakdown."""
 
     date: str
+    goal_type: str
+    base_calorie_target: int
+    exercise_net_calories_burned: int
+    adjusted_calorie_target: int
+    consumed_calories: int
+    remaining_calories: int
+    target_protein_g: float
+    consumed_protein_g: float
+    target_carb_g: float
+    consumed_carb_g: float
+    target_fat_g: float
+    consumed_fat_g: float
     is_goal_hit: bool
     status_reason: str
-    totals: Dict[str, Any]
-    meals: List[FoodLogResponse]
-    workouts: List[WorkoutLogResponse]
+    meals: List[DayDetailMealItem]
+    workouts: List[DayDetailWorkoutItem]
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 class WorkoutAnalyticsSummary(BaseModel):
