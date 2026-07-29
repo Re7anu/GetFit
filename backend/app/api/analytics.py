@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from app.core.auth_dependencies import get_current_user
 from app.db.models.user_auth import UserAuth
 from app.db.session import get_db
-from app.schemas.analytics import DailyHistorySnapshot
+from app.schemas.analytics import DailyHistorySnapshot, DayDetailResponse
 from app.services import analytics_service
 
 router = APIRouter()
@@ -22,7 +22,7 @@ def get_nutrition_history(
     return analytics_service.get_user_nutrition_history(db=db, user=current_user, days=days)
 
 
-@router.get("/day-detail")
+@router.get("/day-detail", response_model=DayDetailResponse)
 def get_day_detail(
     date: str = FastAPIQuery(..., description="Target date formatted as YYYY-MM-DD"),
     current_user: UserAuth = Depends(get_current_user),

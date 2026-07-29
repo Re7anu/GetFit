@@ -1,4 +1,4 @@
-/* Authentication UI Handler Module */
+/* Authentication UI Handler Module with Live Password Constraints Tooltip */
 import { APIClient } from './api_client.js';
 import { ENDPOINTS } from './config.js';
 
@@ -9,9 +9,11 @@ export class AuthManager {
   }
 
   static renderAuthModal() {
+    if (document.getElementById('auth-modal')) return;
+
     const modalHTML = `
       <div id="auth-modal" class="modal-overlay">
-        <div class="modal-content">
+        <div class="modal-content" style="position: relative;">
           <div class="modal-header">
             <h2 id="auth-modal-title">Welcome to GetFit</h2>
           </div>
@@ -24,9 +26,21 @@ export class AuthManager {
               <input type="email" id="auth-email" class="form-input" placeholder="you@example.com" required />
             </div>
 
-            <div class="form-group">
+            <div class="form-group" style="position: relative;">
               <label class="form-label">Password</label>
               <input type="password" id="auth-password" class="form-input" placeholder="••••••••" required />
+              
+              <!-- Floating Password Constraints Tooltip -->
+              <div id="password-tooltip" class="password-tooltip" style="display: none;">
+                <div style="font-weight: 700; font-size: 0.75rem; color: var(--text-primary); margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;">
+                  Password Requirements
+                </div>
+                <div class="req-item" id="req-length"><span>⚪</span> Minimum 8 characters</div>
+                <div class="req-item" id="req-upper"><span>⚪</span> At least 1 uppercase letter (A-Z)</div>
+                <div class="req-item" id="req-lower"><span>⚪</span> At least 1 lowercase letter (a-z)</div>
+                <div class="req-item" id="req-number"><span>⚪</span> At least 1 number (0-9)</div>
+                <div class="req-item" id="req-special"><span>⚪</span> At least 1 special character (!@#$%^&*)</div>
+              </div>
             </div>
 
             <button type="submit" id="auth-submit-btn" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">
@@ -55,6 +69,50 @@ export class AuthManager {
     const togglePrompt = document.getElementById('auth-toggle-prompt');
     const toggleLink = document.getElementById('auth-toggle-link');
     const errorBox = document.getElementById('auth-error');
+    const passInput = document.getElementById('auth-password');
+    const tooltip = document.getElementById('password-tooltip');
+
+    const showTooltip = () => {
+      if (isSignUp && tooltip) tooltip.style.display = 'block';
+    };
+
+    const hideTooltip = () => {
+      if (tooltip && document.activeElement !== passInput) {
+        tooltip.style.display = 'none';
+      }
+    };
+
+    // Hover & Focus Event Listeners for Password Field
+    passInput.addEventListener('mouseenter', showTooltip);
+    passInput.addEventListener('mouseleave', hideTooltip);
+    passInput.addEventListener('focus', showTooltip);
+    passInput.addEventListener('blur', () => {
+      if (tooltip) tooltip.style.display = 'none';
+    });
+
+    // Real-time Live Password Validation Checkers
+    passInput.addEventListener('input', () => {
+      if (!isSignUp) return;
+      const val = passInput.value;
+
+      const updateRule = (id, isValid) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        if (isValid) {
+          el.classList.add('met');
+          el.querySelector('span').textContent = '✔';
+        } else {
+          el.classList.remove('met');
+          el.querySelector('span').textContent = '⚪';
+        }
+      };
+
+      updateRule('req-length', val.length >= 8);
+      updateRule('req-upper', /[A-Z]/.test(val));
+      updateRule('req-lower', /[a-z]/.test(val));
+      updateRule('req-number', /[0-9]/.test(val));
+      updateRule('req-special', /[!@#$%^&*()_+\-=\[\]{}|;:,.<>?]/.test(val));
+    });
 
     toggleLink.addEventListener('click', (e) => {
       e.preventDefault();
@@ -66,11 +124,14 @@ export class AuthManager {
         submitBtn.textContent = 'Sign Up';
         togglePrompt.textContent = 'Already have an account?';
         toggleLink.textContent = 'Sign In';
+        if (tooltip) tooltip.style.display = 'block';
+        passInput.dispatchEvent(new Event('input'));
       } else {
         title.textContent = 'Welcome Back';
         submitBtn.textContent = 'Sign In';
         togglePrompt.textContent = "Don't have an account?";
         toggleLink.textContent = 'Sign Up';
+        if (tooltip) tooltip.style.display = 'none';
       }
     });
 
@@ -81,7 +142,7 @@ export class AuthManager {
       submitBtn.textContent = isSignUp ? 'Creating Account...' : 'Signing In...';
 
       const email = document.getElementById('auth-email').value.trim();
-      const password = document.getElementById('auth-password').value;
+      const password = passInput.value;
 
       try {
         if (isSignUp) {
