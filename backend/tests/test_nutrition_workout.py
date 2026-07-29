@@ -1,4 +1,4 @@
-"""Pytest test suite for meal logging, daily nutrition budget tracking, and Net MET exercise calorie calculation."""
+"""Pytest test suite for meal logging, daily nutrition budget tracking, and Net MET workout calorie calculation."""
 
 from datetime import date
 from app.core.auth_security import create_access_token, get_password_hash
@@ -22,7 +22,7 @@ def create_user_with_profile(db_session, email="logginguser@getfit.com") -> User
     profile = UserProfile(
         user_id=user.id,
         name="Logging User",
-        sex="male",
+        gender="male",
         birth_date=birth_date,
         height_cm=180.0,
         weight_kg=80.0,
@@ -108,8 +108,8 @@ def test_meal_logging_and_today_summary(client, db_session):
     assert s_data["remaining_calories"] == 1610 - 1050
 
 
-def test_exercise_logging_and_adjusted_budget(client, db_session):
-    """Tests logging workout via POST /exercises/logs and verifying adjusted daily calorie target."""
+def test_workout_logging_and_adjusted_budget(client, db_session):
+    """Tests logging workout via POST /workouts/logs and verifying adjusted daily calorie target."""
     user = create_user_with_profile(db_session, email="exerciseuser@getfit.com")
     access_token = create_access_token(user.id)
     headers = {"Authorization": f"Bearer {access_token}"}
@@ -121,12 +121,12 @@ def test_exercise_logging_and_adjusted_budget(client, db_session):
         "met_value": 8.0,
         "notes": "Evening 10k run",
     }
-    res_w = client.post("/api/v1/exercises/logs", json=workout_payload, headers=headers)
+    res_w = client.post("/api/v1/workouts/logs", json=workout_payload, headers=headers)
     assert res_w.status_code == 201
     assert res_w.json()["calories_burned"] == 544
 
     # 2. Get Today's Workouts Summary
-    res_ex_summary = client.get("/api/v1/exercises/summary/today", headers=headers)
+    res_ex_summary = client.get("/api/v1/workouts/summary/today", headers=headers)
     assert res_ex_summary.status_code == 200
     ex_data = res_ex_summary.json()
     assert ex_data["total_workouts"] == 1
@@ -140,9 +140,9 @@ def test_exercise_logging_and_adjusted_budget(client, db_session):
     assert s_data["adjusted_calorie_target"] == 1610 + 544
 
 
-def test_ai_food_and_exercise_logging_flow(client, db_session, monkeypatch):
-    """Tests POST /nutrition/meals/ai-parse and POST /exercises/logs/ai-parse using Gemini AI response_schema mocks."""
-    from app.schemas.exercise_log import AIExerciseParseResult
+def test_ai_food_and_workout_logging_flow(client, db_session, monkeypatch):
+    """Tests POST /nutrition/meals/ai-parse and POST /workouts/logs/ai-parse using Gemini AI response_schema mocks."""
+    from app.schemas.workout_log import AIWorkoutParseResult
     from app.schemas.food_log import AIFoodParseResult
 
     user = create_user_with_profile(db_session, email="aiuser@getfit.com")
@@ -175,7 +175,7 @@ def test_ai_food_and_exercise_logging_flow(client, db_session, monkeypatch):
 
     # 2. Mock Gemini exercise structured output
     def mock_ex_gemini(prompt, response_schema):
-        return AIExerciseParseResult(
+        return AIWorkoutParseResult(
             exercise_name="Heavy Squats Workout",
             duration_minutes=45.0,
             met_value=6.0,
@@ -185,7 +185,7 @@ def test_ai_food_and_exercise_logging_flow(client, db_session, monkeypatch):
     monkeypatch.setattr("app.services.gemini_service.generate_structured_output", mock_ex_gemini)
 
     res_ex = client.post(
-        "/api/v1/exercises/logs/ai-parse",
+        "/api/v1/workouts/logs/ai-parse",
         json={"text_prompt": "45 mins heavy squats"},
         headers=headers,
     )
@@ -197,13 +197,13 @@ def test_ai_food_and_exercise_logging_flow(client, db_session, monkeypatch):
 
 
 def test_exercise_catalog_and_structured_logging(client, db_session):
-    """Tests GET /exercises/catalog and POST /exercises/logs/structured for rep-based and distance-based activities."""
+    """Tests GET /workouts/catalog and POST /workouts/logs/structured for rep-based and distance-based activities."""
     user = create_user_with_profile(db_session, email="cataloguser@getfit.com")
     access_token = create_access_token(user.id)
     headers = {"Authorization": f"Bearer {access_token}"}
 
     # 1. Fetch catalog
-    res_cat = client.get("/api/v1/exercises/catalog")
+    res_cat = client.get("/api/v1/workouts/catalog")
     assert res_cat.status_code == 200
     catalog = res_cat.json()
     assert len(catalog) >= 20
@@ -214,7 +214,7 @@ def test_exercise_catalog_and_structured_logging(client, db_session):
         "sets": 3,
         "reps": 20,
     }
-    res_p = client.post("/api/v1/exercises/logs/structured", json=pushup_payload, headers=headers)
+    res_p = client.post("/api/v1/workouts/logs/structured", json=pushup_payload, headers=headers)
     assert res_p.status_code == 201
     p_data = res_p.json()
     assert p_data["exercise_name"] == "Push-ups"
@@ -225,7 +225,7 @@ def test_exercise_catalog_and_structured_logging(client, db_session):
         "exercise_id": "running_outdoor",
         "distance_km": 10.0,
     }
-    res_r = client.post("/api/v1/exercises/logs/structured", json=run_payload, headers=headers)
+    res_r = client.post("/api/v1/workouts/logs/structured", json=run_payload, headers=headers)
     assert res_r.status_code == 201
     r_data = res_r.json()
     assert r_data["exercise_name"] == "Outdoor Running"

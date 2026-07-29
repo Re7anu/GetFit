@@ -35,8 +35,8 @@ export class ProfileManager {
               </div>
 
               <div class="form-group">
-                <label class="form-label">Biological Sex</label>
-                <select id="prof-sex" class="form-input" required>
+                <label class="form-label">Gender</label>
+                <select id="prof-gender" class="form-input" required>
                   <option value="male">Male</option>
                   <option value="female">Female</option>
                 </select>
@@ -124,7 +124,7 @@ export class ProfileManager {
 
         const payload = {
           name: document.getElementById('prof-name').value.trim(),
-          sex: document.getElementById('prof-sex').value,
+          gender: document.getElementById('prof-gender').value,
           birth_date: document.getElementById('prof-birthdate').value,
           height_cm: parseFloat(document.getElementById('prof-height').value),
           weight_kg: parseFloat(document.getElementById('prof-weight').value),
@@ -171,7 +171,7 @@ export class ProfileManager {
       const profile = await APIClient.request(ENDPOINTS.PROFILE_ME);
       if (profile && form) {
         document.getElementById('prof-name').value = profile.name || '';
-        document.getElementById('prof-sex').value = profile.sex || 'male';
+        document.getElementById('prof-gender').value = profile.gender || profile.sex || 'male';
         if (profile.birth_date) {
           document.getElementById('prof-birthdate').value = String(profile.birth_date).substring(0, 10);
         }

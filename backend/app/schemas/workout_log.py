@@ -1,28 +1,28 @@
-"""Pydantic schemas for Workout & Exercise logging payloads and exercise summaries."""
+"""Pydantic schemas for Workout logging payloads and workout summaries."""
 
 from datetime import datetime
 from typing import List, Optional
 from pydantic import BaseModel, ConfigDict, Field
 
 
-class ExerciseLogBase(BaseModel):
+class WorkoutLogBase(BaseModel):
     """Base Pydantic schema for workout log entry attributes."""
 
     exercise_name: str = Field(..., min_length=1, description="Exercise name or sport")
     duration_minutes: float = Field(..., gt=0, description="Workout duration in minutes")
     met_value: float = Field(3.5, gt=0, description="Scientific MET value of workout")
-    input_method: str = Field("manual", description="'manual', 'wearable', or 'ai_vision'")
+    input_method: str = Field("structured", description="'structured', 'manual', or 'ai_vision'")
     notes: Optional[str] = None
 
 
-class ExerciseLogCreate(ExerciseLogBase):
-    """Pydantic schema for creating an exercise log entry."""
+class WorkoutLogCreate(WorkoutLogBase):
+    """Pydantic schema for creating a workout log entry."""
 
     pass
 
 
-class StructuredExerciseCreate(BaseModel):
-    """Pydantic schema for creating structured exercise log based on catalog item."""
+class StructuredWorkoutCreate(BaseModel):
+    """Pydantic schema for creating structured workout log based on catalog item."""
 
     exercise_id: str = Field(..., description="Unique exercise catalog ID e.g. 'pushups' or 'running_outdoor'")
     distance_km: Optional[float] = Field(None, ge=0, description="Distance in kilometers if distance-based")
@@ -33,14 +33,13 @@ class StructuredExerciseCreate(BaseModel):
     dont_know_details: bool = Field(False, description="True if user checked 'I don't know details'")
 
 
-
-class AIExerciseParseRequest(BaseModel):
-    """Pydantic schema for AI natural language exercise logging request payload."""
+class AIWorkoutParseRequest(BaseModel):
+    """Pydantic schema for AI natural language workout logging request payload."""
 
     text_prompt: str = Field(..., min_length=2, description="Natural language description of workout e.g. '45 mins heavy squats'")
 
 
-class AIExerciseParseResult(BaseModel):
+class AIWorkoutParseResult(BaseModel):
     """Structured Pydantic schema passed to Gemini response_schema for exercise parsing."""
 
     exercise_name: str = Field(..., description="Concise clean exercise title or sport name")
@@ -49,8 +48,8 @@ class AIExerciseParseResult(BaseModel):
     notes: Optional[str] = None
 
 
-class ExerciseLogResponse(ExerciseLogBase):
-    """Pydantic schema for serialized exercise log entry response."""
+class WorkoutLogResponse(WorkoutLogBase):
+    """Pydantic schema for serialized workout log entry response."""
 
     id: str
     user_id: str
@@ -60,10 +59,10 @@ class ExerciseLogResponse(ExerciseLogBase):
     model_config = ConfigDict(from_attributes=True)
 
 
-class DailyExerciseSummary(BaseModel):
+class DailyWorkoutSummary(BaseModel):
     """Pydantic schema for daily workouts summary."""
 
     total_workouts: int
     total_duration_minutes: float
     total_net_calories_burned: int
-    workouts_logged_today: List[ExerciseLogResponse]
+    workouts_logged_today: List[WorkoutLogResponse]

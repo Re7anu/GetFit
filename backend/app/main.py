@@ -2,7 +2,7 @@
 
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
-from app.api import auth, exercises, nutrition, profiles, users
+from app.api import auth, workouts, nutrition, profiles, users
 from app.config.settings import settings
 from app.db.init_db import init_db
 
@@ -25,7 +25,7 @@ app.include_router(auth.router, prefix=f"{settings.API_V1_STR}/auth", tags=["aut
 app.include_router(users.router, prefix=f"{settings.API_V1_STR}/users", tags=["users"])
 app.include_router(profiles.router, prefix=f"{settings.API_V1_STR}/profiles", tags=["profiles"])
 app.include_router(nutrition.router, prefix=f"{settings.API_V1_STR}/nutrition", tags=["nutrition"])
-app.include_router(exercises.router, prefix=f"{settings.API_V1_STR}/exercises", tags=["exercises"])
+app.include_router(workouts.router, prefix=f"{settings.API_V1_STR}/workouts", tags=["workouts"])
 
 
 import os

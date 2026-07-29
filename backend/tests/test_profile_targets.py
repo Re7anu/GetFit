@@ -37,7 +37,7 @@ def test_dynamic_caloric_pace_weight_loss():
         weight_kg=80.0,
         height_cm=180.0,
         birth_date=birth_date,
-        sex="male",
+        gender="male",
         activity_level="moderately_active",
         target_weight_kg=75.0,
         timeline_weeks=10,
@@ -59,7 +59,7 @@ def test_unrealistic_timeline_health_guardrail():
         weight_kg=100.0,
         height_cm=180.0,
         birth_date=birth_date,
-        sex="male",
+        gender="male",
         activity_level="sedentary",
         target_weight_kg=80.0,
         timeline_weeks=2,
@@ -81,7 +81,7 @@ def test_profile_api_endpoints_flow(client, db_session):
 
     onboard_payload = {
         "name": "Alex Profile",
-        "sex": "male",
+        "gender": "male",
         "birth_date": birth_str,
         "height_cm": 178.0,
         "weight_kg": 80.0,

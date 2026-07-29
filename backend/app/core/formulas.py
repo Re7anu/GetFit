@@ -33,14 +33,14 @@ def calculate_age(birth_date: date) -> int:
     return today.year - birth_date.year - ((today.month, today.day) < (birth_date.month, birth_date.day))
 
 
-def calculate_bmr(weight_kg: float, height_cm: float, birth_date: date, sex: str) -> float:
+def calculate_bmr(weight_kg: float, height_cm: float, birth_date: date, gender: str) -> float:
     """Calculates Basal Metabolic Rate (BMR) using the Mifflin-St Jeor equation.
 
     Args:
         weight_kg: User weight in kilograms.
         height_cm: User height in centimeters.
         birth_date: User's birth date.
-        sex: Biological sex ('male' or 'female').
+        gender: Biological gender ('male' or 'female').
 
     Returns:
         Calculated BMR in kilocalories per day.
@@ -48,7 +48,7 @@ def calculate_bmr(weight_kg: float, height_cm: float, birth_date: date, sex: str
     age = calculate_age(birth_date)
     base_bmr = (BMR_WEIGHT_COEFF * weight_kg) + (BMR_HEIGHT_COEFF * height_cm) - (BMR_AGE_COEFF * age)
 
-    if sex.lower() == "male":
+    if gender.lower() == "male":
         return base_bmr + BMR_MALE_OFFSET
     else:
         return base_bmr + BMR_FEMALE_OFFSET
@@ -72,7 +72,7 @@ def calculate_profile_targets(
     weight_kg: float,
     height_cm: float,
     birth_date: date,
-    sex: str,
+    gender: str,
     activity_level: str,
     target_weight_kg: float,
     timeline_weeks: int,
@@ -83,7 +83,7 @@ def calculate_profile_targets(
         weight_kg: Current body weight in kilograms.
         height_cm: Height in centimeters.
         birth_date: User birth date.
-        sex: Biological sex ('male' or 'female').
+        gender: Biological gender ('male' or 'female').
         activity_level: Physical activity level multiplier key.
         target_weight_kg: User's goal weight in kilograms.
         timeline_weeks: Desired timeframe to achieve target weight.
@@ -91,7 +91,7 @@ def calculate_profile_targets(
     Returns:
         Dictionary containing pre-computed BMR, TDEE, caloric pace, daily targets, and health safety flags.
     """
-    bmr = calculate_bmr(weight_kg, height_cm, birth_date, sex)
+    bmr = calculate_bmr(weight_kg, height_cm, birth_date, gender)
     tdee = calculate_tdee(bmr, activity_level)
 
     weight_diff = target_weight_kg - weight_kg

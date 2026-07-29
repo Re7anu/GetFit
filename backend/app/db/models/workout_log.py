@@ -1,4 +1,4 @@
-"""SQLAlchemy model definition for User Workout and Exercise Log entries."""
+"""SQLAlchemy model definition for User Workout Log entries."""
 
 import uuid
 from sqlalchemy import Column, DateTime, Float, ForeignKey, Integer, String, func
@@ -6,7 +6,7 @@ from sqlalchemy.orm import relationship
 from app.db.models.base import Base
 
 
-class ExerciseLog(Base):
+class WorkoutLog(Base):
     """SQLAlchemy model representing a workout or physical exercise log entry.
 
     Attributes:
@@ -17,12 +17,12 @@ class ExerciseLog(Base):
         duration_minutes: Workout duration in minutes.
         met_value: Scientific MET (Metabolic Equivalent of Task) value.
         calories_burned: Net calories burned calculated using Solution A (Net MET).
-        input_method: Logging method ('manual', 'wearable', 'ai_vision').
+        input_method: Logging method ('structured', 'manual', 'ai_vision').
         notes: Optional workout notes or performance description.
         user_auth: Relationship back to associated UserAuth entity.
     """
 
-    __tablename__ = "exercise_logs"
+    __tablename__ = "workout_logs"
 
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     user_id = Column(String, ForeignKey("user_auth.id", ondelete="CASCADE"), nullable=False, index=True)
@@ -31,7 +31,7 @@ class ExerciseLog(Base):
     duration_minutes = Column(Float, nullable=False)
     met_value = Column(Float, default=3.5, nullable=False)
     calories_burned = Column(Integer, nullable=False)
-    input_method = Column(String, default="manual", nullable=False)
+    input_method = Column(String, default="structured", nullable=False)
     notes = Column(String, nullable=True)
 
-    user_auth = relationship("UserAuth", backref="exercise_logs")
+    user_auth = relationship("UserAuth", backref="workout_logs")

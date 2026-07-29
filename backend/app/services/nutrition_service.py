@@ -5,7 +5,7 @@ from typing import List
 from fastapi import HTTPException, status
 from sqlalchemy import func
 from sqlalchemy.orm import Session
-from app.db.models.exercise_log import ExerciseLog
+from app.db.models.workout_log import WorkoutLog
 from app.db.models.food_log import FoodLog
 from app.db.models.user_auth import UserAuth
 from app.schemas.food_log import AIFoodParseRequest, DailyNutritionSummary, FoodLogCreate, FoodLogResponse
@@ -139,11 +139,11 @@ def calculate_user_today_nutrition_summary(db: Session, user: UserAuth) -> Daily
 
     # 2. Fetch today's Net MET exercise calories burned
     exercise_burn = (
-        db.query(func.coalesce(func.sum(ExerciseLog.calories_burned), 0))
+        db.query(func.coalesce(func.sum(WorkoutLog.calories_burned), 0))
         .filter(
-            ExerciseLog.user_id == user.id,
-            ExerciseLog.logged_at >= today_start,
-            ExerciseLog.logged_at <= today_end,
+            WorkoutLog.user_id == user.id,
+            WorkoutLog.logged_at >= today_start,
+            WorkoutLog.logged_at <= today_end,
         )
         .scalar()
     )
@@ -154,11 +154,11 @@ def calculate_user_today_nutrition_summary(db: Session, user: UserAuth) -> Daily
 
     # Activity-Specific Sports Nutrition Macro Recovery Allocation Engine
     today_workouts = (
-        db.query(ExerciseLog)
+        db.query(WorkoutLog)
         .filter(
-            ExerciseLog.user_id == user.id,
-            ExerciseLog.logged_at >= today_start,
-            ExerciseLog.logged_at <= today_end,
+            WorkoutLog.user_id == user.id,
+            WorkoutLog.logged_at >= today_start,
+            WorkoutLog.logged_at <= today_end,
         )
         .all()
     )
@@ -311,11 +311,11 @@ def get_user_nutrition_history(db: Session, user: UserAuth, days: int = 30) -> L
         )
 
         workouts = (
-            db.query(ExerciseLog)
+            db.query(WorkoutLog)
             .filter(
-                ExerciseLog.user_id == user.id,
-                ExerciseLog.logged_at >= d_start,
-                ExerciseLog.logged_at <= d_end,
+                WorkoutLog.user_id == user.id,
+                WorkoutLog.logged_at >= d_start,
+                WorkoutLog.logged_at <= d_end,
             )
             .all()
         )
@@ -388,7 +388,7 @@ def get_day_detail_summary(db: Session, user: UserAuth, target_date_str: str) ->
     """
     from datetime import datetime, date, time
     from app.schemas.food_log import FoodLogResponse
-    from app.schemas.exercise_log import ExerciseLogResponse
+    from app.schemas.workout_log import WorkoutLogResponse
 
     profile = user.profile
     if not profile:
@@ -410,9 +410,9 @@ def get_day_detail_summary(db: Session, user: UserAuth, target_date_str: str) ->
     )
 
     workouts = (
-        db.query(ExerciseLog)
-        .filter(ExerciseLog.user_id == user.id, ExerciseLog.logged_at >= d_start, ExerciseLog.logged_at <= d_end)
-        .order_by(ExerciseLog.logged_at.asc())
+        db.query(WorkoutLog)
+        .filter(WorkoutLog.user_id == user.id, WorkoutLog.logged_at >= d_start, WorkoutLog.logged_at <= d_end)
+        .order_by(WorkoutLog.logged_at.asc())
         .all()
     )
 
