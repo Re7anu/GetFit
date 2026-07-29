@@ -198,6 +198,27 @@ class App {
       await DashboardManager.render(mainContainer);
       await this.updateHeader(true);
     } catch (err) {
+      if (!APIClient.isAuthenticated()) {
+        // Session expired or token cleared during request
+        if (navTabs) navTabs.style.display = 'none';
+        mainContainer.innerHTML = `
+          <div style="text-align: center; padding: 4rem 1rem;">
+            <h1 style="font-size: 2.5rem; margin-bottom: 1rem;">Personalized Health & Caloric Pace Intelligence</h1>
+            <p class="text-muted" style="max-width: 600px; margin: 0 auto 2rem;">
+              Track remaining daily calories, macro splits, and Net MET exercise credits with Google Gemini AI natural language parsing.
+            </p>
+            <button id="hero-get-started-btn" class="btn btn-primary" style="padding: 0.8rem 2rem; font-size: 1rem;">
+              Get Started
+            </button>
+          </div>
+        `;
+        document.getElementById('hero-get-started-btn')?.addEventListener('click', () => {
+          AuthManager.showModal();
+        });
+        AuthManager.showModal();
+        return;
+      }
+
       if (navTabs) navTabs.style.display = 'none';
       await this.updateHeader(true);
       ProfileManager.showModal();
