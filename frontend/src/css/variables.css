@@ -1,0 +1,40 @@
+/* Handcrafted GetFit Design Tokens & Theme Variables */
+:root {
+  /* Core Color System (Midnight Obsidian Theme) */
+  --bg-obsidian: #090C10;
+  --bg-surface: #0D1117;
+  --card-glass: rgba(22, 27, 34, 0.75);
+  --card-glass-hover: rgba(33, 38, 45, 0.85);
+  --border-glass: rgba(255, 255, 255, 0.08);
+  --border-glass-glow: rgba(16, 185, 129, 0.3);
+
+  /* Typography Colors */
+  --text-primary: #F0F6FC;
+  --text-secondary: #8B949E;
+  --text-muted: #484F58;
+
+  /* Feature Accents */
+  --accent-health: #10B981;        /* Health Emerald for Remaining Calories & Targets */
+  --accent-health-glow: rgba(16, 185, 129, 0.15);
+  --accent-workout: #3B82F6;       /* Electric Cobalt for Net MET Exercise Credits */
+  --accent-workout-glow: rgba(59, 130, 246, 0.15);
+
+  /* Macro Breakdown Colors */
+  --macro-protein: #EC4899;        /* Pink / Magenta */
+  --macro-carbs: #F59E0B;          /* Warm Amber */
+  --macro-fat: #8B5CF6;            /* Purple */
+
+  /* System Feedback Colors */
+  --color-danger: #EF4444;
+  --color-warning: #F59E0B;
+  --color-success: #10B981;
+
+  /* Fonts */
+  --font-heading: 'Outfit', sans-serif;
+  --font-body: 'Inter', sans-serif;
+
+  /* Shadows & Easing */
+  --shadow-card: 0 12px 32px rgba(0, 0, 0, 0.4);
+  --shadow-glow-emerald: 0 0 24px rgba(16, 185, 129, 0.2);
+  --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+}

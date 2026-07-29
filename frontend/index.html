@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GetFit — Health & Caloric Pace Intelligence</title>
+
+  <!-- Google Fonts: Outfit (Geometric Headings) + Inter (Body) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Handcrafted CSS System -->
+  <link rel="stylesheet" href="src/css/variables.css" />
+  <link rel="stylesheet" href="src/css/main.css" />
+  <link rel="stylesheet" href="src/css/components.css" />
+</head>
+<body>
+
+  <!-- Sticky Header -->
+  <header class="app-header">
+    <div class="header-container">
+      <a href="#" class="brand-logo">
+        <span>⚡ GetFit</span>
+        <span class="brand-badge">AI Engine</span>
+      </a>
+
+      <!-- Central Navigation Tabs (Dashboard, Food, Exercise, Analytics) -->
+      <nav id="app-nav-tabs" class="nav-tabs" style="display: none;">
+        <button class="nav-tab-btn active" data-tab="dashboard">
+          <span>🏠</span> Dashboard
+        </button>
+        <button class="nav-tab-btn" data-tab="food">
+          <span>🥗</span> Food
+        </button>
+        <button class="nav-tab-btn" data-tab="exercise">
+          <span>⚡</span> Exercise
+        </button>
+        <button class="nav-tab-btn" data-tab="analytics">
+          <span>📊</span> Analytics
+        </button>
+      </nav>
+
+      <div id="user-nav" class="user-nav">
+        <!-- Dynamic Auth Buttons rendered by App -->
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main id="main-content" class="main-container">
+    <!-- Dynamic Views rendered by App/Dashboard -->
+  </main>
+
+  <!-- ES Module Application Script -->
+  <script type="module" src="src/js/app.js?v=2"></script>
+</body>
+</html>

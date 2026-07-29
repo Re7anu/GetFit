@@ -21,6 +21,19 @@ class ExerciseLogCreate(ExerciseLogBase):
     pass
 
 
+class StructuredExerciseCreate(BaseModel):
+    """Pydantic schema for creating structured exercise log based on catalog item."""
+
+    exercise_id: str = Field(..., description="Unique exercise catalog ID e.g. 'pushups' or 'running_outdoor'")
+    distance_km: Optional[float] = Field(None, ge=0, description="Distance in kilometers if distance-based")
+    sets: Optional[int] = Field(1, ge=1, description="Number of sets if rep-based")
+    reps: Optional[int] = Field(None, ge=1, description="Reps per set if rep-based")
+    duration_minutes: Optional[float] = Field(None, ge=0, description="Duration in minutes if time-based or specified")
+    intensity: Optional[str] = Field("moderate", description="'low', 'moderate', or 'high'")
+    dont_know_details: bool = Field(False, description="True if user checked 'I don't know details'")
+
+
+
 class AIExerciseParseRequest(BaseModel):
     """Pydantic schema for AI natural language exercise logging request payload."""
 
