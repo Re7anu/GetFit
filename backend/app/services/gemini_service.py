@@ -45,34 +45,19 @@ def generate_structured_output(prompt: str, response_schema: Type[T]) -> T:
     client = get_genai_client()
 
     def _call_gemini():
-        candidate_models = [settings.GEMINI_MODEL_NAME, "gemini-2.0-flash", "gemini-2.0-flash-lite"]
-        last_err = None
-        for m in candidate_models:
-            for attempt in range(2):  # up to 2 attempts per candidate model
-                try:
-                    return client.models.generate_content(
-                        model=m,
-                        contents=prompt,
-                        config=types.GenerateContentConfig(
-                            response_mime_type="application/json",
-                            response_schema=response_schema,
-                        ),
-                    )
-                except Exception as ex:
-                    last_err = ex
-                    err_str = str(ex)
-                    if "404" in err_str or "NOT_FOUND" in err_str:
-                        break  # try next model candidate immediately
-                    if "429" in err_str or "RESOURCE_EXHAUSTED" in err_str:
-                        time.sleep(2.0)  # brief 2s pause before retry
-                        continue
-                    raise ex
-        raise last_err
+        return client.models.generate_content(
+            model=settings.GEMINI_MODEL_NAME,
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                response_mime_type="application/json",
+                response_schema=response_schema,
+            ),
+        )
 
     try:
         with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
             future = executor.submit(_call_gemini)
-            response = future.result(timeout=15.0)
+            response = future.result(timeout=25.0)
 
         if not response.parsed:
             raise HTTPException(
@@ -83,7 +68,7 @@ def generate_structured_output(prompt: str, response_schema: Type[T]) -> T:
     except concurrent.futures.TimeoutError:
         raise HTTPException(
             status_code=status.HTTP_504_GATEWAY_TIMEOUT,
-            detail="Google GenAI API request timed out (15s limit reached). Please try again.",
+            detail="Google GenAI API request timed out (25s limit reached). Please try again.",
         )
     except Exception as e:
         if isinstance(e, HTTPException):
