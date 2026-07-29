@@ -9,7 +9,7 @@ class UserProfileBase(BaseModel):
     """Base Pydantic schema for physical user profile attributes."""
 
     name: Optional[str] = None
-    sex: str = Field(..., description="'male' or 'female'")
+    gender: str = Field(..., description="'male' or 'female'")
     birth_date: date
     height_cm: float = Field(..., gt=0)
     weight_kg: float = Field(..., gt=0)
@@ -28,7 +28,7 @@ class UserProfileUpdate(BaseModel):
     """Pydantic schema for updating physical profile metrics."""
 
     name: Optional[str] = None
-    sex: Optional[str] = Field(None, description="'male' or 'female'")
+    gender: Optional[str] = Field(None, description="'male' or 'female'")
     birth_date: Optional[date] = None
     height_cm: Optional[float] = Field(None, gt=0)
     weight_kg: Optional[float] = Field(None, gt=0)

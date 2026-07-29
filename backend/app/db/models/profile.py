@@ -39,7 +39,7 @@ class UserProfile(Base):
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     user_id = Column(String, ForeignKey("user_auth.id", ondelete="CASCADE"), unique=True, nullable=False)
     name = Column(String, nullable=True)
-    sex = Column(String, nullable=False)
+    gender = Column(String, nullable=False)
     birth_date = Column(Date, nullable=False)
     height_cm = Column(Float, nullable=False)
     weight_kg = Column(Float, nullable=False)
