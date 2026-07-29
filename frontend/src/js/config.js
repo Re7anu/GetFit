@@ -20,10 +20,15 @@ export const ENDPOINTS = {
   DAY_DETAIL: `${API_BASE_URL}/nutrition/day-detail`,
   
   // Exercises & Workouts
-  EXERCISES: `${API_BASE_URL}/exercises/logs`,
-  EXERCISES_AI: `${API_BASE_URL}/exercises/logs/ai-parse`,
-  EXERCISES_CATALOG: `${API_BASE_URL}/exercises/catalog`,
-  EXERCISES_STRUCTURED: `${API_BASE_URL}/exercises/logs/structured`,
-  EXERCISES_TODAY: `${API_BASE_URL}/exercises/logs/today`,
-  EXERCISE_SUMMARY: `${API_BASE_URL}/exercises/summary/today`,
+  WORKOUTS: `${API_BASE_URL}/workouts/logs`,
+  WORKOUTS_AI: `${API_BASE_URL}/workouts/logs/ai-parse`,
+  EXERCISES_CATALOG: `${API_BASE_URL}/workouts/catalog`,
+  WORKOUTS_STRUCTURED: `${API_BASE_URL}/workouts/logs/structured`,
+  WORKOUTS_TODAY: `${API_BASE_URL}/workouts/logs/today`,
+  WORKOUT_SUMMARY: `${API_BASE_URL}/workouts/summary/today`,
+  // Backward compatibility aliases
+  EXERCISES: `${API_BASE_URL}/workouts/logs`,
+  EXERCISES_STRUCTURED: `${API_BASE_URL}/workouts/logs/structured`,
+  EXERCISES_TODAY: `${API_BASE_URL}/workouts/logs/today`,
+  EXERCISE_SUMMARY: `${API_BASE_URL}/workouts/summary/today`,
 };

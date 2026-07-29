@@ -1,6 +1,6 @@
 """Interactive Database Inspector for GetFit PostgreSQL Database."""
 from app.db.session import SessionLocal
-from app.db.models import UserAuth, UserProfile, FoodLog, ExerciseLog
+from app.db.models import UserAuth, UserProfile, FoodLog, WorkoutLog
 
 def view_database():
     db = SessionLocal()
@@ -26,8 +26,8 @@ def view_database():
         print(f"  * [{m.logged_at.strftime('%Y-%m-%d %H:%M')}] {email:<18} | {m.meal_type.upper():<9} | {m.description:<40} | {m.calories} kcal ({m.protein_g}g P / {m.carbs_g}g C / {m.fat_g}g F)")
 
     # 3. Exercise Logs Summary
-    total_workouts = db.query(ExerciseLog).count()
-    recent_workouts = db.query(ExerciseLog).order_by(ExerciseLog.logged_at.desc()).limit(5).all()
+    total_workouts = db.query(WorkoutLog).count()
+    recent_workouts = db.query(WorkoutLog).order_by(WorkoutLog.logged_at.desc()).limit(5).all()
     print(f"\nEXERCISE LOGS (Total: {total_workouts} entries | Last 5 shown):\n" + "-"*65)
     for w in recent_workouts:
         user = db.query(UserAuth).filter(UserAuth.id == w.user_id).first()

@@ -1,16 +1,16 @@
-"""Exercise domain service module handling workout logging and Net MET burn calculations."""
+"""Workout domain service module handling workout logging and Net MET burn calculations."""
 
 from datetime import date, datetime, time
 from typing import Any, List
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 from app.core.formulas import calculate_net_exercise_calories
-from app.db.models.exercise_log import ExerciseLog
+from app.db.models.workout_log import WorkoutLog
 from app.db.models.user_auth import UserAuth
-from app.schemas.exercise_log import AIExerciseParseRequest, DailyExerciseSummary, ExerciseLogCreate, ExerciseLogResponse
+from app.schemas.workout_log import AIWorkoutParseRequest, DailyWorkoutSummary, WorkoutLogCreate, WorkoutLogResponse
 
 
-def create_workout_entry(db: Session, user: UserAuth, workout_in: ExerciseLogCreate) -> ExerciseLog:
+def create_workout_entry(db: Session, user: UserAuth, workout_in: WorkoutLogCreate) -> WorkoutLog:
     """Calculates Net MET burn and creates a workout log entry for the user.
 
     Args:
@@ -19,7 +19,7 @@ def create_workout_entry(db: Session, user: UserAuth, workout_in: ExerciseLogCre
         workout_in: Workout logging payload.
 
     Returns:
-        Created ExerciseLog model instance.
+        Created WorkoutLog model instance.
 
     Raises:
         HTTPException: If user profile is not found.
@@ -39,7 +39,7 @@ def create_workout_entry(db: Session, user: UserAuth, workout_in: ExerciseLogCre
         activity_level=profile.activity_level,
     )
 
-    db_workout = ExerciseLog(
+    db_workout = WorkoutLog(
         user_id=user.id,
         exercise_name=workout_in.exercise_name,
         duration_minutes=workout_in.duration_minutes,
@@ -54,16 +54,16 @@ def create_workout_entry(db: Session, user: UserAuth, workout_in: ExerciseLogCre
     return db_workout
 
 
-def create_structured_workout_entry(db: Session, user: UserAuth, structured_in: Any) -> ExerciseLog:
+def create_structured_workout_entry(db: Session, user: UserAuth, structured_in: Any) -> WorkoutLog:
     """Creates a workout entry using the structured exercise catalog metrics.
 
     Args:
         db: Database session.
         user: Authenticated UserAuth entity.
-        structured_in: StructuredExerciseCreate payload.
+        structured_in: StructuredWorkoutCreate payload.
 
     Returns:
-        Created ExerciseLog instance.
+        Created WorkoutLog instance.
     """
     from app.core.exercise_catalog import EXERCISE_CATALOG
 
@@ -105,7 +105,7 @@ def create_structured_workout_entry(db: Session, user: UserAuth, structured_in: 
             met_val = item.get("met_moderate", item.get("met", 5.0))
         notes = f"{duration_mins} mins ({intensity} intensity)"
 
-    workout_in = ExerciseLogCreate(
+    workout_in = WorkoutLogCreate(
         exercise_name=exercise_name,
         duration_minutes=round(duration_mins, 1),
         met_value=met_val,
@@ -115,28 +115,28 @@ def create_structured_workout_entry(db: Session, user: UserAuth, structured_in: 
     return create_workout_entry(db=db, user=user, workout_in=workout_in)
 
 
-def create_workout_entry_via_ai(db: Session, user: UserAuth, prompt_in: AIExerciseParseRequest) -> ExerciseLog:
-    """Parses natural language workout text using Gemini AI response_schema and creates a new ExerciseLog entry.
+def create_workout_entry_via_ai(db: Session, user: UserAuth, prompt_in: AIWorkoutParseRequest) -> WorkoutLog:
+    """Parses natural language workout text using Gemini AI response_schema and creates a new WorkoutLog entry.
 
     Args:
         db: Database session.
         user: Authenticated UserAuth entity.
-        prompt_in: AI exercise parse request payload containing text_prompt.
+        prompt_in: AI workout parse request payload containing text_prompt.
 
     Returns:
-        Created ExerciseLog model instance.
+        Created WorkoutLog model instance.
     """
     from app.core.prompts import EXERCISE_PARSING_PROMPT_TEMPLATE
-    from app.schemas.exercise_log import AIExerciseParseResult
+    from app.schemas.workout_log import AIWorkoutParseResult
     from app.services import gemini_service
 
     prompt = EXERCISE_PARSING_PROMPT_TEMPLATE.format(text_prompt=prompt_in.text_prompt)
-    parsed_result: AIExerciseParseResult = gemini_service.generate_structured_output(
+    parsed_result: AIWorkoutParseResult = gemini_service.generate_structured_output(
         prompt=prompt,
-        response_schema=AIExerciseParseResult,
+        response_schema=AIWorkoutParseResult,
     )
 
-    workout_in = ExerciseLogCreate(
+    workout_in = WorkoutLogCreate(
         exercise_name=parsed_result.exercise_name,
         duration_minutes=parsed_result.duration_minutes,
         met_value=parsed_result.met_value,
@@ -146,7 +146,7 @@ def create_workout_entry_via_ai(db: Session, user: UserAuth, prompt_in: AIExerci
     return create_workout_entry(db=db, user=user, workout_in=workout_in)
 
 
-def get_user_today_workouts(db: Session, user: UserAuth) -> List[ExerciseLog]:
+def get_user_today_workouts(db: Session, user: UserAuth) -> List[WorkoutLog]:
     """Retrieves all workouts logged today by the user.
 
     Args:
@@ -154,24 +154,24 @@ def get_user_today_workouts(db: Session, user: UserAuth) -> List[ExerciseLog]:
         user: Authenticated UserAuth entity.
 
     Returns:
-        List of ExerciseLog model instances.
+        List of WorkoutLog model instances.
     """
     today_start = datetime.combine(date.today(), time.min)
     today_end = datetime.combine(date.today(), time.max)
 
     return (
-        db.query(ExerciseLog)
+        db.query(WorkoutLog)
         .filter(
-            ExerciseLog.user_id == user.id,
-            ExerciseLog.logged_at >= today_start,
-            ExerciseLog.logged_at <= today_end,
+            WorkoutLog.user_id == user.id,
+            WorkoutLog.logged_at >= today_start,
+            WorkoutLog.logged_at <= today_end,
         )
-        .order_by(ExerciseLog.logged_at.desc())
+        .order_by(WorkoutLog.logged_at.desc())
         .all()
     )
 
 
-def calculate_user_today_exercise_summary(db: Session, user: UserAuth) -> DailyExerciseSummary:
+def calculate_user_today_workout_summary(db: Session, user: UserAuth) -> DailyWorkoutSummary:
     """Calculates today's total workouts count, total duration, and total net calories burned.
 
     Args:
@@ -179,26 +179,26 @@ def calculate_user_today_exercise_summary(db: Session, user: UserAuth) -> DailyE
         user: Authenticated UserAuth entity.
 
     Returns:
-        DailyExerciseSummary instance.
+        DailyWorkoutSummary instance.
     """
     today_start = datetime.combine(date.today(), time.min)
     today_end = datetime.combine(date.today(), time.max)
 
     workouts = (
-        db.query(ExerciseLog)
+        db.query(WorkoutLog)
         .filter(
-            ExerciseLog.user_id == user.id,
-            ExerciseLog.logged_at >= today_start,
-            ExerciseLog.logged_at <= today_end,
+            WorkoutLog.user_id == user.id,
+            WorkoutLog.logged_at >= today_start,
+            WorkoutLog.logged_at <= today_end,
         )
         .all()
     )
 
     total_duration = sum(w.duration_minutes for w in workouts)
     total_burn = sum(w.calories_burned for w in workouts)
-    workout_responses = [ExerciseLogResponse.model_validate(w) for w in workouts]
+    workout_responses = [WorkoutLogResponse.model_validate(w) for w in workouts]
 
-    return DailyExerciseSummary(
+    return DailyWorkoutSummary(
         total_workouts=len(workouts),
         total_duration_minutes=round(total_duration, 1),
         total_net_calories_burned=total_burn,
@@ -212,7 +212,7 @@ def delete_workout_entry(db: Session, user: UserAuth, workout_id: str) -> bool:
     Args:
         db: Database session.
         user: Authenticated UserAuth entity.
-        workout_id: UUID of exercise log.
+        workout_id: UUID of workout log.
 
     Returns:
         True if deleted successfully.
@@ -220,7 +220,7 @@ def delete_workout_entry(db: Session, user: UserAuth, workout_id: str) -> bool:
     Raises:
         HTTPException: If workout entry is not found.
     """
-    workout = db.query(ExerciseLog).filter(ExerciseLog.id == workout_id, ExerciseLog.user_id == user.id).first()
+    workout = db.query(WorkoutLog).filter(WorkoutLog.id == workout_id, WorkoutLog.user_id == user.id).first()
     if not workout:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -232,17 +232,17 @@ def delete_workout_entry(db: Session, user: UserAuth, workout_id: str) -> bool:
     return True
 
 
-def update_workout_entry(db: Session, user: UserAuth, workout_id: str, workout_in: ExerciseLogCreate) -> ExerciseLog:
+def update_workout_entry(db: Session, user: UserAuth, workout_id: str, workout_in: WorkoutLogCreate) -> WorkoutLog:
     """Updates an existing logged workout entry and recalculates Net MET calories burned.
 
     Args:
         db: Database session.
         user: Authenticated UserAuth entity.
-        workout_id: UUID of exercise log.
+        workout_id: UUID of workout log.
         workout_in: Updated workout values.
 
     Returns:
-        Updated ExerciseLog model instance.
+        Updated WorkoutLog model instance.
     """
     profile = user.profile
     if not profile:
@@ -251,7 +251,7 @@ def update_workout_entry(db: Session, user: UserAuth, workout_id: str, workout_i
             detail="Physical profile not found.",
         )
 
-    workout = db.query(ExerciseLog).filter(ExerciseLog.id == workout_id, ExerciseLog.user_id == user.id).first()
+    workout = db.query(WorkoutLog).filter(WorkoutLog.id == workout_id, WorkoutLog.user_id == user.id).first()
     if not workout:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

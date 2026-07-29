@@ -2,7 +2,7 @@
 import random
 from datetime import date, datetime, time, timedelta
 from app.db.session import SessionLocal
-from app.db.models import UserAuth, UserProfile, FoodLog, ExerciseLog
+from app.db.models import UserAuth, UserProfile, FoodLog, WorkoutLog
 
 def seed_history_for_users():
     db = SessionLocal()
@@ -45,7 +45,7 @@ def seed_history_for_users():
         start_date = today - timedelta(days=29)
         start_dt = datetime.combine(start_date, time.min)
         db.query(FoodLog).filter(FoodLog.user_id == user.id, FoodLog.logged_at >= start_dt).delete()
-        db.query(ExerciseLog).filter(ExerciseLog.user_id == user.id, ExerciseLog.logged_at >= start_dt).delete()
+        db.query(WorkoutLog).filter(WorkoutLog.user_id == user.id, WorkoutLog.logged_at >= start_dt).delete()
         db.commit()
 
         for day_offset in range(30):
@@ -72,7 +72,7 @@ def seed_history_for_users():
             if has_workout:
                 wname, dur, met, burn = random.choice(workout_samples)
                 w_time = datetime.combine(current_date, time(hour=17, minute=random.randint(0, 59)))
-                ex_entry = ExerciseLog(
+                ex_entry = WorkoutLog(
                     user_id=user.id,
                     exercise_name=wname,
                     duration_minutes=dur,
