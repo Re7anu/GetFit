@@ -16,8 +16,12 @@ export const ENDPOINTS = {
   MEALS_AI: `${API_BASE_URL}/nutrition/meals/ai-parse`,
   MEALS_TODAY: `${API_BASE_URL}/nutrition/meals/today`,
   NUTRITION_SUMMARY: `${API_BASE_URL}/nutrition/summary/today`,
-  NUTRITION_HISTORY: `${API_BASE_URL}/nutrition/history`,
-  DAY_DETAIL: `${API_BASE_URL}/nutrition/day-detail`,
+  
+  // Health & Workout Analytics
+  ANALYTICS_HISTORY: `${API_BASE_URL}/analytics/history`,
+  ANALYTICS_DAY_DETAIL: `${API_BASE_URL}/analytics/day-detail`,
+  NUTRITION_HISTORY: `${API_BASE_URL}/analytics/history`,
+  DAY_DETAIL: `${API_BASE_URL}/analytics/day-detail`,
   
   // Exercises & Workouts
   WORKOUTS: `${API_BASE_URL}/workouts/logs`,
