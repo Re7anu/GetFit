@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from app.core.formulas import calculate_net_exercise_calories
 from app.db.models.workout_log import WorkoutLog
 from app.db.models.user_auth import UserAuth
-from app.schemas.workout_log import AIWorkoutParseRequest, DailyWorkoutSummary, WorkoutLogCreate, WorkoutLogResponse
+from app.schemas.workout_log import DailyWorkoutSummary, WorkoutLogCreate, WorkoutLogResponse
 
 
 def create_workout_entry(db: Session, user: UserAuth, workout_in: WorkoutLogCreate) -> WorkoutLog:
@@ -165,35 +165,7 @@ def create_structured_workout_entry(db: Session, user: UserAuth, structured_in: 
     return create_workout_entry(db=db, user=user, workout_in=workout_in)
 
 
-def create_workout_entry_via_ai(db: Session, user: UserAuth, prompt_in: AIWorkoutParseRequest) -> WorkoutLog:
-    """Parses natural language workout text using Gemini AI response_schema and creates a new WorkoutLog entry.
 
-    Args:
-        db: Database session.
-        user: Authenticated UserAuth entity.
-        prompt_in: AI workout parse request payload containing text_prompt.
-
-    Returns:
-        Created WorkoutLog model instance.
-    """
-    from app.core.prompts import EXERCISE_PARSING_PROMPT_TEMPLATE
-    from app.schemas.workout_log import AIWorkoutParseResult
-    from app.services import gemini_service
-
-    prompt = EXERCISE_PARSING_PROMPT_TEMPLATE.format(text_prompt=prompt_in.text_prompt)
-    parsed_result: AIWorkoutParseResult = gemini_service.generate_structured_output(
-        prompt=prompt,
-        response_schema=AIWorkoutParseResult,
-    )
-
-    workout_in = WorkoutLogCreate(
-        exercise_name=parsed_result.exercise_name,
-        duration_minutes=parsed_result.duration_minutes,
-        met_value=parsed_result.met_value,
-        input_method="ai_nlp",
-        notes=parsed_result.notes,
-    )
-    return create_workout_entry(db=db, user=user, workout_in=workout_in)
 
 
 def get_user_today_workouts(db: Session, user: UserAuth) -> List[WorkoutLog]:

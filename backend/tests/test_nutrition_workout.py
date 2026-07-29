@@ -121,7 +121,7 @@ def test_workout_logging_and_adjusted_budget(client, db_session):
         "met_value": 8.0,
         "notes": "Evening 10k run",
     }
-    res_w = client.post("/api/v1/workouts/logs", json=workout_payload, headers=headers)
+    res_w = client.post("/api/v1/workouts/logs/manual", json=workout_payload, headers=headers)
     assert res_w.status_code == 201
     assert res_w.json()["calories_burned"] == 544
 
@@ -140,16 +140,15 @@ def test_workout_logging_and_adjusted_budget(client, db_session):
     assert s_data["adjusted_calorie_target"] == 1610 + 544
 
 
-def test_ai_food_and_workout_logging_flow(client, db_session, monkeypatch):
-    """Tests POST /nutrition/meals/ai-parse and POST /workouts/logs/ai-parse using Gemini AI response_schema mocks."""
-    from app.schemas.workout_log import AIWorkoutParseResult
-    from app.schemas.food_log import AIFoodParseResult
+def test_ai_food_logging_flow(client, db_session, monkeypatch):
+    """Tests POST /nutrition/meals/ai-parse using Gemini AI response_schema mock."""
+    from app.schemas.nutrition_log import AIFoodParseResult
 
     user = create_user_with_profile(db_session, email="aiuser@getfit.com")
     access_token = create_access_token(user.id)
     headers = {"Authorization": f"Bearer {access_token}"}
 
-    # 1. Mock Gemini food structured output
+    # Mock Gemini food structured output
     def mock_food_gemini(prompt, response_schema):
         return AIFoodParseResult(
             meal_type="breakfast",
@@ -172,28 +171,6 @@ def test_ai_food_and_workout_logging_flow(client, db_session, monkeypatch):
     f_data = res_food.json()
     assert f_data["calories"] == 320
     assert f_data["input_method"] == "ai_nlp"
-
-    # 2. Mock Gemini exercise structured output
-    def mock_ex_gemini(prompt, response_schema):
-        return AIWorkoutParseResult(
-            exercise_name="Heavy Squats Workout",
-            duration_minutes=45.0,
-            met_value=6.0,
-            notes="Leg day",
-        )
-
-    monkeypatch.setattr("app.services.gemini_service.generate_structured_output", mock_ex_gemini)
-
-    res_ex = client.post(
-        "/api/v1/workouts/logs/ai-parse",
-        json={"text_prompt": "45 mins heavy squats"},
-        headers=headers,
-    )
-    assert res_ex.status_code == 201
-    ex_data = res_ex.json()
-    assert ex_data["exercise_name"] == "Heavy Squats Workout"
-    # Net MET = 6.0 - 1.2 = 4.8 * 80 * 0.75 = 288 kcal
-    assert ex_data["calories_burned"] == 288
 
 
 def test_exercise_catalog_and_structured_logging(client, db_session):

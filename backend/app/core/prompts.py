@@ -22,15 +22,3 @@ Return ONLY a valid JSON object matching the schema:
 Do not include any markdown formatting, explanations, or text outside the JSON object.
 """
 
-EXERCISE_PARSING_PROMPT_TEMPLATE: str = """
-You are an expert exercise physiologist AI. Analyze the following workout description text and extract exercise parameters.
-User Input: "{text_prompt}"
-
-Return ONLY a valid JSON object with the following exact keys:
-- "exercise_name": string (concise clean exercise title or sport name)
-- "duration_minutes": float (workout duration in minutes, default 30.0 if not specified)
-- "met_value": float (scientific Metabolic Equivalent of Task value based on Ainsworth Compendium, e.g. 3.8 for walking, 8.0 for running, 6.0 for heavy weightlifting, 7.0 for soccer)
-- "notes": string (brief summary or workout intensity notes)
-
-Do not include any markdown formatting, explanations, or text outside the JSON object.
-"""

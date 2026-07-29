@@ -35,19 +35,7 @@ class StructuredWorkoutCreate(BaseModel):
     dont_know_details: bool = Field(False, description="True if user checked 'I don't know details'")
 
 
-class AIWorkoutParseRequest(BaseModel):
-    """Pydantic schema for AI natural language workout logging request payload."""
 
-    text_prompt: str = Field(..., min_length=2, description="Natural language description of workout e.g. '45 mins heavy squats'")
-
-
-class AIWorkoutParseResult(BaseModel):
-    """Structured Pydantic schema passed to Gemini response_schema for exercise parsing."""
-
-    exercise_name: str = Field(..., description="Concise clean exercise title or sport name")
-    duration_minutes: float = Field(30.0, ge=0, description="Workout duration in minutes")
-    met_value: float = Field(3.5, ge=0, description="Scientific Ainsworth MET value of exercise")
-    notes: Optional[str] = None
 
 
 class WorkoutLogResponse(WorkoutLogBase):
