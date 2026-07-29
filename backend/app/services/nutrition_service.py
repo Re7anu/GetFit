@@ -30,6 +30,12 @@ def create_meal_entry(db: Session, user: UserAuth, meal_in: FoodLogCreate) -> Fo
         protein_g=meal_in.protein_g,
         carbs_g=meal_in.carbs_g,
         fat_g=meal_in.fat_g,
+        fiber_g=meal_in.fiber_g,
+        sodium_mg=meal_in.sodium_mg,
+        potassium_mg=meal_in.potassium_mg,
+        vitamin_c_mg=meal_in.vitamin_c_mg,
+        calcium_mg=meal_in.calcium_mg,
+        iron_mg=meal_in.iron_mg,
         quantity_g=meal_in.quantity_g,
         input_method=meal_in.input_method,
     )
@@ -67,6 +73,12 @@ def create_meal_entry_via_ai(db: Session, user: UserAuth, prompt_in: AIFoodParse
         protein_g=parsed_result.protein_g,
         carbs_g=parsed_result.carbs_g,
         fat_g=parsed_result.fat_g,
+        fiber_g=parsed_result.fiber_g,
+        sodium_mg=parsed_result.sodium_mg,
+        potassium_mg=parsed_result.potassium_mg,
+        vitamin_c_mg=parsed_result.vitamin_c_mg,
+        calcium_mg=parsed_result.calcium_mg,
+        iron_mg=parsed_result.iron_mg,
         quantity_g=parsed_result.quantity_g,
         input_method="ai_nlp",
     )
@@ -136,6 +148,14 @@ def calculate_user_today_nutrition_summary(db: Session, user: UserAuth) -> Daily
     consumed_protein = sum(m.protein_g for m in meals)
     consumed_carbs = sum(m.carbs_g for m in meals)
     consumed_fat = sum(m.fat_g for m in meals)
+    
+    # Sum micronutrients
+    consumed_fiber = sum(m.fiber_g for m in meals)
+    consumed_sodium = sum(m.sodium_mg for m in meals)
+    consumed_potassium = sum(m.potassium_mg for m in meals)
+    consumed_vitamin_c = sum(m.vitamin_c_mg for m in meals)
+    consumed_calcium = sum(m.calcium_mg for m in meals)
+    consumed_iron = sum(m.iron_mg for m in meals)
 
     # 2. Fetch today's Net MET exercise calories burned
     exercise_burn = (
@@ -194,6 +214,31 @@ def calculate_user_today_nutrition_summary(db: Session, user: UserAuth) -> Daily
     adj_target_carb = round(profile.calculated_carb_target_g + extra_carbs_g, 1)
     adj_target_fat = round(profile.calculated_fat_target_g + extra_fat_g, 1)
 
+    # Dynamic Clinical Micronutrient Target Calculation Engine (NIH/WHO Guidelines)
+    # 1. Base Profile & Gender-Scaled RDAs
+    cal_target = profile.calculated_calorie_target
+    is_female = profile.gender.lower() in ["female", "f"]
+
+    base_fiber = (cal_target / 1000.0) * 14.0  # 14g per 1000 kcal (NIH Standard)
+    base_sodium = 2300.0  # mg (Upper limit target)
+    base_potassium = max(profile.weight_kg * 40.0, 3400.0)  # mg (Scaled to body weight)
+    base_vitamin_c = 75.0 if is_female else 90.0  # mg (Gender RDA)
+    base_calcium = 1000.0  # mg
+    base_iron = 18.0 if is_female else 8.0  # mg (Gender RDA)
+
+    # 2. Sweat Loss & Exercise Electrolyte/Antioxidant Recovery Credit Engine
+    # Cardio & intense workout sweat causes sodium/potassium electrolyte loss; exercise increases oxidative stress (Vitamin C demand)
+    extra_sodium_mg = (cardio_burn * 0.8) + (strength_burn * 0.4) + (general_burn * 0.5)
+    extra_potassium_mg = (cardio_burn * 0.3) + (strength_burn * 0.15) + (general_burn * 0.2)
+    extra_vitamin_c_mg = (exercise_burn / 500.0) * 25.0
+
+    adj_target_fiber = round(base_fiber, 1)
+    adj_target_sodium = round(base_sodium + extra_sodium_mg, 1)
+    adj_target_potassium = round(base_potassium + extra_potassium_mg, 1)
+    adj_target_vitamin_c = round(base_vitamin_c + extra_vitamin_c_mg, 1)
+    adj_target_calcium = round(base_calcium, 1)
+    adj_target_iron = round(base_iron, 1)
+
     # Format meal responses for Pydantic serialization
     meal_responses = [FoodLogResponse.model_validate(m) for m in meals]
 
@@ -209,6 +254,18 @@ def calculate_user_today_nutrition_summary(db: Session, user: UserAuth) -> Daily
         consumed_carb_g=round(consumed_carbs, 1),
         target_fat_g=adj_target_fat,
         consumed_fat_g=round(consumed_fat, 1),
+        target_fiber_g=adj_target_fiber,
+        consumed_fiber_g=round(consumed_fiber, 1),
+        target_sodium_mg=adj_target_sodium,
+        consumed_sodium_mg=round(consumed_sodium, 1),
+        target_potassium_mg=adj_target_potassium,
+        consumed_potassium_mg=round(consumed_potassium, 1),
+        target_vitamin_c_mg=adj_target_vitamin_c,
+        consumed_vitamin_c_mg=round(consumed_vitamin_c, 1),
+        target_calcium_mg=adj_target_calcium,
+        consumed_calcium_mg=round(consumed_calcium, 1),
+        target_iron_mg=adj_target_iron,
+        consumed_iron_mg=round(consumed_iron, 1),
         meals_logged_today=meal_responses,
     )
 
@@ -264,6 +321,12 @@ def update_meal_entry(db: Session, user: UserAuth, meal_id: str, meal_in: FoodLo
     meal.protein_g = meal_in.protein_g
     meal.carbs_g = meal_in.carbs_g
     meal.fat_g = meal_in.fat_g
+    meal.fiber_g = meal_in.fiber_g
+    meal.sodium_mg = meal_in.sodium_mg
+    meal.potassium_mg = meal_in.potassium_mg
+    meal.vitamin_c_mg = meal_in.vitamin_c_mg
+    meal.calcium_mg = meal_in.calcium_mg
+    meal.iron_mg = meal_in.iron_mg
     if meal_in.quantity_g is not None:
         meal.quantity_g = meal_in.quantity_g
 

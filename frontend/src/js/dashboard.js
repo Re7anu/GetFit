@@ -85,6 +85,83 @@ export class DashboardManager {
                   </div>
                 </div>
               </div>
+
+              <!-- Micronutrient Intelligence Breakdown Bars -->
+              <div style="width: 100%; border-top: 1px solid var(--border-glass); padding-top: 1.25rem; margin-top: 1.25rem;">
+                <h4 style="font-size: 0.85rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.75rem; display: flex; align-items: center; justify-content: space-between;">
+                  <span>Micronutrient Intelligence (WHO / NIH RDAs)</span>
+                  <span style="font-size: 0.75rem; text-transform: none; color: var(--accent-health); font-weight: 500;">Essential Vitamins & Minerals</span>
+                </h4>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+                  <!-- Fiber -->
+                  <div class="macro-group" style="margin-top: 0;">
+                    <div class="macro-header">
+                      <span style="font-weight: 600; font-size: 0.8rem; color: #34D399;">🌾 Fiber</span>
+                      <span id="micro-fiber-label" class="text-muted" style="font-size: 0.75rem;">0g / 30g</span>
+                    </div>
+                    <div class="macro-bar-bg">
+                      <div id="micro-fiber-bar" class="macro-bar-fill" style="width: 0%; background: linear-gradient(90deg, #10B981, #34D399);"></div>
+                    </div>
+                  </div>
+
+                  <!-- Sodium -->
+                  <div class="macro-group" style="margin-top: 0;">
+                    <div class="macro-header">
+                      <span style="font-weight: 600; font-size: 0.8rem; color: #FBBF24;">🧂 Sodium</span>
+                      <span id="micro-sodium-label" class="text-muted" style="font-size: 0.75rem;">0mg / 2300mg</span>
+                    </div>
+                    <div class="macro-bar-bg">
+                      <div id="micro-sodium-bar" class="macro-bar-fill" style="width: 0%; background: linear-gradient(90deg, #F59E0B, #FBBF24);"></div>
+                    </div>
+                  </div>
+
+                  <!-- Potassium -->
+                  <div class="macro-group" style="margin-top: 0;">
+                    <div class="macro-header">
+                      <span style="font-weight: 600; font-size: 0.8rem; color: #60A5FA;">🥑 Potassium</span>
+                      <span id="micro-potassium-label" class="text-muted" style="font-size: 0.75rem;">0mg / 3400mg</span>
+                    </div>
+                    <div class="macro-bar-bg">
+                      <div id="micro-potassium-bar" class="macro-bar-fill" style="width: 0%; background: linear-gradient(90deg, #2563EB, #60A5FA);"></div>
+                    </div>
+                  </div>
+
+                  <!-- Vitamin C -->
+                  <div class="macro-group" style="margin-top: 0;">
+                    <div class="macro-header">
+                      <span style="font-weight: 600; font-size: 0.8rem; color: #F472B6;">🍊 Vitamin C</span>
+                      <span id="micro-vitamin_c-label" class="text-muted" style="font-size: 0.75rem;">0mg / 90mg</span>
+                    </div>
+                    <div class="macro-bar-bg">
+                      <div id="micro-vitamin_c-bar" class="macro-bar-fill" style="width: 0%; background: linear-gradient(90deg, #EC4899, #F472B6);"></div>
+                    </div>
+                  </div>
+
+                  <!-- Calcium -->
+                  <div class="macro-group" style="margin-top: 0;">
+                    <div class="macro-header">
+                      <span style="font-weight: 600; font-size: 0.8rem; color: #A7F3D0;">🥛 Calcium</span>
+                      <span id="micro-calcium-label" class="text-muted" style="font-size: 0.75rem;">0mg / 1000mg</span>
+                    </div>
+                    <div class="macro-bar-bg">
+                      <div id="micro-calcium-bar" class="macro-bar-fill" style="width: 0%; background: linear-gradient(90deg, #059669, #A7F3D0);"></div>
+                    </div>
+                  </div>
+
+                  <!-- Iron -->
+                  <div class="macro-group" style="margin-top: 0;">
+                    <div class="macro-header">
+                      <span style="font-weight: 600; font-size: 0.8rem; color: #C084FC;">🥩 Iron</span>
+                      <span id="micro-iron-label" class="text-muted" style="font-size: 0.75rem;">0mg / 18mg</span>
+                    </div>
+                    <div class="macro-bar-bg">
+                      <div id="micro-iron-bar" class="macro-bar-fill" style="width: 0%; background: linear-gradient(90deg, #9333EA, #C084FC);"></div>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
             </div>
 
           </div>
@@ -242,6 +319,14 @@ export class DashboardManager {
     this.updateMacroBar('protein', summary.consumed_protein_g, summary.target_protein_g);
     this.updateMacroBar('carb', summary.consumed_carb_g, summary.target_carb_g);
     this.updateMacroBar('fat', summary.consumed_fat_g, summary.target_fat_g);
+
+    // Update Micronutrient Bars
+    this.updateMicroBar('fiber', summary.consumed_fiber_g, summary.target_fiber_g || 30.0, 'g');
+    this.updateMicroBar('sodium', summary.consumed_sodium_mg, summary.target_sodium_mg || 2300.0, 'mg');
+    this.updateMicroBar('potassium', summary.consumed_potassium_mg, summary.target_potassium_mg || 3400.0, 'mg');
+    this.updateMicroBar('vitamin_c', summary.consumed_vitamin_c_mg, summary.target_vitamin_c_mg || 90.0, 'mg');
+    this.updateMicroBar('calcium', summary.consumed_calcium_mg, summary.target_calcium_mg || 1000.0, 'mg');
+    this.updateMicroBar('iron', summary.consumed_iron_mg, summary.target_iron_mg || 18.0, 'mg');
   }
 
   static updateMacroBar(type, consumed, target) {
@@ -251,6 +336,17 @@ export class DashboardManager {
 
     label.textContent = `${consumed}g / ${target}g`;
     const pct = target > 0 ? Math.min((consumed / target) * 100, 100) : 0;
+    bar.style.width = `${pct}%`;
+  }
+
+  static updateMicroBar(type, consumed, target, unit = 'mg') {
+    const label = document.getElementById(`micro-${type}-label`);
+    const bar = document.getElementById(`micro-${type}-bar`);
+    if (!label || !bar) return;
+
+    const consVal = consumed !== undefined ? consumed : 0;
+    label.textContent = `${consVal}${unit} / ${target}${unit}`;
+    const pct = target > 0 ? Math.min((consVal / target) * 100, 100) : 0;
     bar.style.width = `${pct}%`;
   }
 

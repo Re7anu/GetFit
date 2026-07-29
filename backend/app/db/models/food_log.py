@@ -1,4 +1,4 @@
-"""SQLAlchemy model definition for User Food and Meal Log entries."""
+"""SQLAlchemy model definition for User Food and Meal Log entries with Macronutrient and Micronutrient tracking."""
 
 import uuid
 from sqlalchemy import Column, DateTime, Float, ForeignKey, Integer, String, func
@@ -7,7 +7,7 @@ from app.db.models.base import Base
 
 
 class FoodLog(Base):
-    """SQLAlchemy model representing a food or meal logging entry.
+    """SQLAlchemy model representing a food or meal logging entry with macros and micros.
 
     Attributes:
         id: Primary key UUID string.
@@ -19,8 +19,14 @@ class FoodLog(Base):
         protein_g: Protein content in grams.
         carbs_g: Carbohydrate content in grams.
         fat_g: Fat content in grams.
+        fiber_g: Dietary fiber in grams.
+        sodium_mg: Sodium in milligrams.
+        potassium_mg: Potassium in milligrams.
+        vitamin_c_mg: Vitamin C in milligrams.
+        calcium_mg: Calcium in milligrams.
+        iron_mg: Iron in milligrams.
         quantity_g: Optional weight/portion size in grams.
-        input_method: Logging method used ('manual', 'ai_vision', 'barcode').
+        input_method: Logging method used ('manual', 'ai_nlp', 'barcode').
         user_auth: Relationship back to associated UserAuth entity.
     """
 
@@ -35,6 +41,15 @@ class FoodLog(Base):
     protein_g = Column(Float, default=0.0, nullable=False)
     carbs_g = Column(Float, default=0.0, nullable=False)
     fat_g = Column(Float, default=0.0, nullable=False)
+    
+    # Essential Micronutrients
+    fiber_g = Column(Float, default=0.0, nullable=False)
+    sodium_mg = Column(Float, default=0.0, nullable=False)
+    potassium_mg = Column(Float, default=0.0, nullable=False)
+    vitamin_c_mg = Column(Float, default=0.0, nullable=False)
+    calcium_mg = Column(Float, default=0.0, nullable=False)
+    iron_mg = Column(Float, default=0.0, nullable=False)
+
     quantity_g = Column(Float, nullable=True)
     input_method = Column(String, default="manual", nullable=False)
 

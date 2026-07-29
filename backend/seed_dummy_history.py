@@ -103,6 +103,12 @@ def seed_history_for_users():
                     protein_g=meal_prot,
                     carbs_g=meal_carbs,
                     fat_g=meal_fat,
+                    fiber_g=round(random.uniform(5.0, 10.0), 1),
+                    sodium_mg=round(random.uniform(300.0, 650.0), 1),
+                    potassium_mg=round(random.uniform(500.0, 950.0), 1),
+                    vitamin_c_mg=round(random.uniform(15.0, 45.0), 1),
+                    calcium_mg=round(random.uniform(150.0, 350.0), 1),
+                    iron_mg=round(random.uniform(2.5, 6.0), 1),
                     input_method="ai_nlp",
                     logged_at=log_time,
                 )
