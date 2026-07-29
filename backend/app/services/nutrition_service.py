@@ -5,10 +5,13 @@ from typing import List
 from fastapi import HTTPException, status
 from sqlalchemy import func
 from sqlalchemy.orm import Session
+from app.core.exercise_catalog import EXERCISE_CATALOG
+from app.core.prompts import FOOD_PARSING_PROMPT_TEMPLATE
 from app.db.models.workout_log import WorkoutLog
 from app.db.models.nutrition_log import FoodLog
 from app.db.models.user_auth import UserAuth
-from app.schemas.nutrition_log import AIFoodParseRequest, DailyNutritionSummary, FoodLogCreate, FoodLogResponse
+from app.schemas.nutrition_log import AIFoodParseRequest, AIFoodParseResult, DailyNutritionSummary, FoodLogCreate, FoodLogResponse
+from app.services import gemini_service
 
 
 def create_meal_entry(db: Session, user: UserAuth, meal_in: FoodLogCreate) -> FoodLog:
@@ -56,10 +59,6 @@ def create_meal_entry_via_ai(db: Session, user: UserAuth, prompt_in: AIFoodParse
     Returns:
         Created FoodLog model instance.
     """
-    from app.core.prompts import FOOD_PARSING_PROMPT_TEMPLATE
-    from app.schemas.nutrition_log import AIFoodParseResult
-    from app.services import gemini_service
-
     prompt = FOOD_PARSING_PROMPT_TEMPLATE.format(text_prompt=prompt_in.text_prompt)
     parsed_result: AIFoodParseResult = gemini_service.generate_structured_output(
         prompt=prompt,
@@ -186,8 +185,6 @@ def calculate_user_today_nutrition_summary(db: Session, user: UserAuth) -> Daily
     cardio_burn = 0
     strength_burn = 0
     general_burn = 0
-
-    from app.core.exercise_catalog import EXERCISE_CATALOG
 
     for w in today_workouts:
         # Match exercise catalog category or fallback based on name

@@ -4,10 +4,11 @@ from datetime import date, datetime, time
 from typing import Any, List
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
+from app.core.exercise_catalog import EXERCISE_CATALOG
 from app.core.formulas import calculate_net_exercise_calories
 from app.db.models.workout_log import WorkoutLog
 from app.db.models.user_auth import UserAuth
-from app.schemas.workout_log import DailyWorkoutSummary, WorkoutLogCreate, WorkoutLogResponse
+from app.schemas.workout_log import DailyWorkoutSummary, WorkoutLogCreate, WorkoutLogResponse, StructuredWorkoutCreate
 
 
 def create_workout_entry(db: Session, user: UserAuth, workout_in: WorkoutLogCreate) -> WorkoutLog:
@@ -66,8 +67,6 @@ def create_structured_workout_entry(db: Session, user: UserAuth, structured_in: 
     Returns:
         Created WorkoutLog instance.
     """
-    from app.core.exercise_catalog import EXERCISE_CATALOG
-
     profile = user.profile
     if not profile:
         raise HTTPException(

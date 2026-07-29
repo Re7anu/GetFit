@@ -1,5 +1,7 @@
 """Google Gemini AI Service module using official google-genai SDK structured outputs with response_schema."""
 
+import concurrent.futures
+import time
 from typing import Type, TypeVar
 from fastapi import HTTPException, status
 from google import genai
@@ -27,9 +29,6 @@ def get_genai_client() -> genai.Client:
     return genai.Client(api_key=settings.GEMINI_API_KEY)
 
 
-import concurrent.futures
-
-
 def generate_structured_output(prompt: str, response_schema: Type[T]) -> T:
     """Generates structured output directly parsed into a Pydantic model using official Google GenAI SDK.
 
@@ -45,7 +44,6 @@ def generate_structured_output(prompt: str, response_schema: Type[T]) -> T:
     """
     client = get_genai_client()
 
-    import time
     def _call_gemini():
         candidate_models = [settings.GEMINI_MODEL_NAME, "gemini-2.0-flash", "gemini-2.0-flash-lite"]
         last_err = None

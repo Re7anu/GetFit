@@ -7,7 +7,9 @@ from sqlalchemy.orm import Session
 from app.db.models.nutrition_log import FoodLog
 from app.db.models.workout_log import WorkoutLog
 from app.db.models.user_auth import UserAuth
-from app.schemas.analytics import DailyHistorySnapshot
+from app.schemas.nutrition_log import FoodLogResponse
+from app.schemas.workout_log import WorkoutLogResponse
+from app.schemas.analytics import DailyHistorySnapshot, DayDetailResponse, DayDetailMealItem, DayDetailWorkoutItem
 
 
 def get_user_nutrition_history(db: Session, user: UserAuth, days: int = 30) -> List[DailyHistorySnapshot]:
@@ -121,9 +123,6 @@ def get_day_detail_summary(db: Session, user: UserAuth, target_date_str: str) ->
     Returns:
         Dict containing date, meals, workouts, totals, and goal status.
     """
-    from app.schemas.food_log import FoodLogResponse
-    from app.schemas.workout_log import WorkoutLogResponse
-
     profile = user.profile
     if not profile:
         raise HTTPException(status_code=404, detail="User profile not found")
@@ -195,8 +194,6 @@ def get_day_detail_summary(db: Session, user: UserAuth, target_date_str: str) ->
         hit_protein = consumed_protein >= target_protein
         is_goal_hit = hit_cals and hit_protein
         reason = f"Consumed {consumed_cals} kcal vs {adjusted_target} target."
-
-    from app.schemas.analytics import DayDetailResponse, DayDetailMealItem, DayDetailWorkoutItem
 
     return DayDetailResponse(
         date=target_date_str,
