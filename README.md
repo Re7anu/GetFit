@@ -35,6 +35,45 @@ Built with **FastAPI**, **PostgreSQL**, **SQLAlchemy 2.0**, **Pydantic v2**, and
 
 ---
 
+## Scientific Calculation Sources & Scientific Formulations
+
+GetFit relies on peer-reviewed clinical guidelines, sports physiology literature, and international health standards for all metabolic, macro, micro, and workout calculations:
+
+### 🔬 1. Metabolic Engine (BMR & TDEE)
+- **Mifflin-St Jeor Equation (1990):** Standard BMR baseline for non-bodyfat inputs.
+  - *Reference:* Mifflin MD, St Jeor ST, et al. *"A new predictive equation for resting energy expenditure in healthy individuals."* Am J Clin Nutr. 1990;51(2):241-247.
+- **Katch-McArdle Formula (1996):** LBM-based BMR equation applied when body fat percentage is provided:
+  $$\text{BMR} = 370 + 21.6 \times (1 - \text{body\_fat\_fraction}) \times \text{weight\_kg}$$
+  - *Reference:* Katch WD, McArdle WD. *"Nutrition, Weight Control, and Exercise."* Lea & Febiger, 1996.
+- **Physical Activity Level (PAL) Multipliers:**
+  - *Reference:* FAO/WHO/UNU Expert Consultation. *"Human Energy Requirements."* Food and Nutrition Technical Report Series, 2004.
+
+### 🥩 2. Macronutrient Target Splits
+- **Protein Intake Targets ($1.6\text{g/kg}$ to $2.2\text{g/kg}$):** Preserves lean tissue during caloric deficit ($2.2\text{g/kg}$) and optimizes muscle protein synthesis ($2.0\text{g/kg}$).
+  - *Reference:* Jäger R, Kerksick CM, et al. *"International Society of Sports Nutrition Position Stand: protein and exercise."* J Int Soc Sports Nutr. 2017;14:20.
+  - *Reference:* Thomas DT, Erdman KA, Burke LM. *"American College of Sports Medicine Joint Position Statement: Nutrition and Athletic Performance."* Med Sci Sports Exerc. 2016;48(3):543-568.
+- **Fat & Carbohydrate Distribution:** $25\%$ of TDEE allocated to essential fatty acids; remaining caloric balance allocated to complex carbohydrates ($1\text{g fat} = 9\text{ kcal}$, $1\text{g carb} = 4\text{ kcal}$).
+
+### 🥗 3. Essential Micronutrient Standards (RDAs & DRIs)
+GetFit monitors 6 essential micronutrients using Recommended Dietary Allowances (RDA) and Dietary Reference Intakes (DRI):
+- **Dietary Fiber ($30\text{ g/day}$):** WHO guideline for cardiovascular and gut metabolic health.
+  - *Reference:* World Health Organization (WHO). *"Diet, Nutrition and the Prevention of Chronic Diseases."* WHO Technical Report Series 916, 2003.
+- **Sodium ($2,300\text{ mg/day}$ upper limit):** NIH / American Heart Association upper intake threshold.
+- **Potassium ($3,400\text{ mg/day}$ RDA):** National Academy of Medicine DRI for adults.
+- **Vitamin C ($90\text{ mg/day}$ RDA):** NIH Office of Dietary Supplements recommended daily allowance.
+- **Calcium ($1,000\text{ mg/day}$ RDA):** NIH DRI for adult bone mineral density maintenance.
+- **Iron ($18\text{ mg/day}$ RDA):** NIH DRI standard for adult intake.
+- **Food Data Reference:** Nutritional profiles parsed by Gemini AI are validated against the **USDA FoodData Central Foundation Database** (*U.S. Department of Agriculture, Agricultural Research Service*).
+
+### 🏃 4. Exercise Calorie Expenditure & MET Calculations
+- **Ainsworth Compendium of Physical Activities (2011 Revision):** Scientific source for baseline Metabolic Equivalent of Task (MET) values across activities.
+  - *Reference:* Ainsworth BE, Haskell WL, et al. *"2011 Compendium of Physical Activities: a second update of codes and MET values."* Med Sci Sports Exerc. 2011;43(8):1575-1581.
+- **Solution A Net MET Energy Expenditure:** Subtracts baseline resting metabolism ($1.2\text{ MET}$) to prevent double-counting resting calories during exercise:
+  $$\text{Net Burn} = (\text{Active MET} - 1.2) \times \text{User Weight (kg)} \times \left(\frac{\text{Duration (mins)}}{60}\right)$$
+  - *Reference:* Swartz AM, et al. *"Estimation of energy expenditure using METs during physical activity."* Med Sci Sports Exerc. 2000.
+
+---
+
 ## Project Structure
 
 ```text
@@ -62,10 +101,12 @@ GetFit/
 │   │   │   └── prompts.py
 │   │   ├── db/              <-- PostgreSQL Models & Session
 │   │   │   ├── models/
+│   │   │   │   ├── nutrition_log.py
+│   │   │   │   └── workout_log.py
 │   │   │   └── session.py
 │   │   └── schemas/         <-- Pydantic Contracts
 │   │       ├── analytics.py
-│   │       ├── food_log.py
+│   │       ├── nutrition_log.py
 │   │       ├── profile.py
 │   │       └── workout_log.py
 │   ├── seed_dummy_history.py
