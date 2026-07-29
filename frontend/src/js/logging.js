@@ -115,7 +115,7 @@ export class LoggingManager {
           `;
         } else if (item.category === 'reps') {
           dynamicFields.innerHTML = `
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem;">
               <div>
                 <label style="font-size: 0.75rem; color: var(--text-secondary);">Sets</label>
                 <input type="number" id="dash-reps-sets" class="form-input" style="padding: 0.4rem; font-size: 0.85rem;" value="${item.default_sets || 3}" required />
@@ -123,6 +123,10 @@ export class LoggingManager {
               <div>
                 <label style="font-size: 0.75rem; color: var(--text-secondary);">Reps / Set</label>
                 <input type="number" id="dash-reps-count" class="form-input" style="padding: 0.4rem; font-size: 0.85rem;" value="${item.default_reps || 15}" required />
+              </div>
+              <div>
+                <label style="font-size: 0.75rem; color: var(--text-secondary);">Added Weight (kg)</label>
+                <input type="number" step="0.5" min="0" id="dash-reps-weight" class="form-input" style="padding: 0.4rem; font-size: 0.85rem;" value="0" placeholder="+kg" />
               </div>
             </div>
           `;
@@ -170,6 +174,7 @@ export class LoggingManager {
           distance_km: parseFloat(document.getElementById('dash-dist-km')?.value) || null,
           sets: parseInt(document.getElementById('dash-reps-sets')?.value, 10) || null,
           reps: parseInt(document.getElementById('dash-reps-count')?.value, 10) || null,
+          additional_weight_kg: parseFloat(document.getElementById('dash-reps-weight')?.value) || 0.0,
           duration_minutes: parseFloat(document.getElementById('dash-time-mins')?.value || document.getElementById('dash-dist-mins')?.value) || null,
           intensity: document.getElementById('dash-time-intensity')?.value || 'moderate',
         };
