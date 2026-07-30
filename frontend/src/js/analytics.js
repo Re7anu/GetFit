@@ -90,10 +90,37 @@ export class AnalyticsManager {
           </div>
         </div>
 
-        <!-- Dynamic Content Container -->
+        <!-- Dynamic Content Container (Renders Skeleton Loader while fetching) -->
         <div id="analytics-content-box">
-          <div class="glass-card" style="text-align: center; padding: 3rem 1rem;">
-            <p class="text-muted">Loading analytics history...</p>
+          <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+            <!-- Skeleton 1: Streak Highlight Banner -->
+            <div class="skeleton" style="height: 85px; border-radius: 16px;"></div>
+
+            <!-- Skeleton 2: 3 Overview Cards -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+              <div class="skeleton" style="height: 100px; border-radius: 16px;"></div>
+              <div class="skeleton" style="height: 100px; border-radius: 16px;"></div>
+              <div class="skeleton" style="height: 100px; border-radius: 16px;"></div>
+            </div>
+
+            <!-- Skeleton 3: History Cards Grid -->
+            <div class="glass-card" style="display: flex; flex-direction: column; gap: 1rem;">
+              <div class="skeleton" style="height: 24px; width: 35%; border-radius: 6px;"></div>
+              <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 0.75rem;">
+                <div class="skeleton" style="height: 85px; border-radius: 12px;"></div>
+                <div class="skeleton" style="height: 85px; border-radius: 12px;"></div>
+                <div class="skeleton" style="height: 85px; border-radius: 12px;"></div>
+                <div class="skeleton" style="height: 85px; border-radius: 12px;"></div>
+                <div class="skeleton" style="height: 85px; border-radius: 12px;"></div>
+                <div class="skeleton" style="height: 85px; border-radius: 12px;"></div>
+                <div class="skeleton" style="height: 85px; border-radius: 12px;"></div>
+                <div class="skeleton" style="height: 85px; border-radius: 12px;"></div>
+                <div class="skeleton" style="height: 85px; border-radius: 12px;"></div>
+                <div class="skeleton" style="height: 85px; border-radius: 12px;"></div>
+                <div class="skeleton" style="height: 85px; border-radius: 12px;"></div>
+                <div class="skeleton" style="height: 85px; border-radius: 12px;"></div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -108,15 +135,18 @@ export class AnalyticsManager {
 
     const modalHTML = `
       <div id="day-detail-modal" class="modal-overlay">
-        <div class="modal-content" style="max-width: 650px; width: 90%; max-height: 85vh; overflow-y: auto;">
-          <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center;">
-            <h2 id="day-modal-title" style="font-size: 1.25rem; font-family: var(--font-heading);">
-              📅 Daily Breakdown
-            </h2>
-            <button id="btn-close-day-modal" class="btn" style="background: transparent; border: none; font-size: 1.5rem; color: var(--text-secondary); cursor: pointer;">×</button>
+        <div class="modal-content" style="max-width: 850px; width: 92%; max-height: 90vh; overflow-y: auto; padding: 1.25rem;">
+          <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border-glass);">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+              <h2 id="day-modal-title" style="font-size: 1.15rem; font-family: var(--font-heading); margin: 0;">
+                📅 Daily Breakdown
+              </h2>
+              <span id="day-modal-status-badge"></span>
+            </div>
+            <button id="btn-close-day-modal" class="btn" style="background: transparent; border: none; font-size: 1.5rem; color: var(--text-secondary); cursor: pointer; line-height: 1;">×</button>
           </div>
 
-          <div id="day-modal-body" style="margin-top: 1rem;">
+          <div id="day-modal-body" style="margin-top: 0.75rem;">
             <p class="text-muted" style="text-align: center; padding: 2rem;">Loading details...</p>
           </div>
         </div>
@@ -150,13 +180,57 @@ export class AnalyticsManager {
 
   static async fetchAndRender() {
     const box = document.getElementById('analytics-content-box');
-    if (box) {
-      box.innerHTML = `<div class="glass-card" style="text-align: center; padding: 3rem 1rem;"><p class="text-muted">Loading analytics data...</p></div>`;
+    if (box && (!this.historyData || this.historyData.length === 0)) {
+      box.innerHTML = `
+        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+          <div class="skeleton" style="height: 85px; border-radius: 16px;"></div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+            <div class="skeleton" style="height: 100px; border-radius: 16px;"></div>
+            <div class="skeleton" style="height: 100px; border-radius: 16px;"></div>
+            <div class="skeleton" style="height: 100px; border-radius: 16px;"></div>
+          </div>
+          <div class="glass-card" style="display: flex; flex-direction: column; gap: 1rem;">
+            <div class="skeleton" style="height: 24px; width: 35%; border-radius: 6px;"></div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 0.75rem;">
+              <div class="skeleton" style="height: 85px; border-radius: 12px;"></div>
+              <div class="skeleton" style="height: 85px; border-radius: 12px;"></div>
+              <div class="skeleton" style="height: 85px; border-radius: 12px;"></div>
+              <div class="skeleton" style="height: 85px; border-radius: 12px;"></div>
+              <div class="skeleton" style="height: 85px; border-radius: 12px;"></div>
+              <div class="skeleton" style="height: 85px; border-radius: 12px;"></div>
+              <div class="skeleton" style="height: 85px; border-radius: 12px;"></div>
+              <div class="skeleton" style="height: 85px; border-radius: 12px;"></div>
+              <div class="skeleton" style="height: 85px; border-radius: 12px;"></div>
+              <div class="skeleton" style="height: 85px; border-radius: 12px;"></div>
+              <div class="skeleton" style="height: 85px; border-radius: 12px;"></div>
+              <div class="skeleton" style="height: 85px; border-radius: 12px;"></div>
+            </div>
+          </div>
+        </div>
+      `;
     }
 
     try {
       const historyUrl = (ENDPOINTS && ENDPOINTS.NUTRITION_HISTORY) ? ENDPOINTS.NUTRITION_HISTORY : `${API_BASE_URL}/nutrition/history`;
-      this.historyData = await APIClient.request(`${historyUrl}?days=${this.days}`);
+      const response = await APIClient.request(`${historyUrl}?days=${this.days}`);
+
+      if (response && Array.isArray(response.snapshots)) {
+        this.historyData = response.snapshots;
+        this.currentStreak = response.current_streak || 0;
+        this.bestStreak = response.best_streak || 0;
+        this.totalGoalsHit = response.total_goals_hit_30d || 0;
+      } else if (Array.isArray(response)) {
+        this.historyData = response;
+        this.currentStreak = 0;
+        this.bestStreak = 0;
+        this.totalGoalsHit = response.filter(x => x && x.is_goal_hit).length;
+      } else {
+        this.historyData = [];
+        this.currentStreak = 0;
+        this.bestStreak = 0;
+        this.totalGoalsHit = 0;
+      }
+
       this.renderView();
     } catch (err) {
       console.error('Failed to fetch analytics history:', err);
@@ -182,32 +256,68 @@ export class AnalyticsManager {
   }
 
   static renderCalendarView(container) {
-    const totalDays = this.historyData.length;
-    const goalsHit = this.historyData.filter(x => x.is_goal_hit).length;
+    const list = Array.isArray(this.historyData) ? this.historyData : [];
+    const totalDays = list.length;
+    const goalsHit = this.totalGoalsHit !== undefined ? this.totalGoalsHit : list.filter(x => x && x.is_goal_hit).length;
     const successRate = totalDays > 0 ? Math.round((goalsHit / totalDays) * 100) : 0;
+    const currentStreak = this.currentStreak || 0;
+    const bestStreak = this.bestStreak || 0;
 
     container.innerHTML = `
       <div style="display: flex; flex-direction: column; gap: 1.5rem;">
         
-        <!-- Performance Overview Cards -->
-        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
-          <div class="glass-card" style="text-align: center; padding: 1.25rem;">
-            <div class="text-muted" style="font-size: 0.8rem; text-transform: uppercase;">Goal Success Rate</div>
-            <div style="font-size: 2rem; font-family: var(--font-heading); font-weight: 800; color: var(--accent-health); margin-top: 0.25rem;">
-              ${successRate}%
+        <!-- 🔥 Streak Highlight Banner -->
+        <div class="glass-card" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(245, 158, 11, 0.12)); border: 1px solid var(--border-glass-glow); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; padding: 1.25rem 1.5rem;">
+          <div style="display: flex; align-items: center; gap: 1.25rem;">
+            <div style="font-size: 2.5rem; line-height: 1; filter: drop-shadow(0 0 12px rgba(245, 158, 11, 0.7));">
+              🔥
+            </div>
+            <div>
+              <div style="font-size: 1.25rem; font-family: var(--font-heading); font-weight: 800; color: var(--text-primary); display: flex; align-items: center; gap: 0.5rem;">
+                ${currentStreak > 0 ? `${currentStreak} Day Goal Streak!` : 'Start Your Goal Streak Today!'}
+                ${currentStreak > 0 ? `<span style="font-size: 0.75rem; background: var(--accent-health); color: #000; font-weight: 800; padding: 0.15rem 0.5rem; border-radius: 999px;">ACTIVE</span>` : ''}
+              </div>
+              <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.2rem;">
+                ${currentStreak > 0 
+                  ? `You've hit your nutrition & fitness targets for <strong>${currentStreak} consecutive day${currentStreak > 1 ? 's' : ''}</strong>!`
+                  : 'Hit your daily calorie budget & protein targets to build your streak!'}
+              </div>
             </div>
           </div>
+          <div style="display: flex; align-items: center; gap: 1rem;">
+            <div style="text-align: right;">
+              <div class="text-muted" style="font-size: 0.75rem; text-transform: uppercase;">30-Day Record</div>
+              <div style="font-size: 1.1rem; font-family: var(--font-heading); font-weight: 800; color: var(--accent-health);">
+                🏆 ${bestStreak} Days Best
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Performance Overview Cards -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
           <div class="glass-card" style="text-align: center; padding: 1.25rem;">
-            <div class="text-muted" style="font-size: 0.8rem; text-transform: uppercase;">Days Goal Hit</div>
-            <div style="font-size: 2rem; font-family: var(--font-heading); font-weight: 800; color: var(--accent-health); margin-top: 0.25rem;">
+            <div class="text-muted" style="font-size: 0.75rem; text-transform: uppercase;">🔥 Current Streak</div>
+            <div style="font-size: 2rem; font-family: var(--font-heading); font-weight: 900; color: #F59E0B; margin-top: 0.25rem;">
+              ${currentStreak} <span style="font-size: 1rem; font-weight: 700; color: var(--text-secondary);">Days</span>
+            </div>
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">Consecutive days hit</div>
+          </div>
+          
+          <div class="glass-card" style="text-align: center; padding: 1.25rem;">
+            <div class="text-muted" style="font-size: 0.75rem; text-transform: uppercase;">🏆 Best Streak (30d)</div>
+            <div style="font-size: 2rem; font-family: var(--font-heading); font-weight: 900; color: var(--accent-health); margin-top: 0.25rem;">
+              ${bestStreak} <span style="font-size: 1rem; font-weight: 700; color: var(--text-secondary);">Days</span>
+            </div>
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">Personal record</div>
+          </div>
+
+          <div class="glass-card" style="text-align: center; padding: 1.25rem;">
+            <div class="text-muted" style="font-size: 0.75rem; text-transform: uppercase;">🎯 Goals Hit (${totalDays}d)</div>
+            <div style="font-size: 2rem; font-family: var(--font-heading); font-weight: 900; color: var(--accent-health); margin-top: 0.25rem;">
               ${goalsHit} / ${totalDays}
             </div>
-          </div>
-          <div class="glass-card" style="text-align: center; padding: 1.25rem;">
-            <div class="text-muted" style="font-size: 0.8rem; text-transform: uppercase;">Goal Rule</div>
-            <div style="font-size: 0.85rem; font-weight: 600; margin-top: 0.5rem; color: var(--text-primary);">
-              Protein Met & Caloric Target Respected
-            </div>
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">${successRate}% success rate</div>
           </div>
         </div>
 
@@ -218,7 +328,7 @@ export class AnalyticsManager {
           </h3>
 
           <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 0.75rem;">
-            ${this.historyData.map(day => {
+            ${list.map(day => {
               const d = new Date(day.date + 'T00:00:00');
               const dateStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
@@ -256,12 +366,12 @@ export class AnalyticsManager {
   }
 
   static renderGraphView(container) {
-    if (!this.historyData || this.historyData.length === 0) {
+    const data = Array.isArray(this.historyData) ? this.historyData : [];
+    if (!data || data.length === 0) {
       container.innerHTML = `<div class="glass-card" style="text-align: center; padding: 2rem;">No data available for line graph.</div>`;
       return;
     }
 
-    const data = this.historyData;
     const maxVal = Math.max(...data.map(d => Math.max(d.consumed_calories, d.adjusted_calorie_target)), 2500) * 1.15;
     
     const svgWidth = 800;
@@ -350,123 +460,128 @@ export class AnalyticsManager {
     this.ensureModalDOM();
     const modal = document.getElementById('day-detail-modal');
     const title = document.getElementById('day-modal-title');
+    const statusBadgeElem = document.getElementById('day-modal-status-badge');
     const body = document.getElementById('day-modal-body');
 
     if (!modal || !body) return;
 
     const d = new Date(dateStr + 'T00:00:00');
-    const dateFormatted = d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+    const dateFormatted = d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
     
     title.textContent = `📅 Breakdown for ${dateFormatted}`;
+    if (statusBadgeElem) statusBadgeElem.innerHTML = '';
     body.innerHTML = `<p class="text-muted" style="text-align: center; padding: 2rem;">Loading details for ${dateStr}...</p>`;
     modal.classList.add('active');
 
     try {
       const detailUrl = (ENDPOINTS && ENDPOINTS.DAY_DETAIL) ? ENDPOINTS.DAY_DETAIL : `${API_BASE_URL}/nutrition/day-detail`;
-      const data = await APIClient.request(`${detailUrl}?target_date=${dateStr}`);
+      const data = await APIClient.request(`${detailUrl}?date=${dateStr}`);
 
       const isSuccess = data.is_goal_hit;
       const statusBg = isSuccess ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)';
       const statusColor = isSuccess ? 'var(--accent-health)' : '#EF4444';
-      const statusBadge = isSuccess ? '✔ Goal Hit' : '✖ Goal Missed';
+      const statusBadgeText = isSuccess ? '✔ Goal Hit' : '✖ Goal Missed';
+
+      if (statusBadgeElem) {
+        statusBadgeElem.innerHTML = `
+          <span style="background: ${statusColor}; color: ${isSuccess ? '#000' : '#fff'}; font-weight: 800; font-size: 0.7rem; padding: 0.15rem 0.5rem; border-radius: 999px;">
+            ${statusBadgeText}
+          </span>
+        `;
+      }
 
       body.innerHTML = `
-        <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+        <div style="display: flex; flex-direction: column; gap: 0.85rem;">
           
-          <!-- Status Banner -->
-          <div style="background: ${statusBg}; border: 1px solid ${statusColor}; padding: 0.85rem 1rem; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; gap: 1rem;">
+          <!-- Compact Single-Line Status Reason Bar -->
+          <div style="background: ${statusBg}; border: 1px solid ${statusColor}; padding: 0.4rem 0.75rem; border-radius: 8px; font-size: 0.8rem; color: var(--text-primary); font-weight: 500;">
+            ${data.status_reason}
+          </div>
+
+          <!-- Ultra-Compact Single-Row Horizontal Metrics Strip -->
+          <div style="background: rgba(22, 27, 34, 0.6); border: 1px solid var(--border-glass); border-radius: 10px; padding: 0.5rem 0.85rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem; font-size: 0.8rem;">
             <div>
-              <span style="background: ${statusColor}; color: ${isSuccess ? '#000' : '#fff'}; font-weight: 800; font-size: 0.75rem; padding: 0.2rem 0.6rem; border-radius: 999px;">
-                ${statusBadge}
-              </span>
-              <div style="font-size: 0.85rem; margin-top: 0.4rem; color: var(--text-primary); font-weight: 500;">
-                ${data.status_reason}
-              </div>
+              <span class="text-muted">Calories:</span>
+              <strong style="color: var(--text-primary); font-size: 0.9rem;">${data.consumed_calories}</strong>
+              <span style="color: var(--text-secondary);">/ ${data.adjusted_calorie_target} kcal</span>
+              <span style="color: var(--text-muted); font-size: 0.75rem;">(+${data.exercise_net_calories_burned} burn)</span>
+            </div>
+
+            <div>
+              <span class="text-muted">Protein:</span>
+              <strong style="color: var(--accent-health); font-size: 0.9rem;">${data.consumed_protein_g}g</strong>
+              <span style="color: var(--text-secondary);">/ ${data.target_protein_g}g</span>
+            </div>
+
+            <div style="color: var(--text-secondary); font-size: 0.75rem;">
+              Carbs: <strong style="color:var(--text-primary);">${data.consumed_carb_g}g</strong> | Fat: <strong style="color:var(--text-primary);">${data.consumed_fat_g}g</strong>
             </div>
           </div>
 
-          <!-- Daily Macro & Energy Snapshot Grid -->
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
-            <div style="background: rgba(22, 27, 34, 0.6); padding: 0.85rem; border-radius: 10px; border: 1px solid var(--border-glass);">
-              <div class="text-muted" style="font-size: 0.75rem; text-transform: uppercase;">Calorie Budget</div>
-              <div style="font-size: 1.25rem; font-weight: 700; color: var(--text-primary); margin-top: 0.2rem;">
-                ${data.consumed_calories} <span style="font-size: 0.85rem; font-weight: normal; color: var(--text-secondary);">/ ${data.adjusted_calorie_target} kcal</span>
-              </div>
-              <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">
-                Net Exercise Burn: +${data.exercise_net_calories_burned} kcal
-              </div>
+          <!-- Side-by-Side 2-Column Grid: Logged Meals & Logged Workouts -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; align-items: start;">
+            
+            <!-- Column 1: Logged Meals -->
+            <div style="display: flex; flex-direction: column; gap: 0.4rem;">
+              <h4 style="font-size: 0.85rem; font-family: var(--font-heading); margin: 0; display: flex; align-items: center; gap: 0.3rem;">
+                🥗 Meals (${data.meals.length})
+              </h4>
+              ${data.meals.length === 0 ? `
+                <div style="font-size: 0.8rem; color: var(--text-muted); font-style: italic; background: rgba(22,27,34,0.3); padding: 0.6rem; border-radius: 8px;">
+                  No meals logged on this date.
+                </div>
+              ` : `
+                <div style="display: flex; flex-direction: column; gap: 0.4rem; max-height: 280px; overflow-y: auto; padding-right: 0.2rem;">
+                  ${data.meals.map(m => `
+                    <div style="background: rgba(22, 27, 34, 0.6); border: 1px solid var(--border-glass); padding: 0.45rem 0.65rem; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
+                      <div>
+                        <div style="display: flex; align-items: center; gap: 0.4rem;">
+                          <span style="background: rgba(59,130,246,0.15); color: #3B82F6; font-size: 0.6rem; font-weight: 700; text-transform: uppercase; padding: 0.1rem 0.35rem; border-radius: 4px;">
+                            ${m.meal_type}
+                          </span>
+                          <span style="font-weight: 600; font-size: 0.8rem;">${m.description}</span>
+                        </div>
+                        <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 0.15rem;">
+                          ${m.time} • P:${m.protein_g}g | C:${m.carbs_g}g | F:${m.fat_g}g
+                        </div>
+                      </div>
+                      <div style="font-weight: 700; font-size: 0.85rem; color: var(--accent-health); white-space: nowrap;">
+                        ${m.calories} kcal
+                      </div>
+                    </div>
+                  `).join('')}
+                </div>
+              `}
             </div>
 
-            <div style="background: rgba(22, 27, 34, 0.6); padding: 0.85rem; border-radius: 10px; border: 1px solid var(--border-glass);">
-              <div class="text-muted" style="font-size: 0.75rem; text-transform: uppercase;">Protein Target</div>
-              <div style="font-size: 1.25rem; font-weight: 700; color: var(--accent-health); margin-top: 0.2rem;">
-                ${data.consumed_protein_g}g <span style="font-size: 0.85rem; font-weight: normal; color: var(--text-secondary);">/ ${data.target_protein_g}g</span>
-              </div>
-              <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">
-                Carbs: ${data.consumed_carb_g}g | Fat: ${data.consumed_fat_g}g
-              </div>
+            <!-- Column 2: Logged Workouts -->
+            <div style="display: flex; flex-direction: column; gap: 0.4rem;">
+              <h4 style="font-size: 0.85rem; font-family: var(--font-heading); margin: 0; display: flex; align-items: center; gap: 0.3rem;">
+                ⚡ Workouts (${data.workouts.length})
+              </h4>
+              ${data.workouts.length === 0 ? `
+                <div style="font-size: 0.8rem; color: var(--text-muted); font-style: italic; background: rgba(22,27,34,0.3); padding: 0.6rem; border-radius: 8px;">
+                  No workouts logged on this date.
+                </div>
+              ` : `
+                <div style="display: flex; flex-direction: column; gap: 0.4rem; max-height: 280px; overflow-y: auto; padding-right: 0.2rem;">
+                  ${data.workouts.map(w => `
+                    <div style="background: rgba(22, 27, 34, 0.6); border: 1px solid var(--border-glass); padding: 0.45rem 0.65rem; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
+                      <div>
+                        <div style="font-weight: 600; font-size: 0.8rem;">⚡ ${w.exercise_name}</div>
+                        <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 0.15rem;">
+                          ${w.duration_minutes} mins • ${w.time}
+                        </div>
+                      </div>
+                      <div style="font-weight: 700; font-size: 0.85rem; color: #3B82F6; white-space: nowrap;">
+                        +${w.calories_burned} kcal
+                      </div>
+                    </div>
+                  `).join('')}
+                </div>
+              `}
             </div>
-          </div>
 
-          <!-- Logged Meals Section -->
-          <div>
-            <h4 style="font-size: 0.95rem; font-family: var(--font-heading); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem;">
-              🥗 Logged Meals (${data.meals.length})
-            </h4>
-            ${data.meals.length === 0 ? `
-              <div style="font-size: 0.85rem; color: var(--text-muted); font-style: italic; background: rgba(22,27,34,0.3); padding: 0.75rem; border-radius: 8px;">
-                No meals logged on this date.
-              </div>
-            ` : `
-              <div style="display: flex; flex-direction: column; gap: 0.5rem; max-height: 200px; overflow-y: auto;">
-                ${data.meals.map(m => `
-                  <div style="background: rgba(22, 27, 34, 0.6); border: 1px solid var(--border-glass); padding: 0.65rem 0.85rem; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
-                    <div>
-                      <div style="display: flex; align-items: center; gap: 0.5rem;">
-                        <span style="background: rgba(59,130,246,0.15); color: #3B82F6; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; padding: 0.15rem 0.4rem; border-radius: 4px;">
-                          ${m.meal_type}
-                        </span>
-                        <span style="font-weight: 600; font-size: 0.85rem;">${m.description}</span>
-                      </div>
-                      <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">
-                        Logged at ${m.time} • P: ${m.protein_g}g | C: ${m.carbs_g}g | F: ${m.fat_g}g
-                      </div>
-                    </div>
-                    <div style="font-weight: 700; font-size: 0.9rem; color: var(--accent-health);">
-                      ${m.calories} kcal
-                    </div>
-                  </div>
-                `).join('')}
-              </div>
-            `}
-          </div>
-
-          <!-- Logged Workouts Section -->
-          <div>
-            <h4 style="font-size: 0.95rem; font-family: var(--font-heading); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem;">
-              ⚡ Logged Workouts (${data.workouts.length})
-            </h4>
-            ${data.workouts.length === 0 ? `
-              <div style="font-size: 0.85rem; color: var(--text-muted); font-style: italic; background: rgba(22,27,34,0.3); padding: 0.75rem; border-radius: 8px;">
-                No workouts logged on this date.
-              </div>
-            ` : `
-              <div style="display: flex; flex-direction: column; gap: 0.5rem; max-height: 180px; overflow-y: auto;">
-                ${data.workouts.map(w => `
-                  <div style="background: rgba(22, 27, 34, 0.6); border: 1px solid var(--border-glass); padding: 0.65rem 0.85rem; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
-                    <div>
-                      <div style="font-weight: 600; font-size: 0.85rem;">⚡ ${w.exercise_name}</div>
-                      <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">
-                        Duration: ${w.duration_minutes} mins • Logged at ${w.time}
-                      </div>
-                    </div>
-                    <div style="font-weight: 700; font-size: 0.9rem; color: #3B82F6;">
-                      +${w.calories_burned} kcal
-                    </div>
-                  </div>
-                `).join('')}
-              </div>
-            `}
           </div>
 
         </div>

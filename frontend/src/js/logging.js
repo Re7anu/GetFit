@@ -48,6 +48,7 @@ export class LoggingManager {
 
           statusBox.textContent = `Logged meal: "${result.description}" (${result.calories} kcal)`;
           input.value = '';
+          window.dispatchEvent(new CustomEvent('meal:logged'));
           await DashboardManager.fetchAndRenderData();
         } catch (err) {
           statusBox.style.color = '#EF4444';
@@ -190,6 +191,7 @@ export class LoggingManager {
           document.getElementById('dash-ex-item-select').style.display = 'none';
           document.getElementById('dash-ex-dynamic-fields').style.display = 'none';
           btn.style.display = 'none';
+          window.dispatchEvent(new CustomEvent('exercise:logged'));
           await DashboardManager.fetchAndRenderData();
         } catch (err) {
           statusBox.style.color = '#EF4444';
@@ -244,6 +246,44 @@ export class LoggingManager {
                 <input type="number" step="0.1" id="m-meal-fat" class="form-input" placeholder="10" required />
               </div>
             </div>
+
+            <!-- Optional Micronutrient Fields (Left blank = Auto AI enriched) -->
+            <details style="margin-top: 1rem; background: rgba(22,27,34,0.7); border: 1px solid var(--border-glass-glow); padding: 0.85rem; border-radius: 10px;">
+              <summary style="font-size: 0.85rem; font-weight: 700; color: var(--accent-health); cursor: pointer; display: flex; align-items: center; gap: 0.5rem; user-select: none;">
+                <span>🧪 Optional: Enter Micronutrients Manually</span>
+                <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: normal; margin-left: auto;">(Click to expand)</span>
+              </summary>
+              <p style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.5rem; margin-bottom: 0.75rem;">
+                Leave blank to automatically let Gemini AI calculate micronutrients from your food description.
+              </p>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                <div class="form-group" style="margin-bottom: 0;">
+                  <label class="form-label" style="font-size: 0.7rem;">Fiber (g)</label>
+                  <input type="number" step="0.1" id="m-meal-fiber" class="form-input" style="padding: 0.35rem; font-size: 0.8rem;" placeholder="Auto AI" />
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                  <label class="form-label" style="font-size: 0.7rem;">Sodium (mg)</label>
+                  <input type="number" step="0.1" id="m-meal-sodium" class="form-input" style="padding: 0.35rem; font-size: 0.8rem;" placeholder="Auto AI" />
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                  <label class="form-label" style="font-size: 0.7rem;">Potassium (mg)</label>
+                  <input type="number" step="0.1" id="m-meal-potassium" class="form-input" style="padding: 0.35rem; font-size: 0.8rem;" placeholder="Auto AI" />
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                  <label class="form-label" style="font-size: 0.7rem;">Vitamin C (mg)</label>
+                  <input type="number" step="0.1" id="m-meal-vitc" class="form-input" style="padding: 0.35rem; font-size: 0.8rem;" placeholder="Auto AI" />
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                  <label class="form-label" style="font-size: 0.7rem;">Calcium (mg)</label>
+                  <input type="number" step="0.1" id="m-meal-calcium" class="form-input" style="padding: 0.35rem; font-size: 0.8rem;" placeholder="Auto AI" />
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                  <label class="form-label" style="font-size: 0.7rem;">Iron (mg)</label>
+                  <input type="number" step="0.1" id="m-meal-iron" class="form-input" style="padding: 0.35rem; font-size: 0.8rem;" placeholder="Auto AI" />
+                </div>
+              </div>
+            </details>
+
             <button type="submit" id="m-meal-submit-btn" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Save Meal</button>
           </form>
         </div>
@@ -298,6 +338,12 @@ export class LoggingManager {
         document.getElementById('m-meal-protein').value = meal.protein_g;
         document.getElementById('m-meal-carbs').value = meal.carbs_g;
         document.getElementById('m-meal-fat').value = meal.fat_g;
+        document.getElementById('m-meal-fiber').value = meal.fiber_g || '';
+        document.getElementById('m-meal-sodium').value = meal.sodium_mg || '';
+        document.getElementById('m-meal-potassium').value = meal.potassium_mg || '';
+        document.getElementById('m-meal-vitc').value = meal.vitamin_c_mg || '';
+        document.getElementById('m-meal-calcium').value = meal.calcium_mg || '';
+        document.getElementById('m-meal-iron').value = meal.iron_mg || '';
 
         const form = document.getElementById('manual-meal-form');
         form.setAttribute('data-editing-id', id);
@@ -348,46 +394,84 @@ export class LoggingManager {
     document.addEventListener('submit', async (e) => {
       if (e.target && e.target.id === 'manual-meal-form') {
         e.preventDefault();
-        const editingId = e.target.getAttribute('data-editing-id');
-        const payload = {
-          meal_type: document.getElementById('m-meal-type').value,
-          description: document.getElementById('m-meal-desc').value,
-          calories: parseInt(document.getElementById('m-meal-cals').value, 10),
-          protein_g: parseFloat(document.getElementById('m-meal-protein').value),
-          carbs_g: parseFloat(document.getElementById('m-meal-carbs').value),
-          fat_g: parseFloat(document.getElementById('m-meal-fat').value),
-        };
-
-        if (editingId) {
-          await APIClient.request(`${ENDPOINTS.MEALS}/${editingId}`, { method: 'PUT', body: JSON.stringify(payload) });
-          e.target.removeAttribute('data-editing-id');
-        } else {
-          await APIClient.request(ENDPOINTS.MEALS, { method: 'POST', body: JSON.stringify(payload) });
+        const submitBtn = document.getElementById('m-meal-submit-btn');
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.textContent = '⏳ Saving Meal & Enriched Micros...';
         }
 
-        document.getElementById('manual-meal-modal').classList.remove('active');
-        await DashboardManager.fetchAndRenderData();
+        try {
+          const editingId = e.target.getAttribute('data-editing-id');
+          const payload = {
+            meal_type: document.getElementById('m-meal-type').value,
+            description: document.getElementById('m-meal-desc').value,
+            calories: parseInt(document.getElementById('m-meal-cals').value, 10),
+            protein_g: parseFloat(document.getElementById('m-meal-protein').value),
+            carbs_g: parseFloat(document.getElementById('m-meal-carbs').value),
+            fat_g: parseFloat(document.getElementById('m-meal-fat').value),
+            fiber_g: parseFloat(document.getElementById('m-meal-fiber')?.value || 0),
+            sodium_mg: parseFloat(document.getElementById('m-meal-sodium')?.value || 0),
+            potassium_mg: parseFloat(document.getElementById('m-meal-potassium')?.value || 0),
+            vitamin_c_mg: parseFloat(document.getElementById('m-meal-vitc')?.value || 0),
+            calcium_mg: parseFloat(document.getElementById('m-meal-calcium')?.value || 0),
+            iron_mg: parseFloat(document.getElementById('m-meal-iron')?.value || 0),
+          };
+
+          if (editingId) {
+            await APIClient.request(`${ENDPOINTS.MEALS}/${editingId}`, { method: 'PUT', body: JSON.stringify(payload) });
+            e.target.removeAttribute('data-editing-id');
+          } else {
+            await APIClient.request(ENDPOINTS.MEALS, { method: 'POST', body: JSON.stringify(payload) });
+          }
+
+          document.getElementById('manual-meal-modal').classList.remove('active');
+          window.dispatchEvent(new CustomEvent('meal:logged'));
+          await DashboardManager.fetchAndRenderData();
+        } catch (err) {
+          alert(`Error saving meal: ${err.message}`);
+        } finally {
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Save Meal';
+          }
+        }
       }
 
       if (e.target && e.target.id === 'manual-exercise-form') {
         e.preventDefault();
-        const editingId = e.target.getAttribute('data-editing-id');
-        const payload = {
-          exercise_name: document.getElementById('m-ex-name').value,
-          duration_minutes: parseFloat(document.getElementById('m-ex-dur').value),
-          met_value: parseFloat(document.getElementById('m-ex-met').value),
-          input_method: 'manual',
-        };
-
-        if (editingId) {
-          await APIClient.request(`${ENDPOINTS.EXERCISES}/${editingId}`, { method: 'PUT', body: JSON.stringify(payload) });
-          e.target.removeAttribute('data-editing-id');
-        } else {
-          await APIClient.request(ENDPOINTS.EXERCISES, { method: 'POST', body: JSON.stringify(payload) });
+        const submitBtn = document.getElementById('m-ex-submit-btn');
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.textContent = '⏳ Saving Workout...';
         }
 
-        document.getElementById('manual-exercise-modal').classList.remove('active');
-        await DashboardManager.fetchAndRenderData();
+        try {
+          const editingId = e.target.getAttribute('data-editing-id');
+          const payload = {
+            exercise_name: document.getElementById('m-ex-name').value,
+            duration_minutes: parseFloat(document.getElementById('m-ex-dur').value),
+            met_value: parseFloat(document.getElementById('m-ex-met').value),
+            input_method: 'manual',
+          };
+
+          if (editingId) {
+            await APIClient.request(`${ENDPOINTS.EXERCISES}/${editingId}`, { method: 'PUT', body: JSON.stringify(payload) });
+            e.target.removeAttribute('data-editing-id');
+          } else {
+            await APIClient.request(ENDPOINTS.EXERCISES, { method: 'POST', body: JSON.stringify(payload) });
+          }
+
+          document.getElementById('manual-exercise-modal').classList.remove('active');
+          window.dispatchEvent(new CustomEvent('exercise:logged'));
+          await DashboardManager.fetchAndRenderData();
+        } catch (err) {
+          alert(`Error saving workout: ${err.message}`);
+        } finally {
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Save Workout';
+          }
+        }
       }
     });
   }

@@ -6,7 +6,7 @@ from fastapi import HTTPException, status
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 from app.core.exercise_catalog import EXERCISE_CATALOG
-from app.core.prompts import FOOD_PARSING_PROMPT_TEMPLATE
+from app.core.prompts import FOOD_PARSING_PROMPT_TEMPLATE, MICRONUTRIENT_ENRICHMENT_PROMPT
 from app.db.models.workout_log import WorkoutLog
 from app.db.models.nutrition_log import FoodLog
 from app.db.models.user_auth import UserAuth
@@ -16,15 +16,43 @@ from app.services import gemini_service
 
 def create_meal_entry(db: Session, user: UserAuth, meal_in: FoodLogCreate) -> FoodLog:
     """Creates and persists a new meal entry for the user.
-
-    Args:
-        db: Database session.
-        user: Authenticated UserAuth entity.
-        meal_in: Food logging payload.
-
-    Returns:
-        Created FoodLog model instance.
+    If micronutrients are left at 0 in manual mode, automatically enriches them via AI.
     """
+    fiber_g = meal_in.fiber_g
+    sodium_mg = meal_in.sodium_mg
+    potassium_mg = meal_in.potassium_mg
+    vitamin_c_mg = meal_in.vitamin_c_mg
+    calcium_mg = meal_in.calcium_mg
+    iron_mg = meal_in.iron_mg
+
+    # Automatic Micronutrient Enrichment if all micros are 0
+    if fiber_g == 0 and sodium_mg == 0 and potassium_mg == 0 and vitamin_c_mg == 0 and calcium_mg == 0 and iron_mg == 0:
+        try:
+            prompt = MICRONUTRIENT_ENRICHMENT_PROMPT.format(
+                description=meal_in.description,
+                meal_type=meal_in.meal_type,
+                calories=meal_in.calories,
+                protein_g=meal_in.protein_g,
+                carbs_g=meal_in.carbs_g,
+                fat_g=meal_in.fat_g,
+            )
+            parsed: AIFoodParseResult = gemini_service.generate_structured_output(
+                prompt=prompt,
+                response_schema=AIFoodParseResult,
+            )
+            fiber_g = parsed.fiber_g
+            sodium_mg = parsed.sodium_mg
+            potassium_mg = parsed.potassium_mg
+            vitamin_c_mg = parsed.vitamin_c_mg
+            calcium_mg = parsed.calcium_mg
+            iron_mg = parsed.iron_mg
+        except Exception:
+            # Fallback estimation based on macro ratios if AI call fails
+            fiber_g = round(meal_in.carbs_g * 0.08, 1)
+            sodium_mg = round(meal_in.calories * 0.8, 1)
+            potassium_mg = round(meal_in.calories * 1.1, 1)
+            calcium_mg = round(meal_in.protein_g * 4.0, 1)
+
     db_meal = FoodLog(
         user_id=user.id,
         meal_type=meal_in.meal_type.lower(),
@@ -33,12 +61,12 @@ def create_meal_entry(db: Session, user: UserAuth, meal_in: FoodLogCreate) -> Fo
         protein_g=meal_in.protein_g,
         carbs_g=meal_in.carbs_g,
         fat_g=meal_in.fat_g,
-        fiber_g=meal_in.fiber_g,
-        sodium_mg=meal_in.sodium_mg,
-        potassium_mg=meal_in.potassium_mg,
-        vitamin_c_mg=meal_in.vitamin_c_mg,
-        calcium_mg=meal_in.calcium_mg,
-        iron_mg=meal_in.iron_mg,
+        fiber_g=fiber_g,
+        sodium_mg=sodium_mg,
+        potassium_mg=potassium_mg,
+        vitamin_c_mg=vitamin_c_mg,
+        calcium_mg=calcium_mg,
+        iron_mg=iron_mg,
         quantity_g=meal_in.quantity_g,
         input_method=meal_in.input_method,
     )

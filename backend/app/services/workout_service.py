@@ -93,17 +93,47 @@ def create_structured_workout_entry(db: Session, user: UserAuth, structured_in: 
             duration_mins = structured_in.duration_minutes
             speed_kmh = (distance_km / duration_mins) * 60.0
             
-            # Dynamic Ainsworth Compendium Speed-Based MET Scaling
-            if speed_kmh < 6.0:
-                met_val = 3.8  # Normal / Brisk Walking pace
-            elif speed_kmh < 8.0:
-                met_val = 6.0  # Slow Jogging pace
-            elif speed_kmh < 10.0:
-                met_val = item.get("met", 8.0)  # Moderate Running pace
-            elif speed_kmh < 12.0:
-                met_val = 10.0  # Fast Running pace
+            # Dynamic Ainsworth Compendium Speed-Based MET Scaling by Locomotion Family
+            ex_id_lower = structured_in.exercise_id.lower()
+            ex_name_lower = exercise_name.lower()
+
+            is_wheel = "cycling" in ex_id_lower or "bike" in ex_name_lower or "bicycling" in ex_name_lower
+            is_water = "swim" in ex_id_lower or "swimming" in ex_name_lower or "rowing" in ex_name_lower or "kayak" in ex_name_lower
+
+            if is_wheel:
+                # 1. Wheel Locomotion (Cycling / Bicycling)
+                if speed_kmh < 10.0:
+                    met_val = 4.0   # Extremely slow coasting / leisure (< 6 mph)
+                elif speed_kmh < 15.0:
+                    met_val = 6.0   # Light effort cycling (6 - 9.3 mph)
+                elif speed_kmh < 19.0:
+                    met_val = 8.0   # Moderate effort cycling (9.3 - 11.8 mph)
+                elif speed_kmh < 22.5:
+                    met_val = 10.0  # Vigorous effort cycling (11.8 - 14 mph)
+                elif speed_kmh < 26.0:
+                    met_val = 12.0  # Very fast cycling (14 - 16 mph)
+                else:
+                    met_val = 14.0  # Racing effort cycling (> 16 mph)
+            elif is_water:
+                # 2. Water Locomotion (Swimming / Rowing / Kayaking)
+                if speed_kmh < 2.0:
+                    met_val = 4.5   # Light leisure swimming / paddling (< 2 km/h)
+                elif speed_kmh < 3.0:
+                    met_val = 7.0   # Moderate lap swimming (2 - 3 km/h)
+                else:
+                    met_val = 10.0  # Vigorous competitive swimming (> 3 km/h)
             else:
-                met_val = 11.5  # Vigorous Sprinting / Race pace
+                # 3. Foot Locomotion (Running / Walking / Jogging / Hiking)
+                if speed_kmh < 6.0:
+                    met_val = 3.8  # Normal / Brisk Walking pace
+                elif speed_kmh < 8.0:
+                    met_val = 6.0  # Slow Jogging pace
+                elif speed_kmh < 10.0:
+                    met_val = item.get("met", 8.0)  # Moderate Running pace
+                elif speed_kmh < 12.0:
+                    met_val = 10.0  # Fast Running pace
+                else:
+                    met_val = 11.5  # Vigorous Sprinting / Race pace
             
             notes = f"{distance_km} km at {speed_kmh:.1f} km/h avg speed"
         else:

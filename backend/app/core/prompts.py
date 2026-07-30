@@ -22,3 +22,20 @@ Return ONLY a valid JSON object matching the schema:
 Do not include any markdown formatting, explanations, or text outside the JSON object.
 """
 
+MICRONUTRIENT_ENRICHMENT_PROMPT: str = """
+You are an expert clinical nutritionist AI. Given the food description "{description}" with user-entered macros ({calories} kcal, {protein_g}g protein, {carbs_g}g carbs, {fat_g}g fat), estimate its 6 essential micronutrient values accurately based on standard USDA food database profiles.
+
+Return ONLY a valid JSON object matching the schema:
+- "meal_type": string ("{meal_type}")
+- "description": string ("{description}")
+- "calories": integer ({calories})
+- "protein_g": float ({protein_g})
+- "carbs_g": float ({carbs_g})
+- "fat_g": float ({fat_g})
+- "fiber_g": float (estimated dietary fiber in grams, rounded to 1 decimal)
+- "sodium_mg": float (estimated sodium in milligrams, rounded to 1 decimal)
+- "potassium_mg": float (estimated potassium in milligrams, rounded to 1 decimal)
+- "vitamin_c_mg": float (estimated vitamin C in milligrams, rounded to 1 decimal)
+- "calcium_mg": float (estimated calcium in milligrams, rounded to 1 decimal)
+- "iron_mg": float (estimated iron in milligrams, rounded to 1 decimal)
+"""
