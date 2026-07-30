@@ -165,52 +165,6 @@ export class DashboardManager {
             </div>
 
           </div>
-
-          <!-- Food AI Logger & Structured Exercise Logger Cards Grid -->
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-            <!-- AI Meal Logger -->
-            <div class="glass-card">
-              <h4 style="font-size: 0.9rem; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
-                <span>🥗</span> Log Meal with Gemini AI
-              </h4>
-              <form id="ai-meal-form" class="ai-prompt-bar">
-                <input type="text" id="ai-meal-input" class="ai-prompt-input" placeholder="E.g., '2 eggs and toast'..." required />
-                <button type="submit" id="ai-meal-btn" class="btn btn-primary" style="padding: 0.5rem 0.8rem; font-size: 0.8rem;">
-                  Log Meal
-                </button>
-              </form>
-              <div id="ai-meal-status" style="display:none; font-size: 0.8rem; margin-top: 0.5rem; color: var(--accent-health);"></div>
-            </div>
-
-            <!-- Structured 2-Step Scientific Exercise Logger Card -->
-            <div class="glass-card">
-              <h4 style="font-size: 0.9rem; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
-                <span>⚡</span> Structured Workout Logger
-              </h4>
-              <form id="dash-structured-ex-form" style="display: flex; flex-direction: column; gap: 0.75rem;">
-                <!-- Step 1: Category Selection -->
-                <select id="dash-ex-cat-select" class="form-input" style="padding: 0.5rem; font-size: 0.85rem;" required>
-                  <option value="">1. Select Category...</option>
-                  <option value="distance">Distance-Based (Running, Cycling, Swimming)</option>
-                  <option value="reps">Reps & Sets-Based (Pushups, Squats, Weightlifting)</option>
-                  <option value="time">Time & Intensity-Based (Yoga, HIIT, Basketball)</option>
-                </select>
-
-                <!-- Step 2: Specific Exercise Selection -->
-                <select id="dash-ex-item-select" class="form-input" style="padding: 0.5rem; font-size: 0.85rem; display: none;" required>
-                  <option value="">2. Select Specific Exercise...</option>
-                </select>
-
-                <!-- Step 3: Dynamic Required Metric Fields -->
-                <div id="dash-ex-dynamic-fields" style="display: none;"></div>
-
-                <button type="submit" id="dash-ex-btn" class="btn btn-cobalt" style="padding: 0.5rem; font-size: 0.85rem; display: none;">
-                  Calculate & Log Workout
-                </button>
-              </form>
-              <div id="dash-ex-status" style="display:none; font-size: 0.8rem; margin-top: 0.5rem; color: var(--accent-workout);"></div>
-            </div>
-          </div>
         </div>
 
         <!-- Right Sidebar Column: Physical Profile (Top) + Scrollable Activity Timeline (Bottom) -->
@@ -225,12 +179,9 @@ export class DashboardManager {
 
           <!-- 2. Today's Activity Logged List with Dedicated Glass Scrollbar (Positioned Below Profile) -->
           <div class="glass-card">
-            <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1rem;">
-              <h3>Today's Meals & Workouts</h3>
-              <div style="display: flex; gap: 0.5rem;">
-                <button id="btn-manual-meal" class="btn" style="flex:1; padding: 0.4rem 0.5rem; font-size: 0.75rem;">+ Manual Meal</button>
-                <button id="btn-manual-exercise" class="btn btn-cobalt" style="flex:1; padding: 0.4rem 0.5rem; font-size: 0.75rem;">+ Manual Workout</button>
-              </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+              <h3 style="font-size: 1rem; margin: 0;">Today's Activity Timeline</h3>
+              <span class="text-muted" style="font-size: 0.75rem;">Summary Log</span>
             </div>
 
             <!-- Scrollable Timeline Container with Fixed Height -->
