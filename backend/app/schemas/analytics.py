@@ -17,6 +17,17 @@ class DailyHistorySnapshot(BaseModel):
     status_reason: str
 
 
+class AnalyticsHistoryResponse(BaseModel):
+    """Pydantic schema for 30-day analytics history with streak calculation metrics."""
+
+    snapshots: List[DailyHistorySnapshot]
+    current_streak: int = Field(..., description="Current consecutive days hitting nutrition & workout goals")
+    best_streak: int = Field(..., description="Best consecutive days streak achieved over past 30 days")
+    total_goals_hit_30d: int = Field(..., description="Total days goal was hit in past 30 days")
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class DayDetailMealItem(BaseModel):
     """Pydantic schema for individual meal summary item in day detail breakdown."""
 

@@ -9,10 +9,10 @@ from app.db.models.workout_log import WorkoutLog
 from app.db.models.user_auth import UserAuth
 from app.schemas.nutrition_log import FoodLogResponse
 from app.schemas.workout_log import WorkoutLogResponse
-from app.schemas.analytics import DailyHistorySnapshot, DayDetailResponse, DayDetailMealItem, DayDetailWorkoutItem
+from app.schemas.analytics import AnalyticsHistoryResponse, DailyHistorySnapshot, DayDetailResponse, DayDetailMealItem, DayDetailWorkoutItem
 
 
-def get_user_nutrition_history(db: Session, user: UserAuth, days: int = 30) -> List[DailyHistorySnapshot]:
+def get_user_nutrition_history(db: Session, user: UserAuth, days: int = 30) -> AnalyticsHistoryResponse:
     """Calculates daily historical performance snapshots evaluating calorie & protein goals.
 
     Args:
@@ -109,7 +109,38 @@ def get_user_nutrition_history(db: Session, user: UserAuth, days: int = 30) -> L
             )
         )
 
-    return history
+    # 1. Total goals hit
+    total_goals_hit_30d = sum(1 for snap in history if snap.is_goal_hit)
+
+    # 2. Best streak calculation
+    best_streak = 0
+    running_streak = 0
+    for snap in history:
+        if snap.is_goal_hit:
+            running_streak += 1
+            best_streak = max(best_streak, running_streak)
+        else:
+            running_streak = 0
+
+    # 3. Current active streak calculation (backwards from today/yesterday)
+    current_streak = 0
+    if history:
+        # Start checking from today (history[-1])
+        idx = len(history) - 1
+        if not history[idx].is_goal_hit and idx > 0 and history[idx - 1].is_goal_hit:
+            # Today not hit yet, but yesterday was hit -> streak is alive from yesterday
+            idx -= 1
+
+        while idx >= 0 and history[idx].is_goal_hit:
+            current_streak += 1
+            idx -= 1
+
+    return AnalyticsHistoryResponse(
+        snapshots=history,
+        current_streak=current_streak,
+        best_streak=best_streak,
+        total_goals_hit_30d=total_goals_hit_30d,
+    )
 
 
 def get_day_detail_summary(db: Session, user: UserAuth, target_date_str: str) -> dict:
