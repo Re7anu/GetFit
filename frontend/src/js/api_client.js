@@ -3,11 +3,13 @@ import { ENDPOINTS } from './config.js';
 
 export class APIClient {
   static getAccessToken() {
-    return localStorage.getItem('getfit_access_token');
+    const t = localStorage.getItem('getfit_access_token');
+    return (t && t !== 'null' && t !== 'undefined') ? t : null;
   }
 
   static getRefreshToken() {
-    return localStorage.getItem('getfit_refresh_token');
+    const r = localStorage.getItem('getfit_refresh_token');
+    return (r && r !== 'null' && r !== 'undefined') ? r : null;
   }
 
   static setTokens(accessToken, refreshToken) {
@@ -59,7 +61,9 @@ export class APIClient {
       if (!response.ok) {
         const errData = await response.json().catch(() => ({}));
         const message = this.formatErrorMessage(errData, response.status);
-        throw new Error(message);
+        const err = new Error(message);
+        err.status = response.status;
+        throw err;
       }
 
       if (response.status === 204) {
@@ -102,7 +106,7 @@ export class APIClient {
       return errData.detail;
     }
 
-    // 2. Single detail object: { msg: "..." } or { loc: [...], msg: "..." }
+    // 2. Single detail object
     if (errData.detail && typeof errData.detail === 'object' && !Array.isArray(errData.detail)) {
       let msg = errData.detail.msg || errData.detail.message || JSON.stringify(errData.detail);
       if (typeof msg === 'string' && msg.startsWith('Value error, ')) {
@@ -111,7 +115,7 @@ export class APIClient {
       return msg;
     }
 
-    // 3. Array of detail objects: [{ msg: "..." }, ...]
+    // 3. Array of detail objects
     if (Array.isArray(errData.detail)) {
       return errData.detail
         .map(item => {
@@ -127,7 +131,6 @@ export class APIClient {
         .join('\n');
     }
 
-    // 4. Other string error properties
     if (typeof errData.message === 'string') return errData.message;
     if (typeof errData.error === 'string') return errData.error;
 

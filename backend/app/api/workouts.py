@@ -7,7 +7,7 @@ from app.core.auth_dependencies import get_current_user
 from app.db.models.user_auth import UserAuth
 from app.db.session import get_db
 from app.core.exercise_catalog import get_exercise_catalog_list
-from app.schemas.workout_log import AIWorkoutParseRequest, DailyWorkoutSummary, WorkoutLogCreate, WorkoutLogResponse, StructuredWorkoutCreate
+from app.schemas.workout_log import DailyWorkoutSummary, WorkoutLogCreate, WorkoutLogResponse, StructuredWorkoutCreate
 from app.services import workout_service
 
 router = APIRouter()
@@ -29,24 +29,17 @@ def create_structured_workout_log(
     return workout_service.create_structured_workout_entry(db=db, user=current_user, structured_in=structured_in)
 
 
-@router.post("/logs", response_model=WorkoutLogResponse, status_code=status.HTTP_201_CREATED)
-def create_workout_log(
+@router.post("/logs/manual", response_model=WorkoutLogResponse, status_code=status.HTTP_201_CREATED)
+def create_manual_workout_log(
     workout_in: WorkoutLogCreate,
     current_user: UserAuth = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Logs a workout entry and calculates net calories burned using Solution A (Net MET)."""
+    """Manually logs a workout entry with raw MET and duration, calculating net calories burned."""
     return workout_service.create_workout_entry(db=db, user=current_user, workout_in=workout_in)
 
 
-@router.post("/logs/ai-parse", response_model=WorkoutLogResponse, status_code=status.HTTP_201_CREATED)
-def create_workout_log_via_ai(
-    prompt_in: AIWorkoutParseRequest,
-    current_user: UserAuth = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    """Parses natural language workout text using Gemini AI and logs the workout with Net MET burn."""
-    return workout_service.create_workout_entry_via_ai(db=db, user=current_user, prompt_in=prompt_in)
+
 
 
 @router.get("/logs/today", response_model=List[WorkoutLogResponse])

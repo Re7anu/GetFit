@@ -4,10 +4,11 @@ from datetime import date, datetime, time
 from typing import Any, List
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
+from app.core.exercise_catalog import EXERCISE_CATALOG
 from app.core.formulas import calculate_net_exercise_calories
 from app.db.models.workout_log import WorkoutLog
 from app.db.models.user_auth import UserAuth
-from app.schemas.workout_log import AIWorkoutParseRequest, DailyWorkoutSummary, WorkoutLogCreate, WorkoutLogResponse
+from app.schemas.workout_log import DailyWorkoutSummary, WorkoutLogCreate, WorkoutLogResponse, StructuredWorkoutCreate
 
 
 def create_workout_entry(db: Session, user: UserAuth, workout_in: WorkoutLogCreate) -> WorkoutLog:
@@ -45,6 +46,7 @@ def create_workout_entry(db: Session, user: UserAuth, workout_in: WorkoutLogCrea
         duration_minutes=workout_in.duration_minutes,
         met_value=workout_in.met_value,
         calories_burned=net_calories_burned,
+        additional_weight_kg=getattr(workout_in, 'additional_weight_kg', 0.0) or 0.0,
         input_method=workout_in.input_method,
         notes=workout_in.notes,
     )
@@ -65,7 +67,12 @@ def create_structured_workout_entry(db: Session, user: UserAuth, structured_in: 
     Returns:
         Created WorkoutLog instance.
     """
-    from app.core.exercise_catalog import EXERCISE_CATALOG
+    profile = user.profile
+    if not profile:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Physical profile not found. Please complete profile onboarding via POST /profiles.",
+        )
 
     item = EXERCISE_CATALOG.get(structured_in.exercise_id)
     if not item:
@@ -77,22 +84,63 @@ def create_structured_workout_entry(db: Session, user: UserAuth, structured_in: 
     category = item["category"]
     exercise_name = item["name"]
     notes = ""
+    add_weight = structured_in.additional_weight_kg or 0.0
 
     if category == "distance":
         distance_km = structured_in.distance_km or 5.0
-        avg_speed = item.get("avg_speed_kmh", 10.0)
-        duration_mins = structured_in.duration_minutes or ((distance_km / avg_speed) * 60.0)
-        met_val = item["met"]
-        notes = f"{distance_km} km distance run/walk"
+        
+        if structured_in.duration_minutes and structured_in.duration_minutes > 0:
+            duration_mins = structured_in.duration_minutes
+            speed_kmh = (distance_km / duration_mins) * 60.0
+            
+            # Dynamic Ainsworth Compendium Speed-Based MET Scaling
+            if speed_kmh < 6.0:
+                met_val = 3.8  # Normal / Brisk Walking pace
+            elif speed_kmh < 8.0:
+                met_val = 6.0  # Slow Jogging pace
+            elif speed_kmh < 10.0:
+                met_val = item.get("met", 8.0)  # Moderate Running pace
+            elif speed_kmh < 12.0:
+                met_val = 10.0  # Fast Running pace
+            else:
+                met_val = 11.5  # Vigorous Sprinting / Race pace
+            
+            notes = f"{distance_km} km at {speed_kmh:.1f} km/h avg speed"
+        else:
+            avg_speed = item.get("avg_speed_kmh", 10.0)
+            duration_mins = (distance_km / avg_speed) * 60.0
+            met_val = item["met"]
+            notes = f"{distance_km} km distance run/walk"
 
     elif category == "reps":
         sets = structured_in.sets or item.get("default_sets", 3)
         reps = structured_in.reps or item.get("default_reps", 15)
         total_reps = sets * reps
         cadence = item.get("cadence_sec_per_rep", 2.5)
-        duration_mins = structured_in.duration_minutes or max((total_reps * cadence) / 60.0, 1.0)
-        met_val = item["met"]
-        notes = f"{sets} sets × {reps} reps ({total_reps} total reps)"
+        
+        # 1. Calculate active rep execution duration
+        active_mins = max((total_reps * cadence) / 60.0, 0.5)
+        
+        # 2. Calculate inter-set rest duration (standard 60s / 1.0 min rest between sets)
+        rest_mins = max(sets - 1, 0) * 1.0
+        
+        # Total workout session duration incorporating set rest intervals
+        duration_mins = structured_in.duration_minutes or (active_mins + rest_mins)
+        
+        # 3. Calculate Mass Load Multiplier (Body Weight + Additional External Weight)
+        user_weight = max(profile.weight_kg, 1.0)
+        mass_multiplier = (user_weight + add_weight) / user_weight
+        
+        base_rep_met = item["met"]
+        active_met = base_rep_met * mass_multiplier
+        rest_met = 3.0  # Resting recovery MET between sets
+        
+        # 4. Session Weighted Average MET
+        total_session_mins = max(duration_mins, 0.1)
+        met_val = round(((active_met * active_mins) + (rest_met * rest_mins)) / total_session_mins, 2)
+        
+        weight_note = f" + {add_weight} kg weight" if add_weight > 0 else ""
+        notes = f"{sets} sets × {reps} reps ({total_reps} total reps{weight_note})"
 
     else:  # time
         duration_mins = structured_in.duration_minutes or item.get("default_duration_min", 30.0)
@@ -109,41 +157,14 @@ def create_structured_workout_entry(db: Session, user: UserAuth, structured_in: 
         exercise_name=exercise_name,
         duration_minutes=round(duration_mins, 1),
         met_value=met_val,
+        additional_weight_kg=add_weight,
         input_method="structured_catalog",
         notes=notes,
     )
     return create_workout_entry(db=db, user=user, workout_in=workout_in)
 
 
-def create_workout_entry_via_ai(db: Session, user: UserAuth, prompt_in: AIWorkoutParseRequest) -> WorkoutLog:
-    """Parses natural language workout text using Gemini AI response_schema and creates a new WorkoutLog entry.
 
-    Args:
-        db: Database session.
-        user: Authenticated UserAuth entity.
-        prompt_in: AI workout parse request payload containing text_prompt.
-
-    Returns:
-        Created WorkoutLog model instance.
-    """
-    from app.core.prompts import EXERCISE_PARSING_PROMPT_TEMPLATE
-    from app.schemas.workout_log import AIWorkoutParseResult
-    from app.services import gemini_service
-
-    prompt = EXERCISE_PARSING_PROMPT_TEMPLATE.format(text_prompt=prompt_in.text_prompt)
-    parsed_result: AIWorkoutParseResult = gemini_service.generate_structured_output(
-        prompt=prompt,
-        response_schema=AIWorkoutParseResult,
-    )
-
-    workout_in = WorkoutLogCreate(
-        exercise_name=parsed_result.exercise_name,
-        duration_minutes=parsed_result.duration_minutes,
-        met_value=parsed_result.met_value,
-        input_method="ai_nlp",
-        notes=parsed_result.notes,
-    )
-    return create_workout_entry(db=db, user=user, workout_in=workout_in)
 
 
 def get_user_today_workouts(db: Session, user: UserAuth) -> List[WorkoutLog]:

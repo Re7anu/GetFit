@@ -5,10 +5,13 @@ from typing import List
 from fastapi import HTTPException, status
 from sqlalchemy import func
 from sqlalchemy.orm import Session
+from app.core.exercise_catalog import EXERCISE_CATALOG
+from app.core.prompts import FOOD_PARSING_PROMPT_TEMPLATE
 from app.db.models.workout_log import WorkoutLog
-from app.db.models.food_log import FoodLog
+from app.db.models.nutrition_log import FoodLog
 from app.db.models.user_auth import UserAuth
-from app.schemas.food_log import AIFoodParseRequest, DailyNutritionSummary, FoodLogCreate, FoodLogResponse
+from app.schemas.nutrition_log import AIFoodParseRequest, AIFoodParseResult, DailyNutritionSummary, FoodLogCreate, FoodLogResponse
+from app.services import gemini_service
 
 
 def create_meal_entry(db: Session, user: UserAuth, meal_in: FoodLogCreate) -> FoodLog:
@@ -30,6 +33,12 @@ def create_meal_entry(db: Session, user: UserAuth, meal_in: FoodLogCreate) -> Fo
         protein_g=meal_in.protein_g,
         carbs_g=meal_in.carbs_g,
         fat_g=meal_in.fat_g,
+        fiber_g=meal_in.fiber_g,
+        sodium_mg=meal_in.sodium_mg,
+        potassium_mg=meal_in.potassium_mg,
+        vitamin_c_mg=meal_in.vitamin_c_mg,
+        calcium_mg=meal_in.calcium_mg,
+        iron_mg=meal_in.iron_mg,
         quantity_g=meal_in.quantity_g,
         input_method=meal_in.input_method,
     )
@@ -50,10 +59,6 @@ def create_meal_entry_via_ai(db: Session, user: UserAuth, prompt_in: AIFoodParse
     Returns:
         Created FoodLog model instance.
     """
-    from app.core.prompts import FOOD_PARSING_PROMPT_TEMPLATE
-    from app.schemas.food_log import AIFoodParseResult
-    from app.services import gemini_service
-
     prompt = FOOD_PARSING_PROMPT_TEMPLATE.format(text_prompt=prompt_in.text_prompt)
     parsed_result: AIFoodParseResult = gemini_service.generate_structured_output(
         prompt=prompt,
@@ -67,6 +72,12 @@ def create_meal_entry_via_ai(db: Session, user: UserAuth, prompt_in: AIFoodParse
         protein_g=parsed_result.protein_g,
         carbs_g=parsed_result.carbs_g,
         fat_g=parsed_result.fat_g,
+        fiber_g=parsed_result.fiber_g,
+        sodium_mg=parsed_result.sodium_mg,
+        potassium_mg=parsed_result.potassium_mg,
+        vitamin_c_mg=parsed_result.vitamin_c_mg,
+        calcium_mg=parsed_result.calcium_mg,
+        iron_mg=parsed_result.iron_mg,
         quantity_g=parsed_result.quantity_g,
         input_method="ai_nlp",
     )
@@ -136,6 +147,14 @@ def calculate_user_today_nutrition_summary(db: Session, user: UserAuth) -> Daily
     consumed_protein = sum(m.protein_g for m in meals)
     consumed_carbs = sum(m.carbs_g for m in meals)
     consumed_fat = sum(m.fat_g for m in meals)
+    
+    # Sum micronutrients
+    consumed_fiber = sum(m.fiber_g for m in meals)
+    consumed_sodium = sum(m.sodium_mg for m in meals)
+    consumed_potassium = sum(m.potassium_mg for m in meals)
+    consumed_vitamin_c = sum(m.vitamin_c_mg for m in meals)
+    consumed_calcium = sum(m.calcium_mg for m in meals)
+    consumed_iron = sum(m.iron_mg for m in meals)
 
     # 2. Fetch today's Net MET exercise calories burned
     exercise_burn = (
@@ -167,8 +186,6 @@ def calculate_user_today_nutrition_summary(db: Session, user: UserAuth) -> Daily
     strength_burn = 0
     general_burn = 0
 
-    from app.core.exercise_catalog import EXERCISE_CATALOG
-
     for w in today_workouts:
         # Match exercise catalog category or fallback based on name
         matched_cat = "general"
@@ -194,6 +211,31 @@ def calculate_user_today_nutrition_summary(db: Session, user: UserAuth) -> Daily
     adj_target_carb = round(profile.calculated_carb_target_g + extra_carbs_g, 1)
     adj_target_fat = round(profile.calculated_fat_target_g + extra_fat_g, 1)
 
+    # Dynamic Clinical Micronutrient Target Calculation Engine (NIH/WHO Guidelines)
+    # 1. Base Profile & Gender-Scaled RDAs
+    cal_target = profile.calculated_calorie_target
+    is_female = profile.gender.lower() in ["female", "f"]
+
+    base_fiber = (cal_target / 1000.0) * 14.0  # 14g per 1000 kcal (NIH Standard)
+    base_sodium = 2300.0  # mg (Upper limit target)
+    base_potassium = max(profile.weight_kg * 40.0, 3400.0)  # mg (Scaled to body weight)
+    base_vitamin_c = 75.0 if is_female else 90.0  # mg (Gender RDA)
+    base_calcium = 1000.0  # mg
+    base_iron = 18.0 if is_female else 8.0  # mg (Gender RDA)
+
+    # 2. Sweat Loss & Exercise Electrolyte/Antioxidant Recovery Credit Engine
+    # Cardio & intense workout sweat causes sodium/potassium electrolyte loss; exercise increases oxidative stress (Vitamin C demand)
+    extra_sodium_mg = (cardio_burn * 0.8) + (strength_burn * 0.4) + (general_burn * 0.5)
+    extra_potassium_mg = (cardio_burn * 0.3) + (strength_burn * 0.15) + (general_burn * 0.2)
+    extra_vitamin_c_mg = (exercise_burn / 500.0) * 25.0
+
+    adj_target_fiber = round(base_fiber, 1)
+    adj_target_sodium = round(base_sodium + extra_sodium_mg, 1)
+    adj_target_potassium = round(base_potassium + extra_potassium_mg, 1)
+    adj_target_vitamin_c = round(base_vitamin_c + extra_vitamin_c_mg, 1)
+    adj_target_calcium = round(base_calcium, 1)
+    adj_target_iron = round(base_iron, 1)
+
     # Format meal responses for Pydantic serialization
     meal_responses = [FoodLogResponse.model_validate(m) for m in meals]
 
@@ -209,6 +251,18 @@ def calculate_user_today_nutrition_summary(db: Session, user: UserAuth) -> Daily
         consumed_carb_g=round(consumed_carbs, 1),
         target_fat_g=adj_target_fat,
         consumed_fat_g=round(consumed_fat, 1),
+        target_fiber_g=adj_target_fiber,
+        consumed_fiber_g=round(consumed_fiber, 1),
+        target_sodium_mg=adj_target_sodium,
+        consumed_sodium_mg=round(consumed_sodium, 1),
+        target_potassium_mg=adj_target_potassium,
+        consumed_potassium_mg=round(consumed_potassium, 1),
+        target_vitamin_c_mg=adj_target_vitamin_c,
+        consumed_vitamin_c_mg=round(consumed_vitamin_c, 1),
+        target_calcium_mg=adj_target_calcium,
+        consumed_calcium_mg=round(consumed_calcium, 1),
+        target_iron_mg=adj_target_iron,
+        consumed_iron_mg=round(consumed_iron, 1),
         meals_logged_today=meal_responses,
     )
 
@@ -264,241 +318,15 @@ def update_meal_entry(db: Session, user: UserAuth, meal_id: str, meal_in: FoodLo
     meal.protein_g = meal_in.protein_g
     meal.carbs_g = meal_in.carbs_g
     meal.fat_g = meal_in.fat_g
+    meal.fiber_g = meal_in.fiber_g
+    meal.sodium_mg = meal_in.sodium_mg
+    meal.potassium_mg = meal_in.potassium_mg
+    meal.vitamin_c_mg = meal_in.vitamin_c_mg
+    meal.calcium_mg = meal_in.calcium_mg
+    meal.iron_mg = meal_in.iron_mg
     if meal_in.quantity_g is not None:
         meal.quantity_g = meal_in.quantity_g
 
     db.commit()
     db.refresh(meal)
     return meal
-
-
-def get_user_nutrition_history(db: Session, user: UserAuth, days: int = 30) -> List:
-    """Calculates daily historical performance snapshots evaluating calorie & protein goals.
-
-    Args:
-        db: Database session.
-        user: Authenticated UserAuth entity.
-        days: Number of past days to query (default 30).
-
-    Returns:
-        List of DailyHistorySnapshot objects.
-    """
-    from datetime import timedelta
-    from app.schemas.food_log import DailyHistorySnapshot
-
-    profile = user.profile
-    if not profile:
-        return []
-
-    goal_type = profile.goal_type
-    today = date.today()
-    start_date = today - timedelta(days=days - 1)
-
-    history = []
-    for d in range(days):
-        current_date = start_date + timedelta(days=d)
-        d_start = datetime.combine(current_date, time.min)
-        d_end = datetime.combine(current_date, time.max)
-
-        meals = (
-            db.query(FoodLog)
-            .filter(
-                FoodLog.user_id == user.id,
-                FoodLog.logged_at >= d_start,
-                FoodLog.logged_at <= d_end,
-            )
-            .all()
-        )
-
-        workouts = (
-            db.query(WorkoutLog)
-            .filter(
-                WorkoutLog.user_id == user.id,
-                WorkoutLog.logged_at >= d_start,
-                WorkoutLog.logged_at <= d_end,
-            )
-            .all()
-        )
-
-        consumed_cals = sum(m.calories for m in meals)
-        consumed_protein = sum(m.protein_g for m in meals)
-        exercise_burn = sum(w.calories_burned for w in workouts)
-
-        adjusted_target = profile.calculated_calorie_target + exercise_burn
-        target_protein = profile.calculated_protein_target_g
-
-        is_goal_hit = False
-        reason = ""
-
-        if len(meals) == 0 and len(workouts) == 0:
-            is_goal_hit = False
-            reason = "No meals or workouts logged on this date."
-        elif goal_type == "lose_weight":
-            hit_cals = consumed_cals <= adjusted_target
-            hit_protein = consumed_protein >= target_protein
-            is_goal_hit = hit_cals and hit_protein
-            if is_goal_hit:
-                reason = f"Hit protein goal ({consumed_protein}g / {target_protein}g) & stayed under calorie budget ({consumed_cals} / {adjusted_target} kcal)."
-            elif not hit_cals:
-                reason = f"Exceeded calorie limit ({consumed_cals} / {adjusted_target} kcal)."
-            else:
-                reason = f"Missed protein target ({consumed_protein}g / {target_protein}g)."
-        elif goal_type == "gain_muscle":
-            hit_cals = consumed_cals >= adjusted_target
-            hit_protein = consumed_protein >= target_protein
-            is_goal_hit = hit_cals and hit_protein
-            if is_goal_hit:
-                reason = f"Hit protein goal ({consumed_protein}g / {target_protein}g) & met surplus target ({consumed_cals} / {adjusted_target} kcal)."
-            elif not hit_cals:
-                reason = f"Below calorie surplus target ({consumed_cals} / {adjusted_target} kcal)."
-            else:
-                reason = f"Missed protein target ({consumed_protein}g / {target_protein}g)."
-        else:
-            hit_cals = abs(consumed_cals - adjusted_target) <= 150
-            hit_protein = consumed_protein >= target_protein
-            is_goal_hit = hit_cals and hit_protein
-            reason = f"Consumed {consumed_cals} kcal vs {adjusted_target} target."
-
-        history.append(
-            DailyHistorySnapshot(
-                date=current_date.strftime("%Y-%m-%d"),
-                goal_type=goal_type,
-                adjusted_calorie_target=adjusted_target,
-                consumed_calories=consumed_cals,
-                target_protein_g=target_protein,
-                consumed_protein_g=round(consumed_protein, 1),
-                is_goal_hit=is_goal_hit,
-                status_reason=reason,
-            )
-        )
-
-    return history
-
-
-def get_day_detail_summary(db: Session, user: UserAuth, target_date_str: str) -> dict:
-    """Retrieves full detailed food & exercise logs for a specific date.
-
-    Args:
-        db: Database session.
-        user: Authenticated UserAuth entity.
-        target_date_str: Date string formatted as YYYY-MM-DD.
-
-    Returns:
-        Dict containing date, meals, workouts, totals, and goal status.
-    """
-    from datetime import datetime, date, time
-    from app.schemas.food_log import FoodLogResponse
-    from app.schemas.workout_log import WorkoutLogResponse
-
-    profile = user.profile
-    if not profile:
-        raise HTTPException(status_code=404, detail="User profile not found")
-
-    try:
-        t_date = datetime.strptime(target_date_str, "%Y-%m-%d").date()
-    except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD.")
-
-    d_start = datetime.combine(t_date, time.min)
-    d_end = datetime.combine(t_date, time.max)
-
-    meals = (
-        db.query(FoodLog)
-        .filter(FoodLog.user_id == user.id, FoodLog.logged_at >= d_start, FoodLog.logged_at <= d_end)
-        .order_by(FoodLog.logged_at.asc())
-        .all()
-    )
-
-    workouts = (
-        db.query(WorkoutLog)
-        .filter(WorkoutLog.user_id == user.id, WorkoutLog.logged_at >= d_start, WorkoutLog.logged_at <= d_end)
-        .order_by(WorkoutLog.logged_at.asc())
-        .all()
-    )
-
-    consumed_cals = sum(m.calories for m in meals)
-    consumed_protein = sum(m.protein_g for m in meals)
-    consumed_carbs = sum(m.carbs_g for m in meals)
-    consumed_fat = sum(m.fat_g for m in meals)
-
-    exercise_burn = sum(w.calories_burned for w in workouts)
-
-    base_target = profile.calculated_calorie_target
-    adjusted_target = base_target + exercise_burn
-    remaining_cals = adjusted_target - consumed_cals
-
-    goal_type = profile.goal_type
-    target_protein = profile.calculated_protein_target_g
-
-    is_goal_hit = False
-    reason = ""
-
-    if len(meals) == 0 and len(workouts) == 0:
-        is_goal_hit = False
-        reason = "No meals or workouts logged on this date."
-    elif goal_type == "lose_weight":
-        hit_cals = consumed_cals <= adjusted_target
-        hit_protein = consumed_protein >= target_protein
-        is_goal_hit = hit_cals and hit_protein
-        if is_goal_hit:
-            reason = f"Hit protein goal ({consumed_protein:.1f}g / {target_protein}g) & stayed under calorie budget ({consumed_cals} / {adjusted_target} kcal)."
-        elif not hit_cals:
-            reason = f"Exceeded calorie limit ({consumed_cals} / {adjusted_target} kcal)."
-        else:
-            reason = f"Missed protein target ({consumed_protein:.1f}g / {target_protein}g)."
-    elif goal_type == "gain_muscle":
-        hit_cals = consumed_cals >= adjusted_target
-        hit_protein = consumed_protein >= target_protein
-        is_goal_hit = hit_cals and hit_protein
-        if is_goal_hit:
-            reason = f"Hit protein goal ({consumed_protein:.1f}g / {target_protein}g) & met surplus target ({consumed_cals} / {adjusted_target} kcal)."
-        elif not hit_cals:
-            reason = f"Below calorie surplus target ({consumed_cals} / {adjusted_target} kcal)."
-        else:
-            reason = f"Missed protein target ({consumed_protein:.1f}g / {target_protein}g)."
-    else:
-        hit_cals = abs(consumed_cals - adjusted_target) <= 150
-        hit_protein = consumed_protein >= target_protein
-        is_goal_hit = hit_cals and hit_protein
-        reason = f"Consumed {consumed_cals} kcal vs {adjusted_target} target."
-
-    return {
-        "date": target_date_str,
-        "goal_type": goal_type,
-        "base_calorie_target": base_target,
-        "exercise_net_calories_burned": exercise_burn,
-        "adjusted_calorie_target": adjusted_target,
-        "consumed_calories": consumed_cals,
-        "remaining_calories": remaining_cals,
-        "target_protein_g": target_protein,
-        "consumed_protein_g": round(consumed_protein, 1),
-        "target_carb_g": profile.calculated_carb_target_g,
-        "consumed_carb_g": round(consumed_carbs, 1),
-        "target_fat_g": profile.calculated_fat_target_g,
-        "consumed_fat_g": round(consumed_fat, 1),
-        "is_goal_hit": is_goal_hit,
-        "status_reason": reason,
-        "meals": [
-            {
-                "id": m.id,
-                "meal_type": m.meal_type,
-                "description": m.description,
-                "calories": m.calories,
-                "protein_g": m.protein_g,
-                "carbs_g": m.carbs_g,
-                "fat_g": m.fat_g,
-                "time": m.logged_at.strftime("%I:%M %p"),
-            }
-            for m in meals
-        ],
-        "workouts": [
-            {
-                "id": w.id,
-                "exercise_name": w.exercise_name,
-                "duration_minutes": w.duration_minutes,
-                "calories_burned": w.calories_burned,
-                "time": w.logged_at.strftime("%I:%M %p"),
-            }
-            for w in workouts
-        ],
-    }

@@ -1,5 +1,7 @@
 """Google Gemini AI Service module using official google-genai SDK structured outputs with response_schema."""
 
+import concurrent.futures
+import time
 from typing import Type, TypeVar
 from fastapi import HTTPException, status
 from google import genai
@@ -38,11 +40,12 @@ def generate_structured_output(prompt: str, response_schema: Type[T]) -> T:
         Validated instance of the provided Pydantic model class (response.parsed).
 
     Raises:
-        HTTPException: If API key is missing or request fails.
+        HTTPException: If API key is missing, request times out (10s limit), or API fails.
     """
     client = get_genai_client()
-    try:
-        response = client.models.generate_content(
+
+    def _call_gemini():
+        return client.models.generate_content(
             model=settings.GEMINI_MODEL_NAME,
             contents=prompt,
             config=types.GenerateContentConfig(
@@ -50,16 +53,33 @@ def generate_structured_output(prompt: str, response_schema: Type[T]) -> T:
                 response_schema=response_schema,
             ),
         )
+
+    try:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+            future = executor.submit(_call_gemini)
+            response = future.result(timeout=25.0)
+
         if not response.parsed:
             raise HTTPException(
                 status_code=status.HTTP_502_BAD_GATEWAY,
                 detail="Gemini API returned an empty or unparseable structured response.",
             )
         return response.parsed
+    except concurrent.futures.TimeoutError:
+        raise HTTPException(
+            status_code=status.HTTP_504_GATEWAY_TIMEOUT,
+            detail="Google GenAI API request timed out (25s limit reached). Please try again.",
+        )
     except Exception as e:
         if isinstance(e, HTTPException):
             raise e
+        err_msg = str(e)
+        if "429" in err_msg or "RESOURCE_EXHAUSTED" in err_msg or "Quota exceeded" in err_msg:
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail="Google Gemini API rate limit reached (Free Tier limit). Please wait 20-30 seconds before sending another AI request.",
+            )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error communicating with Google GenAI service: {str(e)}",
+            detail=f"Error communicating with Google GenAI service: {err_msg}",
         )

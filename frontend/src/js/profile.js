@@ -167,9 +167,10 @@ export class ProfileManager {
     if (modal) modal.classList.add('active');
 
     // Fetch and pre-populate existing details
-    try {
-      const profile = await APIClient.request(ENDPOINTS.PROFILE_ME);
-      if (profile && form) {
+    if (APIClient.isAuthenticated()) {
+      try {
+        const profile = await APIClient.request(ENDPOINTS.PROFILE_ME);
+        if (profile && form) {
         document.getElementById('prof-name').value = profile.name || '';
         document.getElementById('prof-gender').value = profile.gender || profile.sex || 'male';
         if (profile.birth_date) {
@@ -190,6 +191,7 @@ export class ProfileManager {
       if (form) form.removeAttribute('data-is-edit');
       const titleEl = document.getElementById('profile-modal-title');
       if (titleEl) titleEl.textContent = 'Set Up Your Physical Profile';
+    }
     }
   }
 }

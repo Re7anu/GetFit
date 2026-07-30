@@ -281,6 +281,8 @@
   box-shadow: var(--shadow-card);
   transform: scale(0.95);
   transition: transform 0.3s var(--ease-spring);
+  position: relative;
+  overflow: visible;
 }
 
 .modal-overlay.active .modal-content {
@@ -321,6 +323,68 @@
 .scrollable-timeline::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.18);
   border-radius: 999px;
+}
+
+/* Floating Password Tooltip Popover */
+.password-tooltip {
+  position: absolute;
+  left: 104%;
+  top: -12px;
+  width: 270px;
+  background: #11161D;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  padding: 0.85rem 1rem;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(16px);
+  z-index: 2000;
+}
+
+/* Tooltip Triangular Arrow Pointer */
+.password-tooltip::before {
+  content: '';
+  position: absolute;
+  left: -8px;
+  top: 24px;
+  width: 0;
+  height: 0;
+  border-top: 7px solid transparent;
+  border-bottom: 7px solid transparent;
+  border-right: 8px solid #11161D;
+}
+
+@media (max-width: 850px) {
+  .password-tooltip {
+    position: absolute;
+    left: 0;
+    top: 100%;
+    margin-top: 0.5rem;
+    width: 100%;
+  }
+
+  .password-tooltip::before {
+    left: 20px;
+    top: -8px;
+    border-right: 7px solid transparent;
+    border-left: 7px solid transparent;
+    border-bottom: 8px solid #11161D;
+    border-top: none;
+  }
+}
+
+.req-item {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.3rem;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  transition: color 0.2s ease, font-weight 0.2s ease;
+}
+
+.req-item.met {
+  color: #34D399;
+  font-weight: 600;
 }
 
 /* Navigation Tabs Styling */

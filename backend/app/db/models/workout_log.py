@@ -17,6 +17,7 @@ class WorkoutLog(Base):
         duration_minutes: Workout duration in minutes.
         met_value: Scientific MET (Metabolic Equivalent of Task) value.
         calories_burned: Net calories burned calculated using Solution A (Net MET).
+        additional_weight_kg: Optional additional external weight added (e.g. barbell, dumbbells, dip belt).
         input_method: Logging method ('structured', 'manual', 'ai_vision').
         notes: Optional workout notes or performance description.
         user_auth: Relationship back to associated UserAuth entity.
@@ -31,6 +32,7 @@ class WorkoutLog(Base):
     duration_minutes = Column(Float, nullable=False)
     met_value = Column(Float, default=3.5, nullable=False)
     calories_burned = Column(Integer, nullable=False)
+    additional_weight_kg = Column(Float, default=0.0, nullable=False)
     input_method = Column(String, default="structured", nullable=False)
     notes = Column(String, nullable=True)
 

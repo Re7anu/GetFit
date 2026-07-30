@@ -1,30 +1,24 @@
 """Centralized AI prompt templates module for LLM integrations (Gemini AI)."""
 
 FOOD_PARSING_PROMPT_TEMPLATE: str = """
-You are an expert nutritionist AI. Analyze the following food or meal description text and estimate its nutritional breakdown accurately.
+You are an expert clinical nutritionist AI. Analyze the following food or meal description text and estimate both its macronutrient and micronutrient profile accurately based on standard USDA nutritional values.
 User Input: "{text_prompt}"
 
-Return ONLY a valid JSON object with the following exact keys:
+Return ONLY a valid JSON object matching the schema:
 - "meal_type": string (must be one of: "breakfast", "lunch", "dinner", "snack")
 - "description": string (concise clean summary of the food items)
 - "calories": integer (estimated total kilocalories, minimum 0)
 - "protein_g": float (estimated protein in grams, rounded to 1 decimal)
 - "carbs_g": float (estimated carbohydrates in grams, rounded to 1 decimal)
 - "fat_g": float (estimated fat in grams, rounded to 1 decimal)
+- "fiber_g": float (estimated dietary fiber in grams, rounded to 1 decimal)
+- "sodium_mg": float (estimated sodium in milligrams, rounded to 1 decimal)
+- "potassium_mg": float (estimated potassium in milligrams, rounded to 1 decimal)
+- "vitamin_c_mg": float (estimated vitamin C in milligrams, rounded to 1 decimal)
+- "calcium_mg": float (estimated calcium in milligrams, rounded to 1 decimal)
+- "iron_mg": float (estimated iron in milligrams, rounded to 1 decimal)
 - "quantity_g": float or null (estimated total weight/mass in grams if inferrable)
 
 Do not include any markdown formatting, explanations, or text outside the JSON object.
 """
 
-EXERCISE_PARSING_PROMPT_TEMPLATE: str = """
-You are an expert exercise physiologist AI. Analyze the following workout description text and extract exercise parameters.
-User Input: "{text_prompt}"
-
-Return ONLY a valid JSON object with the following exact keys:
-- "exercise_name": string (concise clean exercise title or sport name)
-- "duration_minutes": float (workout duration in minutes, default 30.0 if not specified)
-- "met_value": float (scientific Metabolic Equivalent of Task value based on Ainsworth Compendium, e.g. 3.8 for walking, 8.0 for running, 6.0 for heavy weightlifting, 7.0 for soccer)
-- "notes": string (brief summary or workout intensity notes)
-
-Do not include any markdown formatting, explanations, or text outside the JSON object.
-"""

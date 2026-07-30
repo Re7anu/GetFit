@@ -3,6 +3,10 @@ import { APIClient } from './api_client.js';
 import { ENDPOINTS, API_BASE_URL } from './config.js';
 
 export class AnalyticsManager {
+  static init() {
+    this.initEvents();
+  }
+
   static initEvents() {
     if (this.eventsBound) return;
     this.eventsBound = true;
