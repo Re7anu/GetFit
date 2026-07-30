@@ -7,15 +7,18 @@
   padding: 0;
 }
 
-body {
+body, input, button, select, textarea {
   background-color: var(--bg-obsidian);
   color: var(--text-primary);
   font-family: var(--font-body);
   font-size: 15px;
   line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
   min-height: 100vh;
   overflow-x: hidden;
-  -webkit-font-smoothing: antialiased;
 }
 
 /* Background Atmospheric Glow Grid */
