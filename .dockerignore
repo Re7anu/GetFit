@@ -1,0 +1,21 @@
+# Python build & cache artifacts
+**/__pycache__/
+**/*.py[cod]
+**/*$py.class
+**/.pytest_cache/
+**/.venv/
+**/venv/
+
+# Environment files with sensitive credentials
+**/.env
+**/.env.local
+
+# Git & IDE metadata
+.git/
+.gitignore
+.idea/
+.vscode/
+
+# Node / Frontend build junk if any
+node_modules/
+npm-debug.log
