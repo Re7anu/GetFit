@@ -60,6 +60,9 @@ class UserProfile(Base):
     is_safe_pace = Column(Boolean, default=True, nullable=False)
     suggested_min_weeks = Column(Integer, nullable=False)
 
+    fitness_focus = Column(String, default="athletic", nullable=False)
+    weekly_schedule_json = Column(String, nullable=True)
+
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
 
     user_auth = relationship("UserAuth", back_populates="profile")

@@ -6,6 +6,7 @@ import { ProfileManager } from './profile.js';
 import { DashboardManager } from './dashboard.js';
 import { LoggingManager } from './logging.js';
 import { AnalyticsManager } from './analytics.js';
+import { WorkoutPlanManager } from './workout_plan.js';
 
 export class App {
   static async init() {
@@ -14,6 +15,7 @@ export class App {
       ProfileManager.init();
       LoggingManager.init();
       AnalyticsManager.init();
+      WorkoutPlanManager.init();
     } catch (err) {
       console.error('[App Init Warning]:', err.message);
     }
@@ -51,16 +53,16 @@ export class App {
 
   static async renderFoodTab(container) {
     container.innerHTML = `
-      <div style="display: flex; flex-direction: column; gap: 1.5rem; max-width: 900px; margin: 0 auto;">
+      <div style="display: flex; flex-direction: column; gap: 1.25rem; width: 100%;">
         
         <!-- Header Strip -->
         <div class="glass-card" style="display: flex; justify-content: space-between; align-items: center; gap: 1rem;">
           <div>
             <h2 style="font-family: var(--font-heading); margin: 0; font-size: 1.3rem; display: flex; align-items: center; gap: 0.5rem;">
-              🥗 Food & Nutrition Center
+              🥗 Food & Nutrition Intelligence
             </h2>
             <p class="text-muted" style="margin-top: 0.25rem; font-size: 0.85rem;">
-              Log meals via Gemini AI natural language or manual entry with automated micronutrient enrichment.
+              Scan food photos with Gemini Vision AI, log text meals, or enter custom entries with micronutrient enrichment.
             </p>
           </div>
           <button id="btn-manual-meal" class="btn btn-primary" style="padding: 0.6rem 1rem; font-size: 0.85rem; font-weight: 600; white-space: nowrap;">
@@ -68,29 +70,105 @@ export class App {
           </button>
         </div>
 
-        <!-- AI Food Logger Card -->
-        <div class="glass-card">
-          <h3 style="font-size: 1rem; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
-            <span>✨</span> Log Meal with Gemini AI
-          </h3>
-          <form id="ai-meal-form" class="ai-prompt-bar">
-            <input type="text" id="ai-meal-input" class="ai-prompt-input" placeholder="E.g., '2 boiled eggs, whole wheat toast, and black coffee'..." required />
-            <button type="submit" id="ai-meal-btn" class="btn btn-primary" style="padding: 0.6rem 1.2rem; font-size: 0.85rem;">
-              Log Meal
-            </button>
-          </form>
-          <div id="ai-meal-status" style="display:none; font-size: 0.85rem; margin-top: 0.75rem; color: var(--accent-health);"></div>
-        </div>
+        <!-- 2-Column Grid: AI Logger on Left | Today's Logged Meals on Right -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 1.5rem; align-items: start;">
 
-        <!-- Today's Logged Meals List -->
-        <div class="glass-card">
-          <h3 style="margin-bottom: 1rem; font-size: 1.1rem; display: flex; align-items: center; justify-content: space-between;">
-            <span>🥗 Today's Logged Meals</span>
-            <span id="food-tab-cals-count" class="text-muted" style="font-size: 0.85rem;"></span>
-          </h3>
-          <div id="food-tab-meals-list" class="scrollable-timeline" style="display: flex; flex-direction: column; gap: 0.75rem; max-height: 450px; overflow-y: auto;">
-            <p class="text-muted" style="font-size: 0.85rem;">Loading today's meals...</p>
+          <!-- Left Column: AI Multimodal Food Scanner Card -->
+          <div class="glass-card" style="position: relative; overflow: hidden; background: linear-gradient(135deg, rgba(16,185,129,0.08) 0%, rgba(13,17,23,0.7) 100%); border: 1px solid rgba(16,185,129,0.3);">
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+              <h3 style="font-size: 1.05rem; margin: 0; display: flex; align-items: center; gap: 0.5rem; color: var(--text-primary);">
+                <span style="font-size: 1.2rem;">📸</span> AI Image Food Scanner
+              </h3>
+              <div style="display: flex; gap: 0.5rem;">
+                <button id="tab-btn-scan-image" class="btn active" style="padding: 0.35rem 0.75rem; font-size: 0.75rem; background: var(--accent-health); color: #000; font-weight: 700; border-radius: 6px;">📷 Photo Upload</button>
+                <button id="tab-btn-scan-text" class="btn" style="padding: 0.35rem 0.75rem; font-size: 0.75rem; background: rgba(255,255,255,0.08); color: var(--text-secondary); border-radius: 6px;">💬 Text Description</button>
+              </div>
+            </div>
+
+            <!-- Mode 1: Image Scanner Card -->
+            <div id="ai-food-image-section">
+              <form id="ai-food-image-form" style="display: flex; flex-direction: column; gap: 1rem;">
+                
+                <!-- Drag & Drop Zone -->
+                <div id="image-dropzone" style="border: 2px dashed rgba(16,185,129,0.4); border-radius: 12px; padding: 1.5rem; text-align: center; background: rgba(0,0,0,0.25); cursor: pointer; transition: all 0.2s ease;">
+                  <input type="file" id="ai-food-image-input" accept="image/*" style="display: none;" />
+                  
+                  <div id="dropzone-prompt" style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
+                    <div style="width: 48px; height: 48px; border-radius: 50%; background: rgba(16,185,129,0.15); display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
+                      📷
+                    </div>
+                    <div style="font-weight: 600; font-size: 0.95rem; color: var(--text-primary);">
+                      Drag & Drop your food photo here or <span style="color: var(--accent-health); text-decoration: underline;">Browse Files</span>
+                    </div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted);">
+                      Supports JPG, PNG, WebP — Gemini AI auto-detects meal, calories, macros & 6 micronutrients
+                    </div>
+                  </div>
+
+                  <!-- Image Preview Thumbnail (Hidden initially) -->
+                  <div id="image-preview-container" style="display: none; position: relative; max-width: 320px; margin: 0 auto;">
+                    <img id="image-preview-img" src="" alt="Food Preview" style="width: 100%; max-height: 220px; object-fit: cover; border-radius: 10px; border: 1px solid var(--border-glass);" />
+                    <button type="button" id="btn-remove-image" style="position: absolute; top: -8px; right: -8px; background: #EF4444; color: white; border: none; border-radius: 50%; width: 26px; height: 26px; cursor: pointer; font-weight: bold; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.5);">&times;</button>
+                    <div id="image-preview-name" style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.4rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"></div>
+                  </div>
+
+                </div>
+
+                <!-- Supporting Text / Ingredients Input -->
+                <div style="margin-top: 0.75rem;">
+                  <label style="font-size: 0.75rem; color: var(--text-secondary); display: block; margin-bottom: 0.35rem; font-weight: 600;">
+                    ✍️ Supporting Details / Custom Notes (Optional)
+                  </label>
+                  <input type="text" id="ai-food-image-notes" class="form-input" placeholder="e.g. 2 fried eggs cooked in olive oil, sourdough toast, half avocado..." style="padding: 0.55rem 0.75rem; font-size: 0.85rem; background: rgba(22,27,34,0.8); width: 100%;" />
+                </div>
+
+                <!-- Controls Row: Meal Hint & Scan Button -->
+                <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; margin-top: 0.75rem;">
+                  <div style="flex: 1; min-width: 160px;">
+                    <select id="ai-food-meal-hint" class="form-input" style="padding: 0.55rem; font-size: 0.85rem; background: rgba(22,27,34,0.8);">
+                      <option value="">Auto-detect Meal Type</option>
+                      <option value="breakfast">🍳 Breakfast</option>
+                      <option value="lunch">🥗 Lunch</option>
+                      <option value="dinner">🥩 Dinner</option>
+                      <option value="snack">🍎 Snack</option>
+                    </select>
+                  </div>
+
+                  <button type="submit" id="ai-food-image-btn" class="btn btn-primary" style="padding: 0.6rem 1.4rem; font-size: 0.85rem; font-weight: 700; white-space: nowrap;" disabled>
+                    ✨ Scan & Log Meal Image
+                  </button>
+                </div>
+
+              </form>
+
+              <div id="ai-food-image-status" style="display: none; font-size: 0.85rem; margin-top: 0.85rem; padding: 0.75rem; border-radius: 8px; background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.2);"></div>
+            </div>
+
+            <!-- Mode 2: Text Prompt Bar (Hidden by default, toggled via mode buttons) -->
+            <div id="ai-food-text-section" style="display: none;">
+              <form id="ai-meal-form" class="ai-prompt-bar">
+                <input type="text" id="ai-meal-input" class="ai-prompt-input" placeholder="E.g., '2 boiled eggs, whole wheat toast with butter, and black coffee'..." required />
+                <button type="submit" id="ai-meal-btn" class="btn btn-primary" style="padding: 0.6rem 1.2rem; font-size: 0.85rem;">
+                  Log Meal
+                </button>
+              </form>
+              <div id="ai-meal-status" style="display:none; font-size: 0.85rem; margin-top: 0.75rem; color: var(--accent-health);"></div>
+            </div>
+
           </div>
+
+          <!-- Right Column: Today's Logged Meals List (Positioned Side-by-Side) -->
+          <div class="glass-card">
+            <h3 style="margin-bottom: 1rem; font-size: 1.1rem; display: flex; align-items: center; justify-content: space-between;">
+              <span>🥗 Today's Logged Meals</span>
+              <span id="food-tab-cals-count" class="text-muted" style="font-size: 0.85rem;"></span>
+            </h3>
+            <div id="food-tab-meals-list" class="scrollable-timeline" style="display: flex; flex-direction: column; gap: 0.75rem; max-height: 500px; overflow-y: auto;">
+              <p class="text-muted" style="font-size: 0.85rem;">Loading today's meals...</p>
+            </div>
+          </div>
+
         </div>
 
       </div>
@@ -99,6 +177,8 @@ export class App {
     this.fetchAndRenderFoodTab();
   }
 
+
+
   static async fetchAndRenderFoodTab() {
     const listEl = document.getElementById('food-tab-meals-list');
     const calsCountEl = document.getElementById('food-tab-cals-count');
@@ -106,6 +186,7 @@ export class App {
 
     try {
       const meals = await APIClient.request(ENDPOINTS.MEALS_TODAY);
+      this.cachedMeals = meals || [];
       if (!Array.isArray(meals) || meals.length === 0) {
         listEl.innerHTML = `<p class="text-muted" style="font-size: 0.85rem; padding: 1.5rem; text-align: center;">No meals logged today yet.</p>`;
         if (calsCountEl) calsCountEl.textContent = '0 kcal consumed';
@@ -115,104 +196,208 @@ export class App {
       const totalCals = meals.reduce((sum, m) => sum + (m.calories || 0), 0);
       if (calsCountEl) calsCountEl.textContent = `${totalCals} kcal consumed today`;
 
+      const inputBadges = {
+        ai_vision: '📷 Vision AI',
+        ai_nlp: '💬 Text AI',
+        manual: '📝 Manual',
+      };
+
       listEl.innerHTML = meals.map(m => `
-        <div style="background: rgba(22,27,34,0.6); border: 1px solid var(--border-glass); border-radius: 10px; padding: 0.85rem; display: flex; justify-content: space-between; align-items: center;">
-          <div>
-            <div style="display: flex; align-items: center; gap: 0.5rem;">
+        <div class="food-meal-card-item" data-id="${m.id}" style="background: rgba(22,27,34,0.6); border: 1px solid var(--border-glass); border-radius: 12px; padding: 0.85rem 1.1rem; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: all 0.2s ease; position: relative;">
+          <div style="flex: 1; min-width: 0;">
+            <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
               <span style="font-weight: 700; text-transform: capitalize; font-size: 0.9rem; color: var(--accent-health);">${m.meal_type}</span>
-              <span style="color: var(--text-secondary); font-size: 0.85rem;">• ${m.description}</span>
+              <span style="color: var(--text-primary); font-size: 0.85rem; font-weight: 600;">• ${m.description}</span>
+              <span style="font-size: 0.7rem; background: rgba(255,255,255,0.08); color: var(--text-secondary); padding: 0.1rem 0.45rem; border-radius: 4px; font-weight: 600;" title="Input method: ${m.input_method}">${inputBadges[m.input_method] || '📝 Manual'}</span>
             </div>
-            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem; display: flex; gap: 0.75rem; flex-wrap: wrap;">
-              <span>🥩 P: ${m.protein_g}g</span>
-              <span>🍞 C: ${m.carbs_g}g</span>
-              <span>🥑 F: ${m.fat_g}g</span>
-              <span>🌾 Fiber: ${m.fiber_g || 0}g</span>
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.35rem; display: flex; gap: 0.85rem; flex-wrap: wrap; align-items: center;">
+              <span>🥩 P: <b>${m.protein_g}g</b></span>
+              <span>🍞 C: <b>${m.carbs_g}g</b></span>
+              <span>🥑 F: <b>${m.fat_g}g</b></span>
+              <span>🌾 Fiber: <b>${m.fiber_g || 0}g</b></span>
             </div>
           </div>
-          <div style="display: flex; align-items: center; gap: 0.75rem;">
-            <span style="font-weight: 700; font-size: 0.95rem; color: var(--text-primary);">${m.calories} kcal</span>
-            <button class="btn-delete-food-item" data-id="${m.id}" style="background: transparent; border: none; color: #EF4444; cursor: pointer; font-size: 1rem; opacity: 0.7;" title="Delete meal">🗑️</button>
+
+          <div style="display: flex; align-items: center; gap: 0.65rem; margin-left: 1rem; flex-shrink: 0; position: relative;">
+            <span style="font-weight: 800; font-size: 0.95rem; color: var(--text-primary); font-family: var(--font-heading); white-space: nowrap;">${m.calories} kcal</span>
+            
+            <button class="btn-view-meal-detail" data-id="${m.id}" style="background: rgba(16,185,129,0.12); color: var(--accent-health); border: 1px solid rgba(16,185,129,0.25); border-radius: 6px; padding: 0.3rem 0.65rem; font-size: 0.75rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 0.3rem; white-space: nowrap; transition: all 0.2s ease;">
+              🔍 Details
+            </button>
+
+            <!-- Inline Delete Trash & Dropdown Confirm Container -->
+            <div class="delete-wrapper" style="position: relative;">
+              <button class="btn-delete-food-item" data-id="${m.id}" style="background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.25); color: #EF4444; border-radius: 6px; padding: 0.3rem 0.5rem; cursor: pointer; font-size: 0.85rem; transition: all 0.2s ease;" title="Delete meal">
+                🗑️
+              </button>
+
+              <!-- Inline Confirmation Popover Dropdown -->
+              <div class="delete-confirm-popover" style="display: none; position: absolute; right: 0; top: 125%; background: #161B22; border: 1px solid rgba(239,68,68,0.4); border-radius: 10px; padding: 0.6rem 0.75rem; width: 175px; box-shadow: 0 10px 25px rgba(0,0,0,0.8); z-index: 100; flex-direction: column; gap: 0.45rem; text-align: center;">
+                <div style="font-size: 0.75rem; font-weight: 700; color: #EF4444;">Delete this meal?</div>
+                <div style="display: flex; gap: 0.4rem; justify-content: center;">
+                  <button class="btn-cancel-delete" style="background: rgba(255,255,255,0.08); color: var(--text-secondary); border: none; padding: 0.25rem 0.6rem; border-radius: 6px; font-size: 0.75rem; cursor: pointer;">Cancel</button>
+                  <button class="btn-confirm-delete" data-id="${m.id}" style="background: #EF4444; color: white; border: none; padding: 0.25rem 0.6rem; border-radius: 6px; font-size: 0.75rem; font-weight: 700; cursor: pointer;">Delete</button>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
       `).join('');
 
+      listEl.querySelectorAll('.food-meal-card-item').forEach(card => {
+        card.addEventListener('mouseenter', () => {
+          card.style.borderColor = 'rgba(16,185,129,0.4)';
+          card.style.background = 'rgba(22,27,34,0.85)';
+        });
+        card.addEventListener('mouseleave', () => {
+          card.style.borderColor = 'var(--border-glass)';
+          card.style.background = 'rgba(22,27,34,0.6)';
+        });
+
+        // Clicking row or details button opens modal
+        card.addEventListener('click', (e) => {
+          if (e.target.closest('.delete-wrapper')) return;
+          const id = card.dataset.id;
+          const meal = (this.cachedMeals || []).find(x => x.id === id);
+          if (meal) {
+            LoggingManager.openMealDetailModal(meal);
+          }
+        });
+      });
+
+      // Toggle inline delete confirmation dropdown
       listEl.querySelectorAll('.btn-delete-food-item').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const wrapper = btn.closest('.delete-wrapper');
+          const popover = wrapper ? wrapper.querySelector('.delete-confirm-popover') : null;
+
+          // Close all other popovers
+          document.querySelectorAll('.delete-confirm-popover').forEach(p => {
+            if (p !== popover) p.style.display = 'none';
+          });
+
+          if (popover) {
+            popover.style.display = popover.style.display === 'flex' ? 'none' : 'flex';
+          }
+        });
+      });
+
+      // Cancel button inside popover
+      listEl.querySelectorAll('.btn-cancel-delete').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const popover = btn.closest('.delete-confirm-popover');
+          if (popover) popover.style.display = 'none';
+        });
+      });
+
+      // Confirm Delete button inside popover
+      listEl.querySelectorAll('.btn-confirm-delete').forEach(btn => {
         btn.addEventListener('click', async (e) => {
-          const id = e.currentTarget.dataset.id;
-          if (confirm('Are you sure you want to delete this meal entry?')) {
+          e.stopPropagation();
+          const id = btn.getAttribute('data-id');
+          const popover = btn.closest('.delete-confirm-popover');
+          if (popover) popover.style.display = 'none';
+
+          if (id) {
             await APIClient.request(`${ENDPOINTS.MEALS}/${id}`, { method: 'DELETE' });
+            window.dispatchEvent(new CustomEvent('meal:logged'));
             this.fetchAndRenderFoodTab();
             DashboardManager.fetchAndRenderData();
           }
         });
+      });
+
+      // Close popover when clicking anywhere outside
+      document.addEventListener('click', (e) => {
+        if (!e.target.closest('.delete-wrapper')) {
+          document.querySelectorAll('.delete-confirm-popover').forEach(p => p.style.display = 'none');
+        }
       });
     } catch (err) {
       listEl.innerHTML = `<p class="text-muted" style="color: #EF4444; font-size: 0.85rem;">Failed to load meals.</p>`;
     }
   }
 
+
+
   static async renderExerciseTab(container) {
     container.innerHTML = `
-      <div style="display: flex; flex-direction: column; gap: 1.5rem; max-width: 900px; margin: 0 auto;">
+      <div style="display: flex; flex-direction: column; gap: 1.25rem; width: 100%;">
         
         <!-- Header Strip -->
-        <div class="glass-card" style="display: flex; justify-content: space-between; align-items: center; gap: 1rem;">
+        <div class="glass-card" style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap;">
           <div>
             <h2 style="font-family: var(--font-heading); margin: 0; font-size: 1.3rem; display: flex; align-items: center; gap: 0.5rem;">
               ⚡ Workout & Fitness Center
             </h2>
             <p class="text-muted" style="margin-top: 0.25rem; font-size: 0.85rem;">
-              Calculate scientific Net MET calorie burns for distance, reps/sets, or time-based sports.
+              Configure your 7-day routine blueprint and log Net MET exercise calorie burns.
             </p>
           </div>
-          <button id="btn-manual-exercise" class="btn btn-cobalt" style="padding: 0.6rem 1rem; font-size: 0.85rem; font-weight: 600; white-space: nowrap;">
-            + Manual Workout Entry
-          </button>
-        </div>
-
-        <!-- Structured 2-Step Scientific Exercise Logger Card -->
-        <div class="glass-card">
-          <h3 style="font-size: 1rem; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
-            <span>⚡</span> Structured Workout Logger (Ainsworth MET Engine)
-          </h3>
-          <form id="dash-structured-ex-form" style="display: flex; flex-direction: column; gap: 0.85rem;">
-            <!-- Step 1: Category Selection -->
-            <div>
-              <label class="form-label" style="font-size: 0.8rem; color: var(--text-secondary);">1. Select Exercise Category</label>
-              <select id="dash-ex-cat-select" class="form-input" style="padding: 0.6rem; font-size: 0.85rem;" required>
-                <option value="">Select Category...</option>
-                <option value="distance">Distance-Based (Running, Cycling, Swimming)</option>
-                <option value="reps">Reps & Sets-Based (Pushups, Squats, Weightlifting)</option>
-                <option value="time">Time & Intensity-Based (Yoga, HIIT, Basketball)</option>
-              </select>
-            </div>
-
-            <!-- Step 2: Specific Exercise Selection -->
-            <div>
-              <select id="dash-ex-item-select" class="form-input" style="padding: 0.6rem; font-size: 0.85rem; display: none;" required>
-                <option value="">2. Select Specific Exercise...</option>
-              </select>
-            </div>
-
-            <!-- Step 3: Dynamic Required Metric Fields -->
-            <div id="dash-ex-dynamic-fields" style="display: none;"></div>
-
-            <button type="submit" id="dash-ex-btn" class="btn btn-cobalt" style="padding: 0.6rem; font-size: 0.85rem; display: none;">
-              Calculate & Log Workout
+          <div style="display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap;">
+            <button id="btn-open-workout-plan" class="btn" style="background: rgba(16,185,129,0.15); color: var(--accent-health); border: 1px solid rgba(16,185,129,0.3); padding: 0.6rem 1rem; font-size: 0.85rem; font-weight: 700; white-space: nowrap;">
+              📋 Weekly Routine & Focus
             </button>
-          </form>
-          <div id="dash-ex-status" style="display:none; font-size: 0.85rem; margin-top: 0.75rem; color: var(--accent-workout);"></div>
+            <button id="btn-manual-exercise" class="btn btn-cobalt" style="padding: 0.6rem 1rem; font-size: 0.85rem; font-weight: 600; white-space: nowrap;">
+              + Manual Workout Entry
+            </button>
+          </div>
         </div>
 
-        <!-- Today's Logged Workouts List -->
-        <div class="glass-card">
-          <h3 style="margin-bottom: 1rem; font-size: 1.1rem; display: flex; align-items: center; justify-content: space-between;">
-            <span>⚡ Today's Logged Workouts</span>
-            <span id="ex-tab-burn-count" class="text-muted" style="font-size: 0.85rem;"></span>
-          </h3>
-          <div id="ex-tab-workouts-list" class="scrollable-timeline" style="display: flex; flex-direction: column; gap: 0.75rem; max-height: 450px; overflow-y: auto;">
-            <p class="text-muted" style="font-size: 0.85rem;">Loading today's workouts...</p>
+        <!-- 7-Day Weekly Routine Blueprint Card Container -->
+        <div id="weekly-plan-schedule-box"></div>
+
+        <!-- 2-Column Grid: Structured MET Logger on Left | Today's Logged Workouts on Right -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 1.5rem; align-items: start;">
+
+          <!-- Left Column: Structured 2-Step Scientific Exercise Logger Card -->
+          <div class="glass-card">
+            <h3 style="font-size: 1rem; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
+              <span>⚡</span> Structured Workout Logger (Ainsworth MET Engine)
+            </h3>
+            <form id="dash-structured-ex-form" style="display: flex; flex-direction: column; gap: 0.85rem;">
+              <!-- Step 1: Category Selection -->
+              <div>
+                <label class="form-label" style="font-size: 0.8rem; color: var(--text-secondary);">1. Select Exercise Category</label>
+                <select id="dash-ex-cat-select" class="form-input" style="padding: 0.6rem; font-size: 0.85rem;" required>
+                  <option value="">Select Category...</option>
+                  <option value="distance">Distance-Based (Running, Cycling, Swimming)</option>
+                  <option value="reps">Reps & Sets-Based (Pushups, Squats, Weightlifting)</option>
+                  <option value="time">Time & Intensity-Based (Yoga, HIIT, Basketball)</option>
+                </select>
+              </div>
+
+              <!-- Step 2: Specific Exercise Selection -->
+              <div>
+                <select id="dash-ex-item-select" class="form-input" style="padding: 0.6rem; font-size: 0.85rem; display: none;" required>
+                  <option value="">2. Select Specific Exercise...</option>
+                </select>
+              </div>
+
+              <!-- Step 3: Dynamic Required Metric Fields -->
+              <div id="dash-ex-dynamic-fields" style="display: none;"></div>
+
+              <button type="submit" id="dash-ex-btn" class="btn btn-cobalt" style="padding: 0.6rem; font-size: 0.85rem; display: none;">
+                Calculate & Log Workout
+              </button>
+            </form>
+            <div id="dash-ex-status" style="display:none; font-size: 0.85rem; margin-top: 0.75rem; color: var(--accent-workout);"></div>
           </div>
+
+          <!-- Right Column: Today's Logged Workouts List (Positioned Side-by-Side) -->
+          <div class="glass-card">
+            <h3 style="margin-bottom: 1rem; font-size: 1.1rem; display: flex; align-items: center; justify-content: space-between;">
+              <span>⚡ Today's Logged Workouts</span>
+              <span id="ex-tab-burn-count" class="text-muted" style="font-size: 0.85rem;"></span>
+            </h3>
+            <div id="ex-tab-workouts-list" class="scrollable-timeline" style="display: flex; flex-direction: column; gap: 0.75rem; max-height: 500px; overflow-y: auto;">
+              <p class="text-muted" style="font-size: 0.85rem;">Loading today's workouts...</p>
+            </div>
+          </div>
+
         </div>
 
       </div>
@@ -221,7 +406,9 @@ export class App {
     this.fetchAndRenderExerciseTab();
   }
 
+
   static async fetchAndRenderExerciseTab() {
+    WorkoutPlanManager.renderScheduleGrid();
     const listEl = document.getElementById('ex-tab-workouts-list');
     const burnCountEl = document.getElementById('ex-tab-burn-count');
     if (!listEl) return;
@@ -238,7 +425,7 @@ export class App {
       if (burnCountEl) burnCountEl.textContent = `${totalBurn} Net kcal burned today`;
 
       listEl.innerHTML = workouts.map(w => `
-        <div style="background: rgba(22,27,34,0.6); border: 1px solid var(--border-glass); border-radius: 10px; padding: 0.85rem; display: flex; justify-content: space-between; align-items: center;">
+        <div style="background: rgba(22,27,34,0.6); border: 1px solid var(--border-glass); border-radius: 12px; padding: 0.85rem 1.1rem; display: flex; justify-content: space-between; align-items: center; position: relative;">
           <div>
             <div style="display: flex; align-items: center; gap: 0.5rem;">
               <span style="font-weight: 700; font-size: 0.9rem; color: var(--accent-workout);">${w.exercise_name}</span>
@@ -248,27 +435,84 @@ export class App {
               <span>MET: ${w.met_value}</span> ${w.notes ? `| <span>${w.notes}</span>` : ''}
             </div>
           </div>
-          <div style="display: flex; align-items: center; gap: 0.75rem;">
-            <span style="font-weight: 700; font-size: 0.95rem; color: var(--accent-workout);">${w.calories_burned} Net kcal</span>
-            <button class="btn-delete-ex-item" data-id="${w.id}" style="background: transparent; border: none; color: #EF4444; cursor: pointer; font-size: 1rem; opacity: 0.7;" title="Delete workout">🗑️</button>
+          
+          <div style="display: flex; align-items: center; gap: 0.75rem; position: relative;">
+            <span style="font-weight: 800; font-size: 0.95rem; color: var(--accent-workout); font-family: var(--font-heading);">${w.calories_burned} Net kcal</span>
+            
+            <!-- Inline Delete Trash & Dropdown Confirm Container -->
+            <div class="delete-ex-wrapper" style="position: relative;">
+              <button class="btn-delete-ex-item" data-id="${w.id}" style="background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.25); color: #EF4444; border-radius: 6px; padding: 0.3rem 0.5rem; cursor: pointer; font-size: 0.85rem; transition: all 0.2s ease;" title="Delete workout">
+                🗑️
+              </button>
+
+              <!-- Inline Confirmation Popover Dropdown -->
+              <div class="delete-ex-confirm-popover" style="display: none; position: absolute; right: 0; top: 125%; background: #161B22; border: 1px solid rgba(239,68,68,0.4); border-radius: 10px; padding: 0.6rem 0.75rem; width: 175px; box-shadow: 0 10px 25px rgba(0,0,0,0.8); z-index: 100; flex-direction: column; gap: 0.45rem; text-align: center;">
+                <div style="font-size: 0.75rem; font-weight: 700; color: #EF4444;">Delete this workout?</div>
+                <div style="display: flex; gap: 0.4rem; justify-content: center;">
+                  <button class="btn-cancel-ex-delete" style="background: rgba(255,255,255,0.08); color: var(--text-secondary); border: none; padding: 0.25rem 0.6rem; border-radius: 6px; font-size: 0.75rem; cursor: pointer;">Cancel</button>
+                  <button class="btn-confirm-ex-delete" data-id="${w.id}" style="background: #EF4444; color: white; border: none; padding: 0.25rem 0.6rem; border-radius: 6px; font-size: 0.75rem; font-weight: 700; cursor: pointer;">Delete</button>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
       `).join('');
 
+      // Toggle inline delete confirmation dropdown
       listEl.querySelectorAll('.btn-delete-ex-item').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const wrapper = btn.closest('.delete-ex-wrapper');
+          const popover = wrapper ? wrapper.querySelector('.delete-ex-confirm-popover') : null;
+
+          document.querySelectorAll('.delete-ex-confirm-popover').forEach(p => {
+            if (p !== popover) p.style.display = 'none';
+          });
+
+          if (popover) {
+            popover.style.display = popover.style.display === 'flex' ? 'none' : 'flex';
+          }
+        });
+      });
+
+      // Cancel button inside popover
+      listEl.querySelectorAll('.btn-cancel-ex-delete').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const popover = btn.closest('.delete-ex-confirm-popover');
+          if (popover) popover.style.display = 'none';
+        });
+      });
+
+      // Confirm Delete button inside popover
+      listEl.querySelectorAll('.btn-confirm-ex-delete').forEach(btn => {
         btn.addEventListener('click', async (e) => {
-          const id = e.currentTarget.dataset.id;
-          if (confirm('Are you sure you want to delete this workout entry?')) {
-            await APIClient.request(`${ENDPOINTS.EXERCISES}/${id}`, { method: 'DELETE' });
+          e.stopPropagation();
+          const id = btn.getAttribute('data-id');
+          const popover = btn.closest('.delete-ex-confirm-popover');
+          if (popover) popover.style.display = 'none';
+
+          if (id) {
+            await APIClient.request(`${ENDPOINTS.WORKOUTS_BASE}/${id}`, { method: 'DELETE' });
+            window.dispatchEvent(new CustomEvent('exercise:logged'));
             this.fetchAndRenderExerciseTab();
             DashboardManager.fetchAndRenderData();
           }
         });
       });
+
+      // Close popover when clicking anywhere outside
+      document.addEventListener('click', (e) => {
+        if (!e.target.closest('.delete-ex-wrapper')) {
+          document.querySelectorAll('.delete-ex-confirm-popover').forEach(p => p.style.display = 'none');
+        }
+      });
     } catch (err) {
       listEl.innerHTML = `<p class="text-muted" style="color: #EF4444; font-size: 0.85rem;">Failed to load workouts.</p>`;
     }
   }
+
 
   static bindGlobalEvents() {
     window.addEventListener('auth:success', async () => {
@@ -297,17 +541,11 @@ export class App {
       DashboardManager.fetchAndRenderData();
     });
 
-    // Profile Dropdown Toggle & Delegation
+    // Profile Dropdown Actions & Close Outside
     document.addEventListener('click', (e) => {
-      const toggleBtn = e.target.closest('#profile-menu-toggle');
       const dropdown = document.getElementById('profile-dropdown-menu');
 
-      if (toggleBtn && dropdown) {
-        dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
-        return;
-      }
-
-      if (dropdown && !dropdown.contains(e.target)) {
+      if (dropdown && !e.target.closest('.user-profile-menu-wrapper')) {
         dropdown.style.display = 'none';
       }
 
@@ -318,9 +556,8 @@ export class App {
       }
 
       if (e.target.closest('#p-menu-logout')) {
-        APIClient.clearTokens();
         if (dropdown) dropdown.style.display = 'none';
-        this.checkStateAndRoute();
+        this.showLogoutConfirmModal();
       }
     });
   }
@@ -366,24 +603,22 @@ export class App {
     }
 
     // Authenticated: check if physical profile exists
-    let hasProfile = false;
+    let profile = null;
     try {
-      await APIClient.request(ENDPOINTS.PROFILE_ME);
-      hasProfile = true;
+      profile = await APIClient.request(ENDPOINTS.PROFILE_ME);
     } catch (err) {
       if (!APIClient.isAuthenticated()) {
-        // Session expired or token cleared during request
         this.renderLandingPage(mainContainer, false);
         await this.updateHeader(false);
         AuthManager.showModal();
         return;
       }
-      hasProfile = false;
+      profile = null;
     }
 
-    if (hasProfile) {
+    if (profile) {
       if (navTabs) navTabs.style.display = 'flex';
-      await this.updateHeader(true, true);
+      await this.updateHeader(true, profile);
       try {
         await DashboardManager.render(mainContainer);
       } catch (dashErr) {
@@ -392,56 +627,71 @@ export class App {
     } else {
       if (navTabs) navTabs.style.display = 'none';
       this.renderLandingPage(mainContainer, true);
-      await this.updateHeader(true, false);
+      await this.updateHeader(true, null);
       ProfileManager.showModal();
     }
   }
 
-  static async updateHeader(isAuthenticated, hasProfile = true) {
+  static async updateHeader(isAuthenticated, profileData = null) {
     const nav = document.getElementById('user-nav');
     if (!nav) return;
 
     if (isAuthenticated) {
       let userName = 'User';
       let initials = 'U';
+      let hasProfile = !!profileData;
 
-      if (hasProfile) {
+      if (!profileData) {
         try {
-          const profile = await APIClient.request(ENDPOINTS.PROFILE_ME);
-          userName = profile.name || 'User';
-          const parts = userName.trim().split(' ');
-          initials = parts.length > 1 ? (parts[0][0] + parts[1][0]).toUpperCase() : parts[0].substring(0, 2).toUpperCase();
+          profileData = await APIClient.request(ENDPOINTS.PROFILE_ME);
+          hasProfile = !!profileData;
         } catch (err) {
           hasProfile = false;
         }
       }
 
+      if (profileData && profileData.name) {
+        userName = profileData.name;
+        const parts = userName.trim().split(' ');
+        initials = parts.length > 1 ? (parts[0][0] + parts[1][0]).toUpperCase() : parts[0].substring(0, 2).toUpperCase();
+      }
+
       if (hasProfile) {
         nav.innerHTML = `
           <div class="user-profile-menu-wrapper" style="position: relative;">
-            <button id="profile-menu-toggle" style="display: flex; align-items: center; gap: 0.6rem; background: rgba(22, 27, 34, 0.8); border: 1px solid var(--border-glass); padding: 0.35rem 0.85rem; border-radius: 999px; cursor: pointer; color: var(--text-primary); font-family: var(--font-body);">
-              <div style="width: 28px; height: 28px; background: var(--accent-health); color: #000; font-weight: 800; font-size: 0.8rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: var(--font-heading);">
+            <button id="profile-menu-toggle" type="button" style="display: flex; align-items: center; gap: 0.6rem; background: rgba(22, 27, 34, 0.8); border: 1px solid var(--border-glass); padding: 0.35rem 0.85rem; border-radius: 999px; cursor: pointer; color: var(--text-primary); font-family: var(--font-body);">
+              <div style="width: 28px; height: 28px; background: var(--accent-health); color: #000; font-weight: 800; font-size: 0.8rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: var(--font-heading); pointer-events: none;">
                 ${initials}
               </div>
-              <span style="font-weight: 600; font-size: 0.85rem;">${userName}</span>
-              <span style="color: var(--text-secondary); font-size: 1rem; margin-left: 0.2rem;">&#8942;</span>
+              <span style="font-weight: 600; font-size: 0.85rem; pointer-events: none;">${userName}</span>
+              <span style="color: var(--text-secondary); font-size: 1rem; margin-left: 0.2rem; pointer-events: none;">&#8942;</span>
             </button>
 
             <!-- Top Right Profile Glass Dropdown -->
-            <div id="profile-dropdown-menu" style="display: none; position: absolute; right: 0; top: 120%; background: #161B22; border: 1px solid var(--border-glass); border-radius: 12px; padding: 0.5rem; min-width: 170px; box-shadow: var(--shadow-card); z-index: 1000;">
-              <button id="p-menu-profile" style="width: 100%; text-align: left; background: transparent; border: none; color: var(--text-primary); padding: 0.5rem 0.75rem; font-size: 0.85rem; cursor: pointer; border-radius: 8px; display: flex; align-items: center; gap: 0.5rem;">
+            <div id="profile-dropdown-menu" style="display: none; position: absolute; right: 0; top: 125%; background: #161B22; border: 1px solid var(--border-glass); border-radius: 12px; padding: 0.5rem; min-width: 175px; box-shadow: var(--shadow-card); z-index: 9999;">
+              <button id="p-menu-profile" type="button" style="width: 100%; text-align: left; background: transparent; border: none; color: var(--text-primary); padding: 0.5rem 0.75rem; font-size: 0.85rem; cursor: pointer; border-radius: 8px; display: flex; align-items: center; gap: 0.5rem;">
                 👤 Edit Profile Stats
               </button>
-              <button id="p-menu-settings" style="width: 100%; text-align: left; background: transparent; border: none; color: var(--text-primary); padding: 0.5rem 0.75rem; font-size: 0.85rem; cursor: pointer; border-radius: 8px; display: flex; align-items: center; gap: 0.5rem;">
+              <button id="p-menu-settings" type="button" style="width: 100%; text-align: left; background: transparent; border: none; color: var(--text-primary); padding: 0.5rem 0.75rem; font-size: 0.85rem; cursor: pointer; border-radius: 8px; display: flex; align-items: center; gap: 0.5rem;">
                 ⚙️ Settings
               </button>
               <div style="border-top: 1px solid var(--border-glass); margin: 0.35rem 0;"></div>
-              <button id="p-menu-logout" style="width: 100%; text-align: left; background: transparent; border: none; color: #EF4444; padding: 0.5rem 0.75rem; font-size: 0.85rem; cursor: pointer; border-radius: 8px; display: flex; align-items: center; gap: 0.5rem;">
+              <button id="p-menu-logout" type="button" style="width: 100%; text-align: left; background: transparent; border: none; color: #EF4444; padding: 0.5rem 0.75rem; font-size: 0.85rem; cursor: pointer; border-radius: 8px; display: flex; align-items: center; gap: 0.5rem;">
                 🚪 Log Out
               </button>
             </div>
           </div>
         `;
+
+        const toggleBtn = document.getElementById('profile-menu-toggle');
+        const dropdown = document.getElementById('profile-dropdown-menu');
+        if (toggleBtn && dropdown) {
+          toggleBtn.onclick = (e) => {
+            e.stopPropagation();
+            const curDisplay = dropdown.style.display;
+            dropdown.style.display = (curDisplay === 'block') ? 'none' : 'block';
+          };
+        }
       } else {
         nav.innerHTML = `
           <div style="display: flex; align-items: center; gap: 0.75rem;">
@@ -455,8 +705,58 @@ export class App {
       nav.innerHTML = ``;
     }
   }
+
+  static renderLogoutConfirmModal() {
+    if (document.getElementById('logout-confirm-modal')) return;
+
+    const modalHTML = `
+      <div id="logout-confirm-modal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 420px; text-align: center; padding: 1.75rem; position: relative;">
+          
+          <div style="width: 52px; height: 52px; border-radius: 50%; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 1.6rem;">
+            🚪
+          </div>
+
+          <h3 style="font-family: var(--font-heading); margin-bottom: 0.5rem; font-size: 1.25rem; color: var(--text-primary);">
+            Log Out of GetFit?
+          </h3>
+          <p class="text-muted" style="font-size: 0.85rem; margin-bottom: 1.5rem;">
+            Are you sure you want to end your active session? You will need to sign in again to access your dashboard.
+          </p>
+
+          <div style="display: flex; gap: 0.75rem; justify-content: center;">
+            <button type="button" id="btn-cancel-logout" class="btn" style="flex: 1; padding: 0.6rem; background: rgba(255,255,255,0.08); color: var(--text-primary); border-radius: 8px; font-weight: 600; border: 1px solid var(--border-glass); cursor: pointer;">
+              Cancel
+            </button>
+            <button type="button" id="btn-confirm-logout" class="btn" style="flex: 1; padding: 0.6rem; background: #EF4444; color: #FFF; border-radius: 8px; font-weight: 700; border: none; cursor: pointer;">
+              Log Out
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+    document.getElementById('btn-cancel-logout')?.addEventListener('click', () => {
+      document.getElementById('logout-confirm-modal')?.classList.remove('active');
+    });
+
+    document.getElementById('btn-confirm-logout')?.addEventListener('click', () => {
+      document.getElementById('logout-confirm-modal')?.classList.remove('active');
+      APIClient.clearTokens();
+      this.checkStateAndRoute();
+    });
+  }
+
+  static showLogoutConfirmModal() {
+    this.renderLogoutConfirmModal();
+    const modal = document.getElementById('logout-confirm-modal');
+    if (modal) modal.classList.add('active');
+  }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
   App.init();
 });
+

@@ -56,3 +56,32 @@ class DailyWorkoutSummary(BaseModel):
     total_duration_minutes: float
     total_net_calories_burned: int
     workouts_logged_today: List[WorkoutLogResponse]
+
+
+class DayScheduleItem(BaseModel):
+    """Schema representing a single day in the weekly routine plan."""
+
+    day: str  # "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"
+    activity_type: str  # "rest", "gym", "sports", "cardio"
+    targets: List[str] = Field(default_factory=list)  # ["chest", "shoulders"], ["football"], ["walking"]
+    is_completed: bool = False
+
+
+class WorkoutPlanUpdate(BaseModel):
+    """Schema for updating fitness focus and weekly schedule."""
+
+    fitness_focus: str = Field("athletic", description="'bodybuilding', 'athletic', or 'sports_endurance'")
+    schedule: List[DayScheduleItem]
+
+
+class WorkoutPlanResponse(BaseModel):
+    """Schema for returning full weekly routine blueprint and protein cap thresholds."""
+
+    fitness_focus: str
+    weekly_schedule: List[DayScheduleItem]
+    base_protein_g_per_kg: float
+    max_protein_cap_g_per_kg: float
+    user_weight_kg: float
+    calculated_base_protein_g: float
+    calculated_max_protein_cap_g: float
+
