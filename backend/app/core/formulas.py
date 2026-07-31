@@ -10,6 +10,7 @@ from app.core.constants import (
     BMR_HEIGHT_COEFF,
     BMR_MALE_OFFSET,
     BMR_WEIGHT_COEFF,
+    FITNESS_FOCUS_CONFIG,
     KCAL_PER_G_CARBS,
     KCAL_PER_G_FAT,
     KCAL_PER_G_PROTEIN,
@@ -68,44 +69,45 @@ def calculate_tdee(bmr: float, activity_level: str) -> float:
     return bmr * multiplier
 
 
-def calculate_profile_targets(
+def calculate_target_budgets(
     weight_kg: float,
     height_cm: float,
     birth_date: date,
     gender: str,
-    activity_level: str,
     target_weight_kg: float,
     timeline_weeks: int,
+    activity_level: str,
+    fitness_focus: str = "athletic",
 ) -> Dict[str, Any]:
-    """Single-pass engine calculating BMR, TDEE, dynamic caloric pace, daily budget, and macro splits.
+    """Calculates evidence-based daily caloric target and macronutrient splits with safety guardrails.
 
     Args:
-        weight_kg: Current body weight in kilograms.
-        height_cm: Height in centimeters.
-        birth_date: User birth date.
-        gender: Biological gender ('male' or 'female').
-        activity_level: Physical activity level multiplier key.
-        target_weight_kg: User's goal weight in kilograms.
-        timeline_weeks: Desired timeframe to achieve target weight.
+        weight_kg: Current body weight in kg.
+        height_cm: Height in cm.
+        birth_date: Birth date object.
+        gender: Biological sex ('male' or 'female').
+        target_weight_kg: Target weight goal in kg.
+        timeline_weeks: Goal timeframe in weeks.
+        activity_level: Baseline activity level descriptor.
+        fitness_focus: Fitness philosophy ('bodybuilding', 'athletic', 'sports_endurance').
 
     Returns:
-        Dictionary containing pre-computed BMR, TDEE, caloric pace, daily targets, and health safety flags.
+        Dict containing BMR, TDEE, Caloric Pace, targets, and safety flags.
     """
     bmr = calculate_bmr(weight_kg, height_cm, birth_date, gender)
     tdee = calculate_tdee(bmr, activity_level)
 
     weight_diff = target_weight_kg - weight_kg
-    timeline_days = max(timeline_weeks * 7, 1)
 
-    # Compute daily caloric pace required (7,700 kcal per kg of body mass)
-    total_kcal_delta = weight_diff * KCAL_PER_KG_BODY_MASS
-    caloric_pace = total_kcal_delta / timeline_days
-
-    # Determine goal type category
-    if weight_diff < -0.1:
-        goal_type = "lose_weight"
-    elif weight_diff > 0.1:
+    # Determine Goal Strategy
+    if weight_diff > 0.1:
         goal_type = "gain_muscle"
+        total_deficit = weight_diff * KCAL_PER_KG_BODY_MASS
+        caloric_pace = total_deficit / (timeline_weeks * 7.0)
+    elif weight_diff < -0.1:
+        goal_type = "lose_weight"
+        total_deficit = weight_diff * KCAL_PER_KG_BODY_MASS
+        caloric_pace = total_deficit / (timeline_weeks * 7.0)
     else:
         goal_type = "maintain"
         caloric_pace = 0.0
@@ -125,19 +127,33 @@ def calculate_profile_targets(
             is_safe_pace = False
             suggested_min_weeks = math.ceil(abs(weight_diff) / max_safe_weekly_loss)
 
-    # Evidence-Based Body-Weight Macro Allocation Engine (g/kg body weight)
-    if goal_type == "lose_weight":
-      protein_per_kg = 2.0  # High protein to protect lean muscle mass in deficit
-      fat_pct = 0.25
-    elif goal_type == "gain_muscle":
-      protein_per_kg = 1.8  # Optimal rate for muscle protein synthesis
-      fat_pct = 0.25
-    else:
-      protein_per_kg = 1.6  # Maintenance baseline
-      fat_pct = 0.30
+    # Fitness Philosophy & Macro Focus Allocation Engine
+    focus_key = (fitness_focus or "athletic").lower()
+    focus_cfg = FITNESS_FOCUS_CONFIG.get(focus_key, FITNESS_FOCUS_CONFIG["athletic"])
+    
+    # Goal Strategy & Pace-Based Protein Allocation Engine
+    weekly_rate_kg = abs(weight_diff) / max(timeline_weeks, 1)
+    goal_protein_modifier = 0.0
 
-    # Calculate protein grams based on body weight (capped at max 2.2 g/kg)
-    protein_g = min(weight_kg * protein_per_kg, weight_kg * 2.2)
+    if goal_type == "lose_weight":
+        # Base deficit modifier
+        goal_protein_modifier = 0.15
+        # If aggressive pace (>= 0.5 kg/week loss), elevate protein to protect lean muscle mass from catabolism
+        if weekly_rate_kg >= 0.5:
+            goal_protein_modifier += 0.10
+    elif goal_type == "gain_muscle":
+        # Base surplus modifier
+        goal_protein_modifier = 0.05
+        # If active hypertrophy pace (>= 0.3 kg/week gain), elevate protein for tissue synthesis
+        if weekly_rate_kg >= 0.3:
+            goal_protein_modifier += 0.05
+
+    protein_per_kg = focus_cfg["base_protein_per_kg"] + goal_protein_modifier
+    max_protein_cap_g = weight_kg * focus_cfg["max_protein_per_kg"]
+    fat_pct = focus_cfg["fat_pct"]
+
+    # Calculate baseline protein grams based on body weight & fitness focus (capped at max_protein_cap_g)
+    protein_g = min(weight_kg * protein_per_kg, max_protein_cap_g)
     protein_kcal = protein_g * KCAL_PER_G_PROTEIN
 
     # Calculate fat grams based on healthy percentage of daily budget
@@ -160,6 +176,10 @@ def calculate_profile_targets(
         "is_safe_pace": is_safe_pace,
         "suggested_min_weeks": suggested_min_weeks,
     }
+
+
+# Backward compatibility alias
+calculate_profile_targets = calculate_target_budgets
 
 
 def calculate_net_exercise_calories(
@@ -185,3 +205,46 @@ def calculate_net_exercise_calories(
     net_met = max(met - base_multiplier, 0.0)
     burn = net_met * weight_kg * (duration_minutes / 60.0)
     return int(round(burn))
+
+
+def calculate_workout_macro_additions(workouts: list) -> Dict[str, float]:
+    """Calculates activity-specific recovery macro additions based on exercise physiology.
+    
+    Cardio & Endurance Sports (Football, Running): 75% Carbs (Glycogen refill), 15% Protein, 10% Fat
+    Strength & Resistance Training (Gym): 45% Protein (Muscle Synthesis), 45% Carbs, 10% Fat
+    """
+    from app.core.exercise_catalog import EXERCISE_CATALOG
+
+    cardio_burn = 0.0
+    strength_burn = 0.0
+    general_burn = 0.0
+
+    for w in workouts:
+        matched_cat = "general"
+        name_lower = getattr(w, "exercise_name", "").lower()
+        for cat_id, cat_info in EXERCISE_CATALOG.items():
+            if cat_info["name"].lower() in name_lower or cat_id in name_lower:
+                matched_cat = cat_info["category"]
+                break
+        
+        cals_burned = getattr(w, "calories_burned", 0)
+        if matched_cat == "distance" or any(k in name_lower for k in ["run", "cycle", "swim", "row", "walk", "hiit", "soccer", "football", "basketball", "tennis", "padel", "badminton", "sports", "aerobic"]):
+            cardio_burn += cals_burned
+        elif matched_cat == "reps" or any(k in name_lower for k in ["push", "pull", "squat", "bench", "lift", "press", "curl", "lunge", "dip", "crunch", "burpee", "gym", "weight"]):
+            strength_burn += cals_burned
+        else:
+            general_burn += cals_burned
+
+    extra_protein_g = ((strength_burn * 0.45) + (cardio_burn * 0.15) + (general_burn * 0.20)) / 4.0
+    extra_carbs_g = ((cardio_burn * 0.75) + (strength_burn * 0.45) + (general_burn * 0.50)) / 4.0
+    extra_fat_g = ((cardio_burn * 0.10) + (strength_burn * 0.10) + (general_burn * 0.30)) / 9.0
+
+    return {
+        "extra_protein_g": round(extra_protein_g, 1),
+        "extra_carbs_g": round(extra_carbs_g, 1),
+        "extra_fat_g": round(extra_fat_g, 1),
+        "cardio_burn": cardio_burn,
+        "strength_burn": strength_burn,
+        "general_burn": general_burn,
+    }
+

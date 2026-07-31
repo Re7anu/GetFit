@@ -36,3 +36,23 @@ MACRO_RATIOS: Dict[str, Tuple[float, float, float]] = {
 # Safety & Health Guardrails
 MINIMUM_SAFE_DAILY_CALORIES: int = 1200
 MAX_SAFE_WEEKLY_LOSS_PCT: float = 0.01  # Max 1.0% of body weight loss per week
+
+# Fitness Philosophy & Macro Focus Configurations (Base Protein g/kg, Max Protein Cap g/kg)
+FITNESS_FOCUS_CONFIG: Dict[str, Dict[str, float]] = {
+    "bodybuilding": {
+        "base_protein_per_kg": 1.8,
+        "max_protein_per_kg": 2.5,
+        "fat_pct": 0.25,
+    },
+    "athletic": {
+        "base_protein_per_kg": 1.6,
+        "max_protein_per_kg": 2.2,
+        "fat_pct": 0.25,
+    },
+    "sports_endurance": {
+        "base_protein_per_kg": 1.4,
+        "max_protein_per_kg": 2.0,
+        "fat_pct": 0.25,
+    },
+}
+

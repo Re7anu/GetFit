@@ -73,14 +73,17 @@ export class ProfileManager {
             </div>
 
             <div class="form-group">
-              <label class="form-label">Activity Level</label>
+              <label class="form-label">Daily Lifestyle / Occupation (Excludes Workouts)</label>
               <select id="prof-activity" class="form-input" required>
-                <option value="sedentary">Sedentary (Office job, little exercise)</option>
-                <option value="lightly_active">Lightly Active (1-3 days/week exercise)</option>
-                <option value="moderately_active">Moderately Active (3-5 days/week exercise)</option>
-                <option value="very_active">Very Active (6-7 days/week hard exercise)</option>
-                <option value="extra_active">Extra Active (Physical job or 2x daily workouts)</option>
+                <option value="sedentary">Sedentary (Desk job, office worker, student, mostly sitting)</option>
+                <option value="lightly_active">Lightly Active (Teacher, retail, standing & walking throughout day)</option>
+                <option value="moderately_active">Moderately Active (Waiter, nurse, delivery driver, active on feet)</option>
+                <option value="very_active">Very Active (Construction worker, farmer, physical labor)</option>
+                <option value="extra_active">Extra Active (Heavy manual labor, professional athlete)</option>
               </select>
+              <p class="text-muted" style="font-size: 0.75rem; margin-top: 0.35rem; color: var(--accent-health);">
+                💡 Do NOT include gym or sports workouts here—log workouts separately for 100% Net MET accuracy!
+              </p>
             </div>
 
             <div style="display: flex; gap: 0.75rem; margin-top: 1.25rem;">
