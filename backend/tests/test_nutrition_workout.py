@@ -207,3 +207,59 @@ def test_exercise_catalog_and_structured_logging(client, db_session):
     r_data = res_r.json()
     assert r_data["exercise_name"] == "Outdoor Running"
     assert r_data["duration_minutes"] == 60.0  # 10 km at 10 km/h = 60 mins
+
+
+def test_ai_image_food_scanning_flow(client, db_session, monkeypatch):
+    """Tests POST /nutrition/meals/ai-scan-image using Gemini Vision AI mock."""
+    from app.schemas.nutrition_log import AIFoodParseResult
+
+    user = create_user_with_profile(db_session, email="imageaiuser@getfit.com")
+    access_token = create_access_token(user.id)
+    headers = {"Authorization": f"Bearer {access_token}"}
+
+    # Mock Gemini Multimodal Vision structured output
+    def mock_vision_gemini(image_bytes, mime_type, prompt, response_schema):
+        return AIFoodParseResult(
+            meal_type="lunch",
+            description="Grilled Salmon Salad with Avocado & Quinoa",
+            calories=520,
+            protein_g=38.0,
+            carbs_g=32.0,
+            fat_g=22.0,
+            fiber_g=7.5,
+            sodium_mg=450.0,
+            potassium_mg=850.0,
+            vitamin_c_mg=25.0,
+            calcium_mg=120.0,
+            iron_mg=3.2,
+            quantity_g=350.0,
+        )
+
+    monkeypatch.setattr("app.services.gemini_service.generate_multimodal_structured_output", mock_vision_gemini)
+
+    # Fake 1x1 GIF / PNG byte array
+    fake_image = b"GIF89a\x01\x00\x01\x00\x80\x00\x00\xff\xff\xff\x00\x00\x00!\xf9\x04\x01\x00\x00\x00\x00,\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;"
+
+    response = client.post(
+        "/api/v1/nutrition/meals/ai-scan-image",
+        files={"file": ("salmon_salad.jpg", fake_image, "image/jpeg")},
+        data={"meal_type_hint": "lunch"},
+        headers=headers,
+    )
+    assert response.status_code == 201
+    data = response.json()
+    assert data["meal_type"] == "lunch"
+    assert data["description"] == "Grilled Salmon Salad with Avocado & Quinoa"
+    assert data["calories"] == 520
+    assert data["protein_g"] == 38.0
+    assert data["fiber_g"] == 7.5
+    assert data["input_method"] == "ai_vision"
+
+    # Verify that summary now reflects the scanned image macros & micros
+    res_summary = client.get("/api/v1/nutrition/summary/today", headers=headers)
+    assert res_summary.status_code == 200
+    s = res_summary.json()
+    assert s["consumed_calories"] == 520
+    assert s["consumed_protein_g"] == 38.0
+    assert s["consumed_fiber_g"] == 7.5
+
