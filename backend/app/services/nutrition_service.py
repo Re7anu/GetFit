@@ -5,8 +5,14 @@ from typing import List
 from fastapi import HTTPException, status
 from sqlalchemy import func
 from sqlalchemy.orm import Session
+from app.core.constants import FITNESS_FOCUS_CONFIG
 from app.core.exercise_catalog import EXERCISE_CATALOG
-from app.core.prompts import FOOD_PARSING_PROMPT_TEMPLATE, MICRONUTRIENT_ENRICHMENT_PROMPT
+from app.core.formulas import calculate_workout_macro_additions
+from app.core.prompts import (
+    FOOD_IMAGE_PARSING_PROMPT,
+    FOOD_PARSING_PROMPT_TEMPLATE,
+    MICRONUTRIENT_ENRICHMENT_PROMPT,
+)
 from app.db.models.workout_log import WorkoutLog
 from app.db.models.nutrition_log import FoodLog
 from app.db.models.user_auth import UserAuth
@@ -112,6 +118,60 @@ def create_meal_entry_via_ai(db: Session, user: UserAuth, prompt_in: AIFoodParse
     return create_meal_entry(db=db, user=user, meal_in=meal_in)
 
 
+def create_meal_entry_via_image_ai(
+    db: Session,
+    user: UserAuth,
+    image_bytes: bytes,
+    mime_type: str,
+    meal_type_hint: str = None,
+    notes: str = None,
+) -> FoodLog:
+    """Parses a food image using Gemini Vision AI structured output and creates a new FoodLog entry.
+
+    Args:
+        db: Database session.
+        user: Authenticated UserAuth entity.
+        image_bytes: Raw binary content of the uploaded image file.
+        mime_type: Image media type (e.g. 'image/jpeg', 'image/png').
+        meal_type_hint: Optional user hint regarding meal category.
+        notes: Optional user supporting text context or ingredient notes.
+
+    Returns:
+        Created FoodLog model instance.
+    """
+    hint = meal_type_hint or "Infer appropriate meal type from visual context"
+    user_notes = notes or "None provided"
+    prompt = FOOD_IMAGE_PARSING_PROMPT.format(meal_hint=hint, user_notes=user_notes)
+    
+    parsed_result: AIFoodParseResult = gemini_service.generate_multimodal_structured_output(
+        image_bytes=image_bytes,
+        mime_type=mime_type,
+        prompt=prompt,
+        response_schema=AIFoodParseResult,
+    )
+
+    meal_type = meal_type_hint if meal_type_hint and meal_type_hint.lower() in ["breakfast", "lunch", "dinner", "snack"] else parsed_result.meal_type
+
+    meal_in = FoodLogCreate(
+        meal_type=meal_type,
+        description=parsed_result.description,
+        calories=parsed_result.calories,
+        protein_g=parsed_result.protein_g,
+        carbs_g=parsed_result.carbs_g,
+        fat_g=parsed_result.fat_g,
+        fiber_g=parsed_result.fiber_g,
+        sodium_mg=parsed_result.sodium_mg,
+        potassium_mg=parsed_result.potassium_mg,
+        vitamin_c_mg=parsed_result.vitamin_c_mg,
+        calcium_mg=parsed_result.calcium_mg,
+        iron_mg=parsed_result.iron_mg,
+        quantity_g=parsed_result.quantity_g,
+        input_method="ai_vision",
+    )
+    return create_meal_entry(db=db, user=user, meal_in=meal_in)
+
+
+
 def get_user_today_meals(db: Session, user: UserAuth) -> List[FoodLog]:
     """Retrieves all meals logged today by the user.
 
@@ -210,34 +270,19 @@ def calculate_user_today_nutrition_summary(db: Session, user: UserAuth) -> Daily
         .all()
     )
 
-    cardio_burn = 0
-    strength_burn = 0
-    general_burn = 0
+    macro_additions = calculate_workout_macro_additions(today_workouts)
+    cardio_burn = macro_additions["cardio_burn"]
+    strength_burn = macro_additions["strength_burn"]
+    general_burn = macro_additions["general_burn"]
 
-    for w in today_workouts:
-        # Match exercise catalog category or fallback based on name
-        matched_cat = "general"
-        name_lower = w.exercise_name.lower()
-        for cat_id, cat_info in EXERCISE_CATALOG.items():
-            if cat_info["name"].lower() in name_lower or cat_id in name_lower:
-                matched_cat = cat_info["category"]
-                break
-        
-        if matched_cat == "distance" or any(k in name_lower for k in ["run", "cycle", "swim", "row", "walk", "hiit", "soccer"]):
-            cardio_burn += w.calories_burned
-        elif matched_cat == "reps" or any(k in name_lower for k in ["push", "pull", "squat", "bench", "lift", "press", "curl", "lunge", "dip", "crunch", "burpee"]):
-            strength_burn += w.calories_burned
-        else:
-            general_burn += w.calories_burned
+    focus_key = (profile.fitness_focus or "athletic").lower()
+    focus_cfg = FITNESS_FOCUS_CONFIG.get(focus_key, FITNESS_FOCUS_CONFIG["athletic"])
+    max_protein_cap_g = profile.weight_kg * focus_cfg["max_protein_per_kg"]
 
-    # Calculate specific recovery macro additions (in grams)
-    extra_protein_g = ((strength_burn * 0.50) + (cardio_burn * 0.20) + (general_burn * 0.30)) / 4.0
-    extra_carbs_g = ((cardio_burn * 0.65) + (strength_burn * 0.35) + (general_burn * 0.40)) / 4.0
-    extra_fat_g = ((cardio_burn * 0.15) + (strength_burn * 0.15) + (general_burn * 0.30)) / 9.0
-
-    adj_target_protein = round(profile.calculated_protein_target_g + extra_protein_g, 1)
-    adj_target_carb = round(profile.calculated_carb_target_g + extra_carbs_g, 1)
-    adj_target_fat = round(profile.calculated_fat_target_g + extra_fat_g, 1)
+    raw_adj_protein = profile.calculated_protein_target_g + macro_additions["extra_protein_g"]
+    adj_target_protein = round(min(raw_adj_protein, max_protein_cap_g), 1)
+    adj_target_carb = round(profile.calculated_carb_target_g + macro_additions["extra_carbs_g"], 1)
+    adj_target_fat = round(profile.calculated_fat_target_g + macro_additions["extra_fat_g"], 1)
 
     # Dynamic Clinical Micronutrient Target Calculation Engine (NIH/WHO Guidelines)
     # 1. Base Profile & Gender-Scaled RDAs
