@@ -156,9 +156,13 @@ def calculate_target_budgets(
     protein_g = min(weight_kg * protein_per_kg, max_protein_cap_g)
     protein_kcal = protein_g * KCAL_PER_G_PROTEIN
 
-    # Calculate fat grams based on healthy percentage of daily budget
-    fat_kcal = calculated_calorie_target * fat_pct
-    fat_g = fat_kcal / KCAL_PER_G_FAT
+    # Calculate fat grams with dual guardrails:
+    # 1. Standard 25% caloric split
+    # 2. Weight-scaled hormone floor (0.6 g/kg)
+    # 3. Absolute gallbladder safety floor (35.0g)
+    raw_fat_g = (calculated_calorie_target * fat_pct) / KCAL_PER_G_FAT
+    fat_g = max(raw_fat_g, weight_kg * 0.6, 35.0)
+    fat_kcal = fat_g * KCAL_PER_G_FAT
 
     # Calculate remaining energy allocated to carbohydrates
     carb_kcal = max(calculated_calorie_target - (protein_kcal + fat_kcal), 0.0)

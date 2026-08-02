@@ -16,6 +16,7 @@ class UserProfileBase(BaseModel):
     target_weight_kg: float = Field(..., gt=0)
     timeline_weeks: int = Field(12, ge=1, le=104, description="Target timeline in weeks (1-104)")
     activity_level: str = Field(..., description="sedentary, lightly_active, moderately_active, very_active, extra_active")
+    fitness_focus: Optional[str] = Field("athletic", description="general_health, athletic, sports_endurance, bodybuilding")
 
 
 class UserProfileCreate(UserProfileBase):
@@ -35,6 +36,7 @@ class UserProfileUpdate(BaseModel):
     target_weight_kg: Optional[float] = Field(None, gt=0)
     timeline_weeks: Optional[int] = Field(None, ge=1, le=104)
     activity_level: Optional[str] = None
+    fitness_focus: Optional[str] = None
 
 
 class UserProfileResponse(UserProfileBase):

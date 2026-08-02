@@ -54,5 +54,10 @@ FITNESS_FOCUS_CONFIG: Dict[str, Dict[str, float]] = {
         "max_protein_per_kg": 2.0,
         "fat_pct": 0.25,
     },
+    "general_health": {
+        "base_protein_per_kg": 1.2,
+        "max_protein_per_kg": 1.8,
+        "fat_pct": 0.25,
+    },
 }
 
