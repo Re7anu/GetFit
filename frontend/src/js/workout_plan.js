@@ -48,6 +48,13 @@ export class WorkoutPlanManager {
               <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 0.75rem;">
                 
                 <label class="focus-option-card" style="background: rgba(16,185,129,0.06); border: 1px solid var(--border-glass); border-radius: 10px; padding: 0.85rem; cursor: pointer; display: flex; flex-direction: column; gap: 0.35rem; position: relative;">
+                  <input type="radio" name="plan-fitness-focus" value="general_health" style="position: absolute; top: 0.85rem; right: 0.85rem;" />
+                  <div style="font-weight: 800; font-size: 0.9rem; color: var(--text-primary);">🌿 General Health & Fat Loss</div>
+                  <div style="font-size: 0.75rem; color: var(--text-secondary);">Weight management, organ health & general fitness.</div>
+                  <div style="font-size: 0.7rem; color: var(--accent-health); font-weight: 700; margin-top: 0.2rem;">Base: 1.2 g/kg | Max Cap: 1.8 g/kg</div>
+                </label>
+
+                <label class="focus-option-card" style="background: rgba(16,185,129,0.06); border: 1px solid var(--border-glass); border-radius: 10px; padding: 0.85rem; cursor: pointer; display: flex; flex-direction: column; gap: 0.35rem; position: relative;">
                   <input type="radio" name="plan-fitness-focus" value="bodybuilding" style="position: absolute; top: 0.85rem; right: 0.85rem;" />
                   <div style="font-weight: 800; font-size: 0.9rem; color: var(--text-primary);">🏆 Bodybuilding</div>
                   <div style="font-size: 0.75rem; color: var(--text-secondary);">Hypertrophy & high-volume weightlifting.</div>
@@ -75,11 +82,16 @@ export class WorkoutPlanManager {
             <div class="glass-card" style="background: rgba(22, 27, 34, 0.7); padding: 1.1rem;">
               <h3 style="font-size: 0.95rem; font-family: var(--font-heading); margin-bottom: 0.75rem; color: var(--text-primary); display: flex; align-items: center; justify-content: space-between;">
                 <span>🗓️ Configure 7-Day Routine Blueprint</span>
-                <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: normal;">Select individual target muscles or sports per day</span>
+                <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: normal;">Select day tab to customize target routine</span>
               </h3>
 
+              <!-- Day Selector Tabs -->
+              <div id="plan-day-tabs" style="display: flex; gap: 0.35rem; margin-bottom: 0.85rem; overflow-x: auto; padding-bottom: 0.35rem; border-bottom: 1px solid var(--border-glass);">
+                <!-- Day tab buttons rendered dynamically -->
+              </div>
+
               <div id="plan-days-builder" style="display: flex; flex-direction: column; gap: 1rem;">
-                <!-- Dynamically populated 7 days -->
+                <!-- Dynamically populated 7 days (active day visible, others hidden) -->
               </div>
             </div>
 
@@ -110,6 +122,13 @@ export class WorkoutPlanManager {
         if (modal) modal.classList.remove('active');
       }
 
+      // Day Tab Selector in Setup Modal
+      const dayTabBtn = e.target.closest('.plan-day-tab-btn');
+      if (dayTabBtn) {
+        const targetDay = dayTabBtn.getAttribute('data-day');
+        this.switchSetupDayTab(targetDay);
+      }
+
       // 1-Tap Toggle Day Completion Checkbox on Schedule Grid Tile
       const toggleBtn = e.target.closest('.btn-toggle-plan-day');
       if (toggleBtn) {
@@ -125,6 +144,37 @@ export class WorkoutPlanManager {
       if (e.target && e.target.id === 'workout-plan-form') {
         e.preventDefault();
         await this.savePlanFromForm();
+      }
+    });
+  }
+
+  static switchSetupDayTab(targetDay) {
+    const tabsContainer = document.getElementById('plan-day-tabs');
+    const builderContainer = document.getElementById('plan-days-builder');
+    if (!tabsContainer || !builderContainer) return;
+
+    // Update tab styles
+    tabsContainer.querySelectorAll('.plan-day-tab-btn').forEach(btn => {
+      const isTarget = btn.getAttribute('data-day') === targetDay;
+      if (isTarget) {
+        btn.style.background = 'var(--accent-health)';
+        btn.style.color = '#000';
+        btn.style.borderColor = 'var(--accent-health)';
+        btn.style.fontWeight = '800';
+      } else {
+        btn.style.background = 'rgba(255,255,255,0.05)';
+        btn.style.color = 'var(--text-secondary)';
+        btn.style.borderColor = 'var(--border-glass)';
+        btn.style.fontWeight = '600';
+      }
+    });
+
+    // Show selected day row, hide others
+    builderContainer.querySelectorAll('.day-builder-row').forEach(row => {
+      if (row.getAttribute('data-day') === targetDay) {
+        row.style.display = 'block';
+      } else {
+        row.style.display = 'none';
       }
     });
   }
@@ -160,7 +210,8 @@ export class WorkoutPlanManager {
       r.checked = r.value === currentFocus;
     });
 
-    // Render 7-day builder inputs
+    // Render Day Tabs & 7-day builder inputs
+    const tabsContainer = document.getElementById('plan-day-tabs');
     const builderContainer = document.getElementById('plan-days-builder');
     const daysList = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
     const currentScheduleMap = {};
@@ -169,6 +220,38 @@ export class WorkoutPlanManager {
       const dKey = item.day ? item.day.toLowerCase() : '';
       currentScheduleMap[dKey] = item;
     });
+
+    const shortDayNames = {
+      monday: 'Mon',
+      tuesday: 'Tue',
+      wednesday: 'Wed',
+      thursday: 'Thu',
+      friday: 'Fri',
+      saturday: 'Sat',
+      sunday: 'Sun',
+    };
+
+    const activityIcons = {
+      rest: '😴',
+      gym: '🏋️',
+      sports: '⚽',
+      cardio: '🏃',
+    };
+
+    // Render Tabs
+    if (tabsContainer) {
+      tabsContainer.innerHTML = daysList.map((d, index) => {
+        const existing = currentScheduleMap[d] || { activity_type: 'rest' };
+        const icon = activityIcons[existing.activity_type] || '😴';
+        const isFirst = index === 0;
+        return `
+          <button type="button" class="plan-day-tab-btn" data-day="${d}" style="padding: 0.35rem 0.75rem; border-radius: 8px; font-size: 0.8rem; font-weight: ${isFirst ? '800' : '600'}; background: ${isFirst ? 'var(--accent-health)' : 'rgba(255,255,255,0.05)'}; color: ${isFirst ? '#000' : 'var(--text-secondary)'}; border: 1px solid ${isFirst ? 'var(--accent-health)' : 'var(--border-glass)'}; cursor: pointer; transition: all 0.2s ease; white-space: nowrap; display: flex; align-items: center; gap: 0.35rem;">
+            <span>${shortDayNames[d]}</span>
+            <span style="font-size: 0.75rem;">${icon}</span>
+          </button>
+        `;
+      }).join('');
+    }
 
     const muscleOptions = [
       { id: 'chest', label: 'Chest' },
@@ -201,19 +284,21 @@ export class WorkoutPlanManager {
       { id: 'hiit', label: '⚡ HIIT' },
     ];
 
-    builderContainer.innerHTML = daysList.map(d => {
+    builderContainer.innerHTML = daysList.map((d, index) => {
       const existing = currentScheduleMap[d] || { activity_type: 'rest', targets: [], is_completed: false };
       const capitalizedDay = d.charAt(0).toUpperCase() + d.slice(1);
+      const isVisible = index === 0;
 
       return `
-        <div class="day-builder-row" data-day="${d}" style="background: rgba(9, 12, 16, 0.6); border: 1px solid var(--border-glass); border-radius: 10px; padding: 0.85rem;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem; flex-wrap: wrap; gap: 0.5rem;">
-            <div style="font-weight: 800; font-size: 0.9rem; color: var(--accent-health); text-transform: uppercase;">
-              ${capitalizedDay}
+        <div class="day-builder-row" data-day="${d}" style="display: ${isVisible ? 'block' : 'none'}; background: rgba(9, 12, 16, 0.6); border: 1px solid var(--border-glass); border-radius: 10px; padding: 1rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
+            <div style="font-weight: 800; font-size: 0.95rem; color: var(--accent-health); text-transform: uppercase; display: flex; align-items: center; gap: 0.4rem;">
+              <span>🗓️ ${capitalizedDay} Routine</span>
             </div>
 
-            <div style="display: flex; gap: 0.4rem;">
-              <select class="form-input day-activity-select" style="padding: 0.3rem 0.6rem; font-size: 0.8rem; background: #161B22;" data-day="${d}">
+            <div style="display: flex; gap: 0.4rem; align-items: center;">
+              <span style="font-size: 0.75rem; color: var(--text-secondary); font-weight: 600;">Activity Type:</span>
+              <select class="form-input day-activity-select" style="padding: 0.35rem 0.65rem; font-size: 0.8rem; background: #161B22;" data-day="${d}">
                 <option value="rest" ${existing.activity_type === 'rest' ? 'selected' : ''}>😴 Rest Day</option>
                 <option value="gym" ${existing.activity_type === 'gym' ? 'selected' : ''}>🏋️ Gym / Strength Split</option>
                 <option value="sports" ${existing.activity_type === 'sports' ? 'selected' : ''}>⚽ Field Sports / Game</option>
@@ -223,34 +308,83 @@ export class WorkoutPlanManager {
           </div>
 
           <!-- Target Checkboxes Section -->
-          <div class="day-targets-box" id="targets-box-${d}" style="display: ${existing.activity_type === 'rest' ? 'none' : 'block'}; margin-top: 0.5rem; border-top: 1px dashed rgba(255,255,255,0.08); padding-top: 0.5rem;">
-            <div style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.4rem; font-weight: 600;">
-              Select Target Muscle Groups or Activities for ${capitalizedDay}:
+          <div class="day-targets-box" id="targets-box-${d}" style="display: ${existing.activity_type === 'rest' ? 'none' : 'block'}; margin-top: 0.75rem; border-top: 1px dashed rgba(255,255,255,0.08); padding-top: 0.75rem;">
+            
+            <!-- Category 1: Gym Muscle Groups -->
+            <div style="margin-bottom: 0.75rem;">
+              <div style="font-size: 0.75rem; color: var(--accent-health); font-weight: 700; margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.3rem;">
+                <span>🏋️ Muscle Groups (Gym / Strength)</span>
+              </div>
+              <div class="target-checkboxes-grid" style="display: flex; flex-wrap: wrap; gap: 0.4rem 0.65rem; font-size: 0.8rem;">
+                ${muscleOptions.map(opt => {
+                  const checked = (existing.targets || []).includes(opt.id);
+                  return `
+                    <label style="display: inline-flex; align-items: center; gap: 0.3rem; color: var(--text-primary); cursor: pointer; background: rgba(255,255,255,0.04); padding: 0.2rem 0.5rem; border-radius: 6px; border: 1px solid var(--border-glass);">
+                      <input type="checkbox" name="target-${d}" value="${opt.id}" ${checked ? 'checked' : ''} />
+                      <span>${opt.label}</span>
+                    </label>
+                  `;
+                }).join('')}
+              </div>
             </div>
 
-            <div class="target-checkboxes-grid" style="display: flex; flex-wrap: wrap; gap: 0.4rem 0.75rem; font-size: 0.8rem;">
-              ${[...muscleOptions, ...sportsOptions, ...cardioOptions].map(opt => {
-                const checked = (existing.targets || []).includes(opt.id);
-                return `
-                  <label style="display: inline-flex; align-items: center; gap: 0.3rem; color: var(--text-primary); cursor: pointer; background: rgba(255,255,255,0.04); padding: 0.2rem 0.5rem; border-radius: 6px; border: 1px solid var(--border-glass);">
-                    <input type="checkbox" name="target-${d}" value="${opt.id}" ${checked ? 'checked' : ''} />
-                    <span>${opt.label}</span>
-                  </label>
-                `;
-              }).join('')}
+            <!-- Category 2: Sports & Games -->
+            <div style="margin-bottom: 0.75rem;">
+              <div style="font-size: 0.75rem; color: #3B82F6; font-weight: 700; margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.3rem;">
+                <span>⚽ Field Sports & Games</span>
+              </div>
+              <div class="target-checkboxes-grid" style="display: flex; flex-wrap: wrap; gap: 0.4rem 0.65rem; font-size: 0.8rem;">
+                ${sportsOptions.map(opt => {
+                  const checked = (existing.targets || []).includes(opt.id);
+                  return `
+                    <label style="display: inline-flex; align-items: center; gap: 0.3rem; color: var(--text-primary); cursor: pointer; background: rgba(255,255,255,0.04); padding: 0.2rem 0.5rem; border-radius: 6px; border: 1px solid var(--border-glass);">
+                      <input type="checkbox" name="target-${d}" value="${opt.id}" ${checked ? 'checked' : ''} />
+                      <span>${opt.label}</span>
+                    </label>
+                  `;
+                }).join('')}
+              </div>
             </div>
+
+            <!-- Category 3: Cardio & Movement -->
+            <div>
+              <div style="font-size: 0.75rem; color: #F59E0B; font-weight: 700; margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.3rem;">
+                <span>🏃 Cardio & General Movement</span>
+              </div>
+              <div class="target-checkboxes-grid" style="display: flex; flex-wrap: wrap; gap: 0.4rem 0.65rem; font-size: 0.8rem;">
+                ${cardioOptions.map(opt => {
+                  const checked = (existing.targets || []).includes(opt.id);
+                  return `
+                    <label style="display: inline-flex; align-items: center; gap: 0.3rem; color: var(--text-primary); cursor: pointer; background: rgba(255,255,255,0.04); padding: 0.2rem 0.5rem; border-radius: 6px; border: 1px solid var(--border-glass);">
+                      <input type="checkbox" name="target-${d}" value="${opt.id}" ${checked ? 'checked' : ''} />
+                      <span>${opt.label}</span>
+                    </label>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+
           </div>
         </div>
       `;
     }).join('');
 
-    // Toggle targets box display when activity select changes
+    // Toggle targets box display and update tab icon live when activity select changes
     builderContainer.querySelectorAll('.day-activity-select').forEach(select => {
       select.addEventListener('change', (e) => {
         const d = select.getAttribute('data-day');
         const box = document.getElementById(`targets-box-${d}`);
         if (box) {
           box.style.display = select.value === 'rest' ? 'none' : 'block';
+        }
+
+        // Live update icon on corresponding day tab
+        const tabBtn = tabsContainer ? tabsContainer.querySelector(`.plan-day-tab-btn[data-day="${d}"]`) : null;
+        if (tabBtn) {
+          const iconSpan = tabBtn.querySelector('span:nth-child(2)');
+          if (iconSpan) {
+            iconSpan.textContent = activityIcons[select.value] || '😴';
+          }
         }
       });
     });

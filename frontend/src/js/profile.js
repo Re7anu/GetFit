@@ -86,6 +86,19 @@ export class ProfileManager {
               </p>
             </div>
 
+            <div class="form-group" style="margin-top: 0.85rem;">
+              <label class="form-label">Fitness Philosophy / Body Type Goal</label>
+              <select id="prof-fitness-focus" class="form-input" required>
+                <option value="general_health">🌿 General Health, Fat Loss & Longevity (Base: 1.2 g/kg | Max Cap: 1.8 g/kg)</option>
+                <option value="athletic" selected>⚡ Athletic Build & Functional Power (Base: 1.6 g/kg | Max Cap: 2.2 g/kg)</option>
+                <option value="sports_endurance">⚽ Sports & High Endurance (Base: 1.4 g/kg | Max Cap: 2.0 g/kg)</option>
+                <option value="bodybuilding">🏆 Bodybuilding & Muscle Mass (Base: 1.8 g/kg | Max Cap: 2.5 g/kg)</option>
+              </select>
+              <p class="text-muted" style="font-size: 0.75rem; margin-top: 0.35rem; color: var(--text-secondary);">
+                Customizes your baseline protein & macro budgets to match your lifestyle upfront!
+              </p>
+            </div>
+
             <div style="display: flex; gap: 0.75rem; margin-top: 1.25rem;">
               <button type="button" id="btn-cancel-profile" class="btn" style="flex: 1; padding: 0.6rem;">Cancel</button>
               <button type="submit" id="prof-submit-btn" class="btn btn-primary" style="flex: 2; padding: 0.6rem;">
@@ -134,6 +147,7 @@ export class ProfileManager {
           target_weight_kg: parseFloat(document.getElementById('prof-target-weight').value),
           timeline_weeks: parseInt(document.getElementById('prof-timeline').value, 10),
           activity_level: document.getElementById('prof-activity').value,
+          fitness_focus: document.getElementById('prof-fitness-focus').value,
         };
 
         try {
@@ -184,6 +198,9 @@ export class ProfileManager {
         document.getElementById('prof-target-weight').value = profile.target_weight_kg || '';
         document.getElementById('prof-timeline').value = profile.timeline_weeks || '';
         document.getElementById('prof-activity').value = profile.activity_level || 'sedentary';
+        if (document.getElementById('prof-fitness-focus')) {
+          document.getElementById('prof-fitness-focus').value = profile.fitness_focus || 'athletic';
+        }
 
         form.setAttribute('data-is-edit', 'true');
         const titleEl = document.getElementById('profile-modal-title');
