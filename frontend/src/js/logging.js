@@ -3,12 +3,70 @@ import { ENDPOINTS } from './config.js';
 import { DashboardManager } from './dashboard.js';
 import { App } from './app.js';
 
+const FALLBACK_EXERCISE_CATALOG = [
+  // Distance-Based
+  { id: 'running_outdoor', name: 'Outdoor Running', category: 'distance', met: 8.0 },
+  { id: 'running_treadmill', name: 'Treadmill Running', category: 'distance', met: 7.5 },
+  { id: 'cycling_outdoor', name: 'Outdoor Cycling', category: 'distance', met: 7.5 },
+  { id: 'cycling_stationary', name: 'Stationary Bike', category: 'distance', met: 6.8 },
+  { id: 'walking_normal', name: 'Normal Walking', category: 'distance', met: 3.5 },
+  { id: 'walking_brisk', name: 'Brisk Walking', category: 'distance', met: 4.3 },
+  { id: 'walking_hiking', name: 'Hiking / Trail Walking', category: 'distance', met: 6.0 },
+  { id: 'rowing_machine', name: 'Rowing Machine', category: 'distance', met: 7.0 },
+  { id: 'swimming_laps', name: 'Lap Swimming', category: 'distance', met: 8.0 },
+
+  // Reps & Sets-Based
+  { id: 'pushups', name: 'Push-ups', category: 'reps', met: 3.8, default_sets: 3, default_reps: 15 },
+  { id: 'pullups', name: 'Pull-ups / Chin-ups', category: 'reps', met: 8.0, default_sets: 3, default_reps: 8 },
+  { id: 'squats_bodyweight', name: 'Bodyweight Squats', category: 'reps', met: 5.0, default_sets: 3, default_reps: 20 },
+  { id: 'squats_barbell', name: 'Barbell Squats', category: 'reps', met: 6.0, default_sets: 4, default_reps: 10 },
+  { id: 'bench_press', name: 'Bench Press', category: 'reps', met: 5.5, default_sets: 4, default_reps: 10 },
+  { id: 'deadlift', name: 'Deadlift', category: 'reps', met: 6.0, default_sets: 4, default_reps: 8 },
+  { id: 'leg_press', name: 'Leg Press', category: 'reps', met: 4.5, default_sets: 4, default_reps: 12 },
+  { id: 'lunges', name: 'Walking Lunges', category: 'reps', met: 4.5, default_sets: 3, default_reps: 16 },
+  { id: 'dips', name: 'Tricep Dips', category: 'reps', met: 4.0, default_sets: 3, default_reps: 12 },
+  { id: 'crunches', name: 'Abdominal Crunches / Sit-ups', category: 'reps', met: 3.5, default_sets: 3, default_reps: 25 },
+  { id: 'leg_raises', name: 'Hanging Leg Raises', category: 'reps', met: 4.5, default_sets: 3, default_reps: 12 },
+  { id: 'russian_twists', name: 'Russian Twists', category: 'reps', met: 4.0, default_sets: 3, default_reps: 20 },
+  { id: 'mountain_climbers', name: 'Mountain Climbers', category: 'reps', met: 8.0, default_sets: 3, default_reps: 30 },
+  { id: 'calf_raises', name: 'Calf Raises', category: 'reps', met: 3.5, default_sets: 3, default_reps: 20 },
+  { id: 'burpees', name: 'Burpees', category: 'reps', met: 8.0, default_sets: 3, default_reps: 12 },
+  { id: 'bicep_curls', name: 'Dumbbell Bicep Curls', category: 'reps', met: 3.5, default_sets: 3, default_reps: 12 },
+  { id: 'shoulder_press', name: 'Overhead Shoulder Press', category: 'reps', met: 4.5, default_sets: 3, default_reps: 10 },
+  { id: 'bulgarian_split_squat', name: 'Bulgarian Split Squat', category: 'reps', met: 5.5, default_sets: 3, default_reps: 10 },
+  { id: 'leg_extension', name: 'Leg Extension', category: 'reps', met: 4.0, default_sets: 3, default_reps: 12 },
+  { id: 'leg_curl', name: 'Leg Curl', category: 'reps', met: 4.0, default_sets: 3, default_reps: 12 },
+  { id: 'standing_calf_raise', name: 'Standing Calf Raise', category: 'reps', met: 3.5, default_sets: 3, default_reps: 15 },
+  { id: 'seated_calf_raise', name: 'Seated Calf Raise', category: 'reps', met: 3.2, default_sets: 3, default_reps: 15 },
+  { id: 'chest_fly', name: 'Chest Fly', category: 'reps', met: 4.0, default_sets: 3, default_reps: 12 },
+  { id: 'lat_pulldown', name: 'Lat Pull-down', category: 'reps', met: 4.5, default_sets: 3, default_reps: 12 },
+  { id: 'bent_over_row', name: 'Bent-over Row', category: 'reps', met: 5.0, default_sets: 3, default_reps: 10 },
+  { id: 'upright_row', name: 'Upright Row', category: 'reps', met: 4.5, default_sets: 3, default_reps: 10 },
+  { id: 'lateral_raise', name: 'Lateral Raise', category: 'reps', met: 3.5, default_sets: 3, default_reps: 15 },
+  { id: 'shoulder_shrug', name: 'Shoulder Shrug', category: 'reps', met: 3.5, default_sets: 3, default_reps: 15 },
+  { id: 'tricep_pushdown', name: 'Triceps Push-down', category: 'reps', met: 4.0, default_sets: 3, default_reps: 12 },
+  { id: 'lying_triceps_extension', name: 'Lying Triceps Extension (Skullcrusher)', category: 'reps', met: 4.2, default_sets: 3, default_reps: 10 },
+  { id: 'overhead_triceps_extension', name: 'Overhead Triceps Extension', category: 'reps', met: 4.0, default_sets: 3, default_reps: 12 },
+  { id: 'hammer_curl', name: 'Hammer Curl', category: 'reps', met: 3.5, default_sets: 3, default_reps: 12 },
+  { id: 'back_extension', name: 'Back Extension', category: 'reps', met: 4.0, default_sets: 3, default_reps: 12 },
+
+  // Time & Intensity-Based
+  { id: 'football', name: 'Football', category: 'time', default_duration_min: 60.0 },
+  { id: 'cricket', name: 'Cricket', category: 'time', default_duration_min: 90.0 },
+  { id: 'padel', name: 'Padel', category: 'time', default_duration_min: 60.0 },
+  { id: 'yoga', name: 'Yoga', category: 'time', default_duration_min: 45.0 },
+  { id: 'basketball', name: 'Basketball', category: 'time', default_duration_min: 60.0 },
+  { id: 'tennis', name: 'Tennis', category: 'time', default_duration_min: 60.0 },
+  { id: 'rock_climbing', name: 'Rock Climbing / Bouldering', category: 'time', default_duration_min: 45.0 },
+  { id: 'plank_hold', name: 'Plank Isometric Hold', category: 'time', default_duration_min: 3.0 },
+];
+
 export class LoggingManager {
   static init() {
     if (this.initialized) return;
     this.initialized = true;
 
-    this.catalog = [];
+    this.catalog = [...FALLBACK_EXERCISE_CATALOG];
     this.selectedFoodImageFile = null;
     this.currentDetailMeal = null;
     this.isSubmittingWorkout = false;
@@ -24,13 +82,17 @@ export class LoggingManager {
     this.loadExerciseCatalog();
   }
 
-
-
   static async loadExerciseCatalog() {
     try {
-      this.catalog = await APIClient.request(ENDPOINTS.EXERCISES_CATALOG);
+      const fetched = await APIClient.request(ENDPOINTS.EXERCISES_CATALOG);
+      if (Array.isArray(fetched) && fetched.length > 0) {
+        const mergedMap = new Map();
+        FALLBACK_EXERCISE_CATALOG.forEach(item => mergedMap.set(item.id, item));
+        fetched.forEach(item => mergedMap.set(item.id, item));
+        this.catalog = Array.from(mergedMap.values());
+      }
     } catch (err) {
-      console.error('Failed to load exercise catalog:', err);
+      console.warn('Using fallback exercise catalog:', err);
     }
   }
 
@@ -287,26 +349,128 @@ export class LoggingManager {
 
 
   static bindStructuredExerciseCard() {
+    let selectedMuscleFilter = 'all';
+
+    const muscleGroupMap = {
+      legs: ['squats_bodyweight', 'squats_barbell', 'bulgarian_split_squat', 'leg_press', 'lunges', 'deadlift', 'leg_extension', 'leg_curl', 'standing_calf_raise', 'seated_calf_raise', 'calf_raises'],
+      chest: ['bench_press', 'chest_fly', 'pushups', 'dips'],
+      back: ['lat_pulldown', 'pullups', 'bent_over_row', 'upright_row', 'shoulder_shrug', 'back_extension'],
+      shoulders: ['shoulder_press', 'lateral_raise'],
+      arms: ['bicep_curls', 'hammer_curl', 'tricep_pushdown', 'lying_triceps_extension', 'overhead_triceps_extension'],
+      core: ['crunches', 'russian_twists', 'leg_raises', 'mountain_climbers', 'burpees'],
+    };
+
+    const populateItemOptions = (cat, filterQuery = '') => {
+      const optionsList = document.getElementById('dash-ex-options-list');
+      const itemSelect = document.getElementById('dash-ex-item-select');
+      const musclePillsContainer = document.getElementById('dash-ex-muscle-pills');
+      if (!optionsList || !itemSelect) return;
+
+      if (musclePillsContainer) {
+        musclePillsContainer.style.display = cat === 'reps' ? 'flex' : 'none';
+      }
+
+      const q = filterQuery.toLowerCase().trim();
+      let filtered = (this.catalog || []).filter(x => x.category === cat);
+
+      if (cat === 'reps' && selectedMuscleFilter !== 'all') {
+        const allowedIds = muscleGroupMap[selectedMuscleFilter] || [];
+        filtered = filtered.filter(x => allowedIds.includes(x.id));
+      }
+
+      if (q) {
+        filtered = filtered.filter(x => x.name.toLowerCase().includes(q));
+      }
+      filtered.sort((a, b) => a.name.localeCompare(b.name));
+
+      // Keep hidden select options up to date for form handling
+      itemSelect.innerHTML = `<option value="">Select Exercise...</option>` +
+        (this.catalog || []).map(x => `<option value="${x.id}">${x.name}</option>`).join('');
+
+      if (filtered.length === 0) {
+        optionsList.innerHTML = `<div style="font-size: 0.8rem; color: var(--text-muted); padding: 0.75rem; text-align: center;">No exercises found matching filter.</div>`;
+        return;
+      }
+
+      const selectedId = itemSelect.value;
+      optionsList.innerHTML = filtered.map(x => {
+        const isSelected = x.id === selectedId;
+        return `
+          <button type="button" class="ex-option-item-btn" data-id="${x.id}" style="text-align: left; background: ${isSelected ? 'var(--accent-workout)' : 'rgba(255,255,255,0.04)'}; color: ${isSelected ? '#fff' : 'var(--text-primary)'}; border: 1px solid ${isSelected ? 'var(--accent-workout)' : 'var(--border-glass)'}; border-radius: 6px; padding: 0.5rem 0.75rem; font-size: 0.82rem; font-weight: ${isSelected ? '700' : '500'}; cursor: pointer; transition: all 0.15s ease; display: flex; justify-content: space-between; align-items: center;">
+            <span>⚡ ${x.name}</span>
+            ${isSelected ? '<span style="font-size: 0.75rem;">✓ Selected</span>' : ''}
+          </button>
+        `;
+      }).join('');
+
+      // Add click listener to options
+      optionsList.querySelectorAll('.ex-option-item-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const exId = btn.getAttribute('data-id');
+          itemSelect.value = exId;
+          populateItemOptions(cat, filterQuery);
+          itemSelect.dispatchEvent(new Event('change', { bubbles: true }));
+        });
+      });
+    };
+
+    document.addEventListener('click', (e) => {
+      const pillBtn = e.target.closest('.muscle-pill-btn');
+      if (pillBtn) {
+        document.querySelectorAll('.muscle-pill-btn').forEach(b => {
+          b.classList.remove('active');
+          b.style.background = 'rgba(255,255,255,0.05)';
+          b.style.borderColor = 'var(--border-glass)';
+          b.style.color = 'var(--text-secondary)';
+          b.style.fontWeight = '600';
+        });
+        pillBtn.classList.add('active');
+        pillBtn.style.background = 'var(--accent-workout)';
+        pillBtn.style.borderColor = 'var(--accent-workout)';
+        pillBtn.style.color = '#fff';
+        pillBtn.style.fontWeight = '700';
+
+        selectedMuscleFilter = pillBtn.getAttribute('data-muscle') || 'all';
+        const cat = document.getElementById('dash-ex-cat-select')?.value;
+        const searchInput = document.getElementById('dash-ex-search-input');
+        if (cat) {
+          populateItemOptions(cat, searchInput?.value || '');
+        }
+      }
+    });
+
+    document.addEventListener('input', (e) => {
+      if (e.target && e.target.id === 'dash-ex-search-input') {
+        const cat = document.getElementById('dash-ex-cat-select')?.value;
+        if (cat) {
+          populateItemOptions(cat, e.target.value);
+        }
+      }
+    });
+
     document.addEventListener('change', (e) => {
       // Step 1: Category Changed
       if (e.target && e.target.id === 'dash-ex-cat-select') {
         const cat = e.target.value;
-        const itemSelect = document.getElementById('dash-ex-item-select');
+        const searchWrapper = document.getElementById('dash-ex-search-wrapper');
+        const searchInput = document.getElementById('dash-ex-search-input');
         const dynamicFields = document.getElementById('dash-ex-dynamic-fields');
         const submitBtn = document.getElementById('dash-ex-btn');
 
         if (!cat) {
-          itemSelect.style.display = 'none';
+          if (searchWrapper) searchWrapper.style.display = 'none';
           dynamicFields.style.display = 'none';
           submitBtn.style.display = 'none';
           return;
         }
 
-        const filtered = (this.catalog || []).filter(x => x.category === cat);
-        itemSelect.innerHTML = `<option value="">2. Select Specific Exercise...</option>` +
-          filtered.map(x => `<option value="${x.id}">${x.name}</option>`).join('');
+        if (searchInput) searchInput.value = '';
+        const itemSelect = document.getElementById('dash-ex-item-select');
+        if (itemSelect) itemSelect.value = '';
 
-        itemSelect.style.display = 'block';
+        populateItemOptions(cat, '');
+
+        if (searchWrapper) searchWrapper.style.display = 'block';
         dynamicFields.style.display = 'none';
         submitBtn.style.display = 'none';
       }
@@ -833,8 +997,8 @@ export class LoggingManager {
                 <input type="number" step="0.1" id="m-ex-dur" class="form-input" placeholder="45" required />
               </div>
               <div class="form-group">
-                <label class="form-label">MET Value (e.g. 7.0)</label>
-                <input type="number" step="0.1" id="m-ex-met" class="form-input" placeholder="7.0" value="7.0" required />
+                <label class="form-label">Calories Burned (kcal)</label>
+                <input type="number" id="m-ex-cals" class="form-input" placeholder="350" required />
               </div>
             </div>
             <button type="submit" id="m-ex-submit-btn" class="btn btn-cobalt" style="width: 100%; margin-top: 1rem;">Save Workout</button>
@@ -879,7 +1043,7 @@ export class LoggingManager {
         document.getElementById('ex-modal-title').textContent = 'Edit Logged Workout';
         document.getElementById('m-ex-name').value = workout.exercise_name;
         document.getElementById('m-ex-dur').value = workout.duration_minutes;
-        document.getElementById('m-ex-met').value = workout.met_value;
+        document.getElementById('m-ex-cals').value = workout.calories_burned || '';
 
         const form = document.getElementById('manual-exercise-form');
         form.setAttribute('data-editing-id', id);
@@ -916,7 +1080,7 @@ export class LoggingManager {
         const form = document.getElementById('manual-exercise-form');
         form.removeAttribute('data-editing-id');
         form.reset();
-        document.getElementById('ex-modal-title').textContent = 'Log 100% Manual Workout';
+        document.getElementById('ex-modal-title').textContent = 'Log Manual Workout';
         document.getElementById('manual-exercise-modal').classList.remove('active');
         document.getElementById('manual-exercise-modal').classList.add('active');
       }
@@ -988,7 +1152,7 @@ export class LoggingManager {
           const payload = {
             exercise_name: document.getElementById('m-ex-name').value,
             duration_minutes: parseFloat(document.getElementById('m-ex-dur').value),
-            met_value: parseFloat(document.getElementById('m-ex-met').value),
+            calories_burned: parseInt(document.getElementById('m-ex-cals').value, 10),
             input_method: 'manual',
           };
 
