@@ -1,7 +1,29 @@
 __pycache__/
 *.py[cod]
-.pytest_cache/
+*$py.class
+
+# Environment & Git
+.env
+.env.*
+.git/
+.gitignore
+
+# Virtual Environments
 .venv/
 venv/
-.env
-.git/
+ENV/
+
+# Tests & Cache
+tests/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Databases & Data Files
+*.db
+*.sqlite
+*.sqlite3
+
+# Documentation & Development Docs
+*.md
+docs/
