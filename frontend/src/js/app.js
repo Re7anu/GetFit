@@ -325,83 +325,257 @@ export class App {
 
   static async renderExerciseTab(container) {
     container.innerHTML = `
-      <div style="display: flex; flex-direction: column; gap: 1.25rem; width: 100%;">
+      <div style="display: flex; flex-direction: column; width: 100%;">
         
         <!-- Header Strip -->
-        <div class="glass-card" style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap;">
+        <div class="glass-card" style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; padding: 1.1rem 1.4rem; margin-bottom: 1.25rem;">
           <div>
             <h2 style="font-family: var(--font-heading); margin: 0; font-size: 1.3rem; display: flex; align-items: center; gap: 0.5rem;">
               ⚡ Workout & Fitness Center
             </h2>
             <p class="text-muted" style="margin-top: 0.25rem; font-size: 0.85rem;">
-              Configure your 7-day routine blueprint and log Net MET exercise calorie burns.
+              Log Net MET workouts, track active calories, or configure your 7-day routine blueprint.
             </p>
           </div>
-          <div style="display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap;">
-            <button id="btn-open-workout-plan" class="btn" style="background: rgba(16,185,129,0.15); color: var(--accent-health); border: 1px solid rgba(16,185,129,0.3); padding: 0.6rem 1rem; font-size: 0.85rem; font-weight: 700; white-space: nowrap;">
-              📋 Weekly Routine & Focus
-            </button>
-            <button id="btn-manual-exercise" class="btn btn-cobalt" style="padding: 0.6rem 1rem; font-size: 0.85rem; font-weight: 600; white-space: nowrap;">
-              + Manual Workout Entry
+          <div>
+            <button id="btn-open-workout-plan" class="btn" style="background: rgba(255,255,255,0.06); color: var(--text-primary); border: 1px solid var(--border-glass); padding: 0.55rem 1rem; font-size: 0.8rem; font-weight: 600; white-space: nowrap; display: flex; align-items: center; gap: 0.4rem;">
+              ⚙️ Edit Routine Blueprint
             </button>
           </div>
         </div>
 
-        <!-- 7-Day Weekly Routine Blueprint Card Container -->
-        <div id="weekly-plan-schedule-box"></div>
+        <!-- Sub-Navigation 3-Tab Bar -->
+        <div style="display: flex; gap: 0.5rem; background: rgba(13, 17, 23, 0.8); border: 1px solid var(--border-glass); padding: 0.35rem; border-radius: 12px; margin-bottom: 1.25rem;">
+          <button id="ex-subtab-catalog" type="button" style="flex: 1; padding: 0.55rem; border-radius: 8px; border: none; font-size: 0.85rem; font-weight: 700; background: var(--accent-workout); color: #fff; cursor: pointer; transition: all 0.2s ease;">
+            ⚡ Scientific MET Catalog
+          </button>
+          <button id="ex-subtab-manual" type="button" style="flex: 1; padding: 0.55rem; border-radius: 8px; border: none; font-size: 0.85rem; font-weight: 600; background: transparent; color: var(--text-secondary); cursor: pointer; transition: all 0.2s ease;">
+            ✏️ Quick Manual Entry
+          </button>
+          <button id="ex-subtab-planner" type="button" style="flex: 1; padding: 0.55rem; border-radius: 8px; border: none; font-size: 0.85rem; font-weight: 600; background: transparent; color: var(--text-secondary); cursor: pointer; transition: all 0.2s ease;">
+            🗓️ 7-Day Weekly Planner
+          </button>
+        </div>
 
-        <!-- 2-Column Grid: Structured MET Logger on Left | Today's Logged Workouts on Right -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 1.5rem; align-items: start;">
+        <!-- VIEW 1: Main 2-Column Interactive Workout Hub (Catalog / Manual Logging + Today's Logged Workouts) -->
+        <div id="ex-view-logging-hub" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 1.5rem; align-items: start;">
 
-          <!-- Left Column: Structured 2-Step Scientific Exercise Logger Card -->
-          <div class="glass-card">
-            <h3 style="font-size: 1rem; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
-              <span>⚡</span> Structured Workout Logger (Ainsworth MET Engine)
-            </h3>
-            <form id="dash-structured-ex-form" style="display: flex; flex-direction: column; gap: 0.85rem;">
-              <!-- Step 1: Category Selection -->
-              <div>
-                <label class="form-label" style="font-size: 0.8rem; color: var(--text-secondary);">1. Select Exercise Category</label>
-                <select id="dash-ex-cat-select" class="form-input" style="padding: 0.6rem; font-size: 0.85rem;" required>
-                  <option value="">Select Category...</option>
-                  <option value="distance">Distance-Based (Running, Cycling, Swimming)</option>
-                  <option value="reps">Reps & Sets-Based (Pushups, Squats, Weightlifting)</option>
-                  <option value="time">Time & Intensity-Based (Yoga, HIIT, Basketball)</option>
-                </select>
-              </div>
+          <!-- Left Column: Interactive Logging Form (Catalog Mode or Manual Mode) -->
+          <div class="glass-card" style="padding: 1.25rem;">
 
-              <!-- Step 2: Specific Exercise Selection -->
-              <div>
-                <select id="dash-ex-item-select" class="form-input" style="padding: 0.6rem; font-size: 0.85rem; display: none;" required>
-                  <option value="">2. Select Specific Exercise...</option>
-                </select>
-              </div>
+            <!-- Sub-Mode 1: Scientific 2-Step Workout Catalog Form (Default Active) -->
+            <div id="ex-section-catalog">
+              <form id="dash-structured-ex-form" style="display: flex; flex-direction: column; gap: 0.85rem;">
+                <div>
+                  <label class="form-label" style="font-size: 0.8rem; color: var(--text-secondary);">1. Select Exercise Category</label>
+                  <select id="dash-ex-cat-select" class="form-input" style="padding: 0.65rem; font-size: 0.85rem;" required>
+                    <option value="">Select Category...</option>
+                    <option value="distance">Distance-Based (Running, Cycling, Swimming)</option>
+                    <option value="reps">Reps & Sets-Based (Pushups, Squats, Weightlifting)</option>
+                    <option value="time">Time & Intensity-Based (Yoga, HIIT, Basketball)</option>
+                  </select>
+                </div>
 
-              <!-- Step 3: Dynamic Required Metric Fields -->
-              <div id="dash-ex-dynamic-fields" style="display: none;"></div>
+                <div id="dash-ex-search-wrapper" style="display: none;">
+                  <label class="form-label" style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.35rem;">2. Filter & Select Exercise</label>
+                  
+                  <!-- Muscle Group Filter Badges -->
+                  <div id="dash-ex-muscle-pills" style="display: flex; gap: 0.35rem; flex-wrap: wrap; margin-bottom: 0.5rem;">
+                    <button type="button" class="muscle-pill-btn active" data-muscle="all" style="padding: 0.25rem 0.65rem; border-radius: 20px; border: 1px solid var(--accent-workout); background: var(--accent-workout); color: #fff; font-size: 0.72rem; font-weight: 700; cursor: pointer; transition: all 0.15s ease;">All (33)</button>
+                    <button type="button" class="muscle-pill-btn" data-muscle="legs" style="padding: 0.25rem 0.65rem; border-radius: 20px; border: 1px solid var(--border-glass); background: rgba(255,255,255,0.05); color: var(--text-secondary); font-size: 0.72rem; font-weight: 600; cursor: pointer; transition: all 0.15s ease;">🦵 Legs (10)</button>
+                    <button type="button" class="muscle-pill-btn" data-muscle="chest" style="padding: 0.25rem 0.65rem; border-radius: 20px; border: 1px solid var(--border-glass); background: rgba(255,255,255,0.05); color: var(--text-secondary); font-size: 0.72rem; font-weight: 600; cursor: pointer; transition: all 0.15s ease;">🧱 Chest (4)</button>
+                    <button type="button" class="muscle-pill-btn" data-muscle="back" style="padding: 0.25rem 0.65rem; border-radius: 20px; border: 1px solid var(--border-glass); background: rgba(255,255,255,0.05); color: var(--text-secondary); font-size: 0.72rem; font-weight: 600; cursor: pointer; transition: all 0.15s ease;">🪵 Back (6)</button>
+                    <button type="button" class="muscle-pill-btn" data-muscle="shoulders" style="padding: 0.25rem 0.65rem; border-radius: 20px; border: 1px solid var(--border-glass); background: rgba(255,255,255,0.05); color: var(--text-secondary); font-size: 0.72rem; font-weight: 600; cursor: pointer; transition: all 0.15s ease;">⚡ Shoulders (2)</button>
+                    <button type="button" class="muscle-pill-btn" data-muscle="arms" style="padding: 0.25rem 0.65rem; border-radius: 20px; border: 1px solid var(--border-glass); background: rgba(255,255,255,0.05); color: var(--text-secondary); font-size: 0.72rem; font-weight: 600; cursor: pointer; transition: all 0.15s ease;">🦾 Arms (5)</button>
+                    <button type="button" class="muscle-pill-btn" data-muscle="core" style="padding: 0.25rem 0.65rem; border-radius: 20px; border: 1px solid var(--border-glass); background: rgba(255,255,255,0.05); color: var(--text-secondary); font-size: 0.72rem; font-weight: 600; cursor: pointer; transition: all 0.15s ease;">🎯 Core (6)</button>
+                  </div>
 
-              <button type="submit" id="dash-ex-btn" class="btn btn-cobalt" style="padding: 0.6rem; font-size: 0.85rem; display: none;">
-                Calculate & Log Workout
-              </button>
-            </form>
-            <div id="dash-ex-status" style="display:none; font-size: 0.85rem; margin-top: 0.75rem; color: var(--accent-workout);"></div>
+                  <input type="text" id="dash-ex-search-input" class="form-input" style="padding: 0.5rem 0.75rem; font-size: 0.8rem; margin-bottom: 0.45rem;" placeholder="🔍 Type exercise name (e.g. 'squat', 'bench', 'curl')..." autocomplete="off" />
+                  
+                  <!-- Custom Filtered List Box -->
+                  <div id="dash-ex-options-list" class="scrollable-timeline" style="max-height: 260px; overflow-y: auto; background: rgba(13, 17, 23, 0.9); border: 1px solid var(--border-glass); border-radius: 8px; display: flex; flex-direction: column; gap: 0.3rem; padding: 0.4rem;"></div>
+
+                  <!-- Hidden native select for form handling -->
+                  <select id="dash-ex-item-select" style="display: none;" required>
+                    <option value="">Select Specific Exercise...</option>
+                  </select>
+                </div>
+
+                <div id="dash-ex-dynamic-fields" style="display: none;"></div>
+
+                <button type="submit" id="dash-ex-btn" class="btn btn-cobalt" style="padding: 0.65rem; font-size: 0.85rem; display: none; width: 100%; font-weight: 700;">
+                  ⚡ Calculate & Log Net MET Workout
+                </button>
+              </form>
+              <div id="dash-ex-status" style="display:none; font-size: 0.85rem; margin-top: 0.75rem; color: var(--accent-workout);"></div>
+            </div>
+
+            <!-- Sub-Mode 2: Quick Manual Entry Form -->
+            <div id="ex-section-manual" style="display: none;">
+              <form id="tab-manual-exercise-form" style="display: flex; flex-direction: column; gap: 0.85rem;">
+                <p style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.25rem;">
+                  💡 Log exact workout calories from Apple Watch, Garmin, Whoop, or unlisted niche activities.
+                </p>
+                <div class="form-group" style="margin-bottom: 0;">
+                  <label class="form-label" style="font-size: 0.8rem; color: var(--text-secondary);">Exercise Name</label>
+                  <input type="text" id="tab-m-ex-name" class="form-input" style="padding: 0.6rem; font-size: 0.85rem;" placeholder="Outdoor Basketball Game" required />
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                  <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label" style="font-size: 0.8rem; color: var(--text-secondary);">Duration (mins)</label>
+                    <input type="number" step="0.1" id="tab-m-ex-dur" class="form-input" style="padding: 0.6rem; font-size: 0.85rem;" placeholder="45" required />
+                  </div>
+                  <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label" style="font-size: 0.8rem; color: var(--text-secondary);">Calories Burned (kcal)</label>
+                    <input type="number" id="tab-m-ex-cals" class="form-input" style="padding: 0.6rem; font-size: 0.85rem;" placeholder="350" required />
+                  </div>
+                </div>
+                <button type="submit" id="tab-m-ex-submit-btn" class="btn btn-cobalt" style="padding: 0.65rem; font-size: 0.85rem; width: 100%; font-weight: 700;">
+                  💾 Save Manual Workout
+                </button>
+              </form>
+            </div>
+
           </div>
 
-          <!-- Right Column: Today's Logged Workouts List (Positioned Side-by-Side) -->
-          <div class="glass-card">
-            <h3 style="margin-bottom: 1rem; font-size: 1.1rem; display: flex; align-items: center; justify-content: space-between;">
+          <!-- Right Column: Today's Active Logged Workouts List -->
+          <div class="glass-card" style="padding: 1.25rem;">
+            <h3 style="margin-bottom: 1rem; font-size: 1.05rem; display: flex; align-items: center; justify-content: space-between;">
               <span>⚡ Today's Logged Workouts</span>
               <span id="ex-tab-burn-count" class="text-muted" style="font-size: 0.85rem;"></span>
             </h3>
-            <div id="ex-tab-workouts-list" class="scrollable-timeline" style="display: flex; flex-direction: column; gap: 0.75rem; max-height: 500px; overflow-y: auto;">
+            <div id="ex-tab-workouts-list" class="scrollable-timeline" style="display: flex; flex-direction: column; gap: 0.75rem; max-height: 480px; overflow-y: auto;">
               <p class="text-muted" style="font-size: 0.85rem;">Loading today's workouts...</p>
             </div>
           </div>
 
         </div>
 
+        <!-- VIEW 2: 7-Day Weekly Routine Blueprint View (Dedicated Sub-Tab View) -->
+        <div id="ex-view-weekly-planner" style="display: none;" class="glass-card" style="padding: 1.4rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.1rem; flex-wrap: wrap; gap: 0.5rem;">
+            <div>
+              <h3 style="font-size: 1.1rem; font-family: var(--font-heading); margin: 0; display: flex; align-items: center; gap: 0.4rem;">
+                <span>🗓️ 7-Day Routine Blueprint</span>
+              </h3>
+              <p class="text-muted" style="font-size: 0.8rem; margin-top: 0.2rem;">Your active weekly workout schedule & target exercise blueprint.</p>
+            </div>
+            <button id="btn-edit-plan-planner" class="btn btn-primary" style="padding: 0.55rem 1.1rem; font-size: 0.8rem; font-weight: 700;">
+              ⚙️ Edit 7-Day Blueprint
+            </button>
+          </div>
+          <div id="weekly-plan-schedule-box"></div>
+        </div>
+
       </div>
     `;
+
+    // Bind Sub-Tab Navigation (Catalog, Quick Manual, 7-Day Planner)
+    const subtabCatalog = document.getElementById('ex-subtab-catalog');
+    const subtabManual = document.getElementById('ex-subtab-manual');
+    const subtabPlanner = document.getElementById('ex-subtab-planner');
+    const viewHub = document.getElementById('ex-view-logging-hub');
+    const viewPlanner = document.getElementById('ex-view-weekly-planner');
+    const secCatalog = document.getElementById('ex-section-catalog');
+    const secManual = document.getElementById('ex-section-manual');
+
+    const setSubtabActive = (activeBtn) => {
+      [subtabCatalog, subtabManual, subtabPlanner].forEach(btn => {
+        if (!btn) return;
+        if (btn === activeBtn) {
+          btn.style.background = 'var(--accent-workout)';
+          btn.style.color = '#fff';
+          btn.style.fontWeight = '700';
+        } else {
+          btn.style.background = 'transparent';
+          btn.style.color = 'var(--text-secondary)';
+          btn.style.fontWeight = '600';
+        }
+      });
+    };
+
+    if (subtabCatalog) {
+      subtabCatalog.addEventListener('click', () => {
+        setSubtabActive(subtabCatalog);
+        viewHub.style.display = 'grid';
+        viewPlanner.style.display = 'none';
+        secCatalog.style.display = 'block';
+        secManual.style.display = 'none';
+      });
+    }
+
+    if (subtabManual) {
+      subtabManual.addEventListener('click', () => {
+        setSubtabActive(subtabManual);
+        viewHub.style.display = 'grid';
+        viewPlanner.style.display = 'none';
+        secCatalog.style.display = 'none';
+        secManual.style.display = 'block';
+      });
+    }
+
+    if (subtabPlanner) {
+      subtabPlanner.addEventListener('click', () => {
+        setSubtabActive(subtabPlanner);
+        viewHub.style.display = 'none';
+        viewPlanner.style.display = 'block';
+      });
+    }
+
+    // Bind Edit Blueprint button inside Planner Sub-Tab
+    const btnEditPlanner = document.getElementById('btn-edit-plan-planner');
+    if (btnEditPlanner) {
+      btnEditPlanner.addEventListener('click', () => {
+        if (window.WorkoutPlanManager) {
+          WorkoutPlanManager.openSetupModal();
+        }
+      });
+    }
+
+    // Bind Edit Blueprint button at bottom
+    const btnEditBottom = document.getElementById('btn-edit-plan-bottom');
+    if (btnEditBottom) {
+      btnEditBottom.addEventListener('click', () => {
+        if (window.WorkoutPlanManager) {
+          WorkoutPlanManager.openSetupModal();
+        }
+      });
+    }
+
+    // Bind Tab-Level Quick Manual Exercise Form Submit
+    const manualForm = document.getElementById('tab-manual-exercise-form');
+    if (manualForm) {
+      manualForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const submitBtn = document.getElementById('tab-m-ex-submit-btn');
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.textContent = '⏳ Saving Workout...';
+        }
+
+        try {
+          const payload = {
+            exercise_name: document.getElementById('tab-m-ex-name').value,
+            duration_minutes: parseFloat(document.getElementById('tab-m-ex-dur').value),
+            calories_burned: parseInt(document.getElementById('tab-m-ex-cals').value, 10),
+            input_method: 'manual',
+          };
+
+          await APIClient.request(ENDPOINTS.EXERCISES, { method: 'POST', body: JSON.stringify(payload) });
+          manualForm.reset();
+          window.dispatchEvent(new CustomEvent('exercise:logged'));
+          this.fetchAndRenderExerciseTab();
+          DashboardManager.fetchAndRenderData();
+        } catch (err) {
+          alert(`Error saving workout: ${err.message}`);
+        } finally {
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = '💾 Save Manual Workout';
+          }
+        }
+      });
+    }
 
     this.fetchAndRenderExerciseTab();
   }
