@@ -61,3 +61,32 @@ FITNESS_FOCUS_CONFIG: Dict[str, Dict[str, float]] = {
     },
 }
 
+# Default 7-Day Routine Blueprint
+DEFAULT_WEEKLY_SCHEDULE = [
+    {"day": "monday", "activity_type": "gym", "targets": ["chest", "triceps"], "is_completed": False},
+    {"day": "tuesday", "activity_type": "gym", "targets": ["back", "biceps"], "is_completed": False},
+    {"day": "wednesday", "activity_type": "sports", "targets": ["football"], "is_completed": False},
+    {"day": "thursday", "activity_type": "gym", "targets": ["quads", "hamstrings", "glutes"], "is_completed": False},
+    {"day": "friday", "activity_type": "gym", "targets": ["shoulders", "abs"], "is_completed": False},
+    {"day": "saturday", "activity_type": "cardio", "targets": ["walking"], "is_completed": False},
+    {"day": "sunday", "activity_type": "rest", "targets": [], "is_completed": False},
+]
+
+# Exercise Physiology Category Matching Keyword Tuples
+CARDIO_EXERCISE_KEYWORDS = (
+    "run", "cycle", "swim", "row", "walk", "hiit", "soccer", "football",
+    "basketball", "tennis", "padel", "badminton", "sports", "aerobic",
+)
+
+STRENGTH_EXERCISE_KEYWORDS = (
+    "push", "pull", "squat", "bench", "lift", "press", "curl", "lunge",
+    "dip", "crunch", "burpee", "gym", "weight", "shrug", "extension", "raise",
+)
+
+# Workout Physiology Recovery Macro Additions Ratios: (Protein %, Carbs %, Fat %)
+WORKOUT_RECOVERY_MACRO_SPLITS: Dict[str, Tuple[float, float, float]] = {
+    "cardio": (0.15, 0.75, 0.10),    # Glycogen replenishment focus (75% Carbs, 15% Protein, 10% Fat)
+    "strength": (0.45, 0.45, 0.10),  # Muscle protein synthesis focus (45% Protein, 45% Carbs, 10% Fat)
+    "general": (0.20, 0.50, 0.30),   # Balanced baseline recovery (20% Protein, 50% Carbs, 30% Fat)
+}
+

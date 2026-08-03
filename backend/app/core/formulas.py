@@ -10,6 +10,7 @@ from app.core.constants import (
     BMR_HEIGHT_COEFF,
     BMR_MALE_OFFSET,
     BMR_WEIGHT_COEFF,
+    CARDIO_EXERCISE_KEYWORDS,
     FITNESS_FOCUS_CONFIG,
     KCAL_PER_G_CARBS,
     KCAL_PER_G_FAT,
@@ -18,6 +19,8 @@ from app.core.constants import (
     MACRO_RATIOS,
     MAX_SAFE_WEEKLY_LOSS_PCT,
     MINIMUM_SAFE_DAILY_CALORIES,
+    STRENGTH_EXERCISE_KEYWORDS,
+    WORKOUT_RECOVERY_MACRO_SPLITS,
 )
 
 
@@ -232,16 +235,20 @@ def calculate_workout_macro_additions(workouts: list) -> Dict[str, float]:
                 break
         
         cals_burned = getattr(w, "calories_burned", 0)
-        if matched_cat == "distance" or any(k in name_lower for k in ["run", "cycle", "swim", "row", "walk", "hiit", "soccer", "football", "basketball", "tennis", "padel", "badminton", "sports", "aerobic"]):
+        if matched_cat == "distance" or matched_cat == "time" or any(k in name_lower for k in CARDIO_EXERCISE_KEYWORDS):
             cardio_burn += cals_burned
-        elif matched_cat == "reps" or any(k in name_lower for k in ["push", "pull", "squat", "bench", "lift", "press", "curl", "lunge", "dip", "crunch", "burpee", "gym", "weight"]):
+        elif matched_cat == "reps" or any(k in name_lower for k in STRENGTH_EXERCISE_KEYWORDS):
             strength_burn += cals_burned
         else:
             general_burn += cals_burned
 
-    extra_protein_g = ((strength_burn * 0.45) + (cardio_burn * 0.15) + (general_burn * 0.20)) / 4.0
-    extra_carbs_g = ((cardio_burn * 0.75) + (strength_burn * 0.45) + (general_burn * 0.50)) / 4.0
-    extra_fat_g = ((cardio_burn * 0.10) + (strength_burn * 0.10) + (general_burn * 0.30)) / 9.0
+    c_prot, c_carb, c_fat = WORKOUT_RECOVERY_MACRO_SPLITS["cardio"]
+    s_prot, s_carb, s_fat = WORKOUT_RECOVERY_MACRO_SPLITS["strength"]
+    g_prot, g_carb, g_fat = WORKOUT_RECOVERY_MACRO_SPLITS["general"]
+
+    extra_protein_g = ((strength_burn * s_prot) + (cardio_burn * c_prot) + (general_burn * g_prot)) / KCAL_PER_G_PROTEIN
+    extra_carbs_g = ((cardio_burn * c_carb) + (strength_burn * s_carb) + (general_burn * g_carb)) / KCAL_PER_G_CARBS
+    extra_fat_g = ((cardio_burn * c_fat) + (strength_burn * s_fat) + (general_burn * g_fat)) / KCAL_PER_G_FAT
 
     return {
         "extra_protein_g": round(extra_protein_g, 1),

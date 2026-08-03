@@ -4,7 +4,7 @@ from datetime import date, datetime, time
 from typing import Any, List
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
-from app.core.constants import FITNESS_FOCUS_CONFIG
+from app.core.constants import FITNESS_FOCUS_CONFIG, DEFAULT_WEEKLY_SCHEDULE
 from app.core.exercise_catalog import EXERCISE_CATALOG
 from app.core.formulas import calculate_net_exercise_calories
 from app.db.models.workout_log import WorkoutLog
@@ -41,13 +41,16 @@ def create_workout_entry(db: Session, user: UserAuth, workout_in: WorkoutLogCrea
             detail="Physical profile not found. Please complete profile onboarding via POST /profiles.",
         )
 
-    # Calculate net calories burned using Net MET (Solution A)
-    net_calories_burned = calculate_net_exercise_calories(
-        met=workout_in.met_value,
-        weight_kg=profile.weight_kg,
-        duration_minutes=workout_in.duration_minutes,
-        activity_level=profile.activity_level,
-    )
+    # Calculate net calories burned using Net MET (Solution A) or manual calories override
+    if workout_in.calories_burned is not None and workout_in.calories_burned > 0:
+        net_calories_burned = workout_in.calories_burned
+    else:
+        net_calories_burned = calculate_net_exercise_calories(
+            met=workout_in.met_value,
+            weight_kg=profile.weight_kg,
+            duration_minutes=workout_in.duration_minutes,
+            activity_level=profile.activity_level,
+        )
 
     db_workout = WorkoutLog(
         user_id=user.id,
@@ -318,12 +321,15 @@ def update_workout_entry(db: Session, user: UserAuth, workout_id: str, workout_i
             detail="Workout entry not found or unauthorized.",
         )
 
-    net_calories_burned = calculate_net_exercise_calories(
-        met=workout_in.met_value,
-        weight_kg=profile.weight_kg,
-        duration_minutes=workout_in.duration_minutes,
-        activity_level=profile.activity_level,
-    )
+    if workout_in.calories_burned is not None and workout_in.calories_burned > 0:
+        net_calories_burned = workout_in.calories_burned
+    else:
+        net_calories_burned = calculate_net_exercise_calories(
+            met=workout_in.met_value,
+            weight_kg=profile.weight_kg,
+            duration_minutes=workout_in.duration_minutes,
+            activity_level=profile.activity_level,
+        )
 
     workout.exercise_name = workout_in.exercise_name
     workout.duration_minutes = workout_in.duration_minutes
@@ -337,15 +343,7 @@ def update_workout_entry(db: Session, user: UserAuth, workout_id: str, workout_i
     return workout
 
 
-DEFAULT_WEEKLY_SCHEDULE = [
-    {"day": "monday", "activity_type": "gym", "targets": ["chest", "triceps"], "is_completed": False},
-    {"day": "tuesday", "activity_type": "gym", "targets": ["back", "biceps"], "is_completed": False},
-    {"day": "wednesday", "activity_type": "sports", "targets": ["football"], "is_completed": False},
-    {"day": "thursday", "activity_type": "gym", "targets": ["quads", "hamstrings", "glutes"], "is_completed": False},
-    {"day": "friday", "activity_type": "gym", "targets": ["shoulders", "abs"], "is_completed": False},
-    {"day": "saturday", "activity_type": "cardio", "targets": ["walking"], "is_completed": False},
-    {"day": "sunday", "activity_type": "rest", "targets": [], "is_completed": False},
-]
+
 
 
 def get_user_workout_plan(db: Session, user: UserAuth) -> WorkoutPlanResponse:
