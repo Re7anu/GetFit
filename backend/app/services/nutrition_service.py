@@ -83,21 +83,19 @@ def create_meal_entry(db: Session, user: UserAuth, meal_in: FoodLogCreate) -> Fo
 
 
 def create_meal_entry_via_ai(db: Session, user: UserAuth, prompt_in: AIFoodParseRequest) -> FoodLog:
-    """Parses natural language meal text using Gemini AI response_schema and creates a new FoodLog entry.
-
-    Args:
-        db: Database session.
-        user: Authenticated UserAuth entity.
-        prompt_in: AI food parse request payload containing text_prompt.
-
-    Returns:
-        Created FoodLog model instance.
-    """
+    """Parses natural language meal text using Gemini AI response_schema and creates a new FoodLog entry."""
     prompt = FOOD_PARSING_PROMPT_TEMPLATE.format(text_prompt=prompt_in.text_prompt)
     parsed_result: AIFoodParseResult = gemini_service.generate_structured_output(
         prompt=prompt,
         response_schema=AIFoodParseResult,
     )
+
+    desc_lower = (parsed_result.description or "").lower()
+    if getattr(parsed_result, "is_food_item", True) is False or parsed_result.calories == 0 or "no food" in desc_lower or "not food" in desc_lower:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"No edible food item detected. ({parsed_result.description})",
+        )
 
     meal_in = FoodLogCreate(
         meal_type=parsed_result.meal_type,
@@ -126,19 +124,7 @@ def create_meal_entry_via_image_ai(
     meal_type_hint: str = None,
     notes: str = None,
 ) -> FoodLog:
-    """Parses a food image using Gemini Vision AI structured output and creates a new FoodLog entry.
-
-    Args:
-        db: Database session.
-        user: Authenticated UserAuth entity.
-        image_bytes: Raw binary content of the uploaded image file.
-        mime_type: Image media type (e.g. 'image/jpeg', 'image/png').
-        meal_type_hint: Optional user hint regarding meal category.
-        notes: Optional user supporting text context or ingredient notes.
-
-    Returns:
-        Created FoodLog model instance.
-    """
+    """Parses a food image using Gemini Vision AI structured output and creates a new FoodLog entry."""
     hint = meal_type_hint or "Infer appropriate meal type from visual context"
     user_notes = notes or "None provided"
     prompt = FOOD_IMAGE_PARSING_PROMPT.format(meal_hint=hint, user_notes=user_notes)
@@ -149,6 +135,19 @@ def create_meal_entry_via_image_ai(
         prompt=prompt,
         response_schema=AIFoodParseResult,
     )
+
+    desc_lower = (parsed_result.description or "").lower()
+    if (
+        getattr(parsed_result, "is_food_item", True) is False
+        or parsed_result.calories == 0
+        or "no food" in desc_lower
+        or "not food" in desc_lower
+        or "non-food" in desc_lower
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"No edible food item detected. ({parsed_result.description})",
+        )
 
     meal_type = meal_type_hint if meal_type_hint and meal_type_hint.lower() in ["breakfast", "lunch", "dinner", "snack"] else parsed_result.meal_type
 

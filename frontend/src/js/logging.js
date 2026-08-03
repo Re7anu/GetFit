@@ -270,6 +270,18 @@ export class LoggingManager {
             body: formData,
           });
 
+          const descLower = (result.description || '').toLowerCase();
+          if (result.calories === 0 || descLower.includes('no food') || descLower.includes('not food') || descLower.includes('non-food')) {
+            statusBox.style.background = 'rgba(239,68,68,0.15)';
+            statusBox.style.borderColor = 'rgba(239,68,68,0.3)';
+            statusBox.style.color = '#EF4444';
+            statusBox.innerHTML = `
+              <div style="font-weight: 700; font-size: 0.9rem;">⚠️ No Edible Food Detected</div>
+              <div style="font-size: 0.82rem; margin-top: 0.25rem; color: #FCA5A5;">"${result.description}"</div>
+            `;
+            return;
+          }
+
           statusBox.style.background = 'rgba(16,185,129,0.15)';
           statusBox.innerHTML = `
             <div style="display: flex; flex-direction: column; gap: 0.5rem;">

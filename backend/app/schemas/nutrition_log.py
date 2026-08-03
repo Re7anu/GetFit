@@ -42,6 +42,7 @@ class AIFoodParseRequest(BaseModel):
 class AIFoodParseResult(BaseModel):
     """Structured Pydantic schema passed to Gemini response_schema for food & micronutrient parsing."""
 
+    is_food_item: bool = Field(True, description="True if image contains edible food/beverages, false if non-food object")
     meal_type: str = Field(..., description="'breakfast', 'lunch', 'dinner', or 'snack'")
     description: str = Field(..., description="Concise clean summary of food items")
     calories: int = Field(..., ge=0, description="Estimated total kilocalories")

@@ -43,15 +43,17 @@ Return ONLY a valid raw JSON object strictly matching this JSON structure:
 """
 
 FOOD_IMAGE_PARSING_PROMPT: str = """
-You are an expert clinical nutritionist AI with multimodal computer vision capabilities. Analyze the attached food image thoroughly:
-1. Identify all distinct food items, ingredients, portion sizes, and preparation methods.
-2. Incorporate user context notes:
+You are an expert clinical nutritionist AI with multimodal computer vision capabilities. Analyze the attached image thoroughly:
+1. Determine if the image contains edible food or beverages. If the image is a non-food object (e.g., car, animal, vehicle, document, clothing, furniture, landscape), set "is_food_item": false.
+2. If it is food, identify all distinct food items, ingredients, portion sizes, and preparation methods.
+3. Incorporate user context notes:
 Optional User Meal Hint: "{meal_hint}"
 Supporting User Notes / Context: "{user_notes}"
-3. Calculate macros (protein, carbs, fat) and essential micronutrients (fiber, sodium, potassium, vitamin C, calcium, iron) based on standard USDA nutritional databases.
+4. Calculate macros (protein, carbs, fat) and essential micronutrients (fiber, sodium, potassium, vitamin C, calcium, iron) based on standard USDA nutritional databases.
 
 Return ONLY a valid raw JSON object strictly matching this JSON structure:
 {{
+  "is_food_item": true,
   "meal_type": "lunch",
   "description": "Grilled Salmon with Quinoa and Roasted Asparagus",
   "calories": 520,
