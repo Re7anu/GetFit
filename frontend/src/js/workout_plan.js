@@ -31,54 +31,15 @@ export class WorkoutPlanManager {
         <div class="modal-content" style="max-width: 780px; max-height: 90vh; overflow-y: auto; padding: 1.5rem;">
           <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-glass); padding-bottom: 0.85rem; margin-bottom: 1.2rem;">
             <div>
-              <h2 style="font-size: 1.25rem; font-family: var(--font-heading); margin: 0;">📋 Weekly Routine & Fitness Focus Setup</h2>
-              <p class="text-muted" style="font-size: 0.8rem; margin-top: 0.2rem;">Configure your training philosophy and custom 7-day workout routine blueprint.</p>
+              <h2 style="font-size: 1.25rem; font-family: var(--font-heading); margin: 0;">📋 Weekly Routine Setup</h2>
+              <p class="text-muted" style="font-size: 0.8rem; margin-top: 0.2rem;">Configure your custom 7-day workout routine blueprint.</p>
             </div>
             <button class="close-btn" id="close-workout-plan-modal" style="background: transparent; border: none; font-size: 1.5rem; color: var(--text-muted); cursor: pointer;">&times;</button>
           </div>
 
-          <form id="workout-plan-form" style="display: flex; flex-direction: column; gap: 1.5rem;">
+          <form id="workout-plan-form" style="display: flex; flex-direction: column; gap: 1.25rem;">
             
-            <!-- Section 1: Fitness Philosophy Selection -->
-            <div class="glass-card" style="background: rgba(22, 27, 34, 0.7); border: 1px solid var(--border-glass-glow); padding: 1.1rem;">
-              <h3 style="font-size: 0.95rem; font-family: var(--font-heading); margin-bottom: 0.75rem; color: var(--accent-health); display: flex; align-items: center; gap: 0.4rem;">
-                🎯 Select Your Fitness Philosophy
-              </h3>
-              
-              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 0.75rem;">
-                
-                <label class="focus-option-card" style="background: rgba(16,185,129,0.06); border: 1px solid var(--border-glass); border-radius: 10px; padding: 0.85rem; cursor: pointer; display: flex; flex-direction: column; gap: 0.35rem; position: relative;">
-                  <input type="radio" name="plan-fitness-focus" value="general_health" style="position: absolute; top: 0.85rem; right: 0.85rem;" />
-                  <div style="font-weight: 800; font-size: 0.9rem; color: var(--text-primary);">🌿 General Health & Fat Loss</div>
-                  <div style="font-size: 0.75rem; color: var(--text-secondary);">Weight management, organ health & general fitness.</div>
-                  <div style="font-size: 0.7rem; color: var(--accent-health); font-weight: 700; margin-top: 0.2rem;">Base: 1.2 g/kg | Max Cap: 1.8 g/kg</div>
-                </label>
-
-                <label class="focus-option-card" style="background: rgba(16,185,129,0.06); border: 1px solid var(--border-glass); border-radius: 10px; padding: 0.85rem; cursor: pointer; display: flex; flex-direction: column; gap: 0.35rem; position: relative;">
-                  <input type="radio" name="plan-fitness-focus" value="bodybuilding" style="position: absolute; top: 0.85rem; right: 0.85rem;" />
-                  <div style="font-weight: 800; font-size: 0.9rem; color: var(--text-primary);">🏆 Bodybuilding</div>
-                  <div style="font-size: 0.75rem; color: var(--text-secondary);">Hypertrophy & high-volume weightlifting.</div>
-                  <div style="font-size: 0.7rem; color: var(--accent-health); font-weight: 700; margin-top: 0.2rem;">Base: 1.8 g/kg | Max Cap: 2.5 g/kg</div>
-                </label>
-
-                <label class="focus-option-card" style="background: rgba(16,185,129,0.06); border: 1px solid var(--border-glass); border-radius: 10px; padding: 0.85rem; cursor: pointer; display: flex; flex-direction: column; gap: 0.35rem; position: relative;">
-                  <input type="radio" name="plan-fitness-focus" value="athletic" checked style="position: absolute; top: 0.85rem; right: 0.85rem;" />
-                  <div style="font-weight: 800; font-size: 0.9rem; color: var(--text-primary);">⚡ Athletic Build</div>
-                  <div style="font-size: 0.75rem; color: var(--text-secondary);">Balanced strength, power & conditioning.</div>
-                  <div style="font-size: 0.7rem; color: var(--accent-health); font-weight: 700; margin-top: 0.2rem;">Base: 1.6 g/kg | Max Cap: 2.2 g/kg</div>
-                </label>
-
-                <label class="focus-option-card" style="background: rgba(16,185,129,0.06); border: 1px solid var(--border-glass); border-radius: 10px; padding: 0.85rem; cursor: pointer; display: flex; flex-direction: column; gap: 0.35rem; position: relative;">
-                  <input type="radio" name="plan-fitness-focus" value="sports_endurance" style="position: absolute; top: 0.85rem; right: 0.85rem;" />
-                  <div style="font-weight: 800; font-size: 0.9rem; color: var(--text-primary);">⚽ Sports & Endurance</div>
-                  <div style="font-size: 0.75rem; color: var(--text-secondary);">Field sports, running & high-stamina fuel.</div>
-                  <div style="font-size: 0.7rem; color: var(--accent-health); font-weight: 700; margin-top: 0.2rem;">Base: 1.4 g/kg | Max Cap: 2.0 g/kg</div>
-                </label>
-
-              </div>
-            </div>
-
-            <!-- Section 2: 7-Day Weekly Schedule Builder -->
+            <!-- 7-Day Weekly Schedule Builder -->
             <div class="glass-card" style="background: rgba(22, 27, 34, 0.7); padding: 1.1rem;">
               <h3 style="font-size: 0.95rem; font-family: var(--font-heading); margin-bottom: 0.75rem; color: var(--text-primary); display: flex; align-items: center; justify-content: space-between;">
                 <span>🗓️ Configure 7-Day Routine Blueprint</span>
@@ -99,7 +60,7 @@ export class WorkoutPlanManager {
             <div style="display: flex; gap: 0.75rem; justify-content: flex-end;">
               <button type="button" id="btn-cancel-plan-modal" class="btn" style="padding: 0.55rem 1.1rem; font-size: 0.85rem;">Cancel</button>
               <button type="submit" id="btn-save-plan-modal" class="btn btn-primary" style="padding: 0.55rem 1.4rem; font-size: 0.85rem; font-weight: 700;">
-                💾 Save Weekly Routine & Focus
+                💾 Save Weekly Routine
               </button>
             </div>
 
@@ -202,13 +163,6 @@ export class WorkoutPlanManager {
     }
 
     const data = this.planData || {};
-    const currentFocus = data.fitness_focus || 'athletic';
-
-    // Set radio selection
-    const radios = modal.querySelectorAll('input[name="plan-fitness-focus"]');
-    radios.forEach(r => {
-      r.checked = r.value === currentFocus;
-    });
 
     // Render Day Tabs & 7-day builder inputs
     const tabsContainer = document.getElementById('plan-day-tabs');
@@ -253,18 +207,73 @@ export class WorkoutPlanManager {
       }).join('');
     }
 
-    const muscleOptions = [
-      { id: 'chest', label: 'Chest' },
-      { id: 'back', label: 'Back' },
-      { id: 'shoulders', label: 'Shoulders' },
-      { id: 'biceps', label: 'Biceps' },
-      { id: 'triceps', label: 'Triceps' },
-      { id: 'quads', label: 'Quads' },
-      { id: 'hamstrings', label: 'Hamstrings' },
-      { id: 'glutes', label: 'Glutes' },
-      { id: 'calves', label: 'Calves' },
-      { id: 'abs', label: 'Abs / Core' },
-      { id: 'forearms', label: 'Forearms' },
+    const muscleCategories = [
+      {
+        category: '🦵 Legs & Lower Body',
+        color: '#34D399',
+        items: [
+          { id: 'squats_bodyweight', legacyId: 'quads', label: 'Bodyweight Squat' },
+          { id: 'squats_barbell', legacyId: 'quads', label: 'Barbell Squat' },
+          { id: 'bulgarian_split_squat', legacyId: 'quads', label: 'Bulgarian Split Squat' },
+          { id: 'leg_press', legacyId: 'quads', label: 'Leg Press' },
+          { id: 'lunges', legacyId: 'quads', label: 'Lunge' },
+          { id: 'deadlift', legacyId: 'hamstrings', label: 'Deadlift' },
+          { id: 'leg_extension', legacyId: 'quads', label: 'Leg Extension' },
+          { id: 'leg_curl', legacyId: 'hamstrings', label: 'Leg Curl' },
+          { id: 'standing_calf_raise', legacyId: 'calves', label: 'Standing Calf Raise' },
+          { id: 'seated_calf_raise', legacyId: 'calves', label: 'Seated Calf Raise' },
+        ]
+      },
+      {
+        category: '🧱 Chest & Push',
+        color: '#60A5FA',
+        items: [
+          { id: 'bench_press', legacyId: 'chest', label: 'Bench Press' },
+          { id: 'chest_fly', legacyId: 'chest', label: 'Chest Fly' },
+          { id: 'pushups', legacyId: 'chest', label: 'Push-up' },
+          { id: 'dips', legacyId: 'triceps', label: 'Dip' },
+        ]
+      },
+      {
+        category: '🪵 Back & Pull',
+        color: '#FBBF24',
+        items: [
+          { id: 'lat_pulldown', legacyId: 'back', label: 'Lat Pull-down' },
+          { id: 'pullups', legacyId: 'back', label: 'Pull-up' },
+          { id: 'bent_over_row', legacyId: 'back', label: 'Bent-over Row' },
+          { id: 'upright_row', legacyId: 'shoulders', label: 'Upright Row' },
+          { id: 'shoulder_shrug', legacyId: 'back', label: 'Shoulder Shrug' },
+          { id: 'back_extension', legacyId: 'back', label: 'Back Extension' },
+        ]
+      },
+      {
+        category: '⚡ Shoulders',
+        color: '#34D399',
+        items: [
+          { id: 'shoulder_press', legacyId: 'shoulders', label: 'Overhead Shoulder Press' },
+          { id: 'lateral_raise', legacyId: 'shoulders', label: 'Lateral Raise' },
+        ]
+      },
+      {
+        category: '🦾 Arms (Biceps & Triceps)',
+        color: '#F472B6',
+        items: [
+          { id: 'bicep_curls', legacyId: 'biceps', label: 'Biceps Curl' },
+          { id: 'hammer_curl', legacyId: 'biceps', label: 'Hammer Curl' },
+          { id: 'tricep_pushdown', legacyId: 'triceps', label: 'Triceps Push-down' },
+          { id: 'lying_triceps_extension', legacyId: 'triceps', label: 'Lying Triceps Extension' },
+          { id: 'overhead_triceps_extension', legacyId: 'triceps', label: 'Overhead Triceps Extension' },
+        ]
+      },
+      {
+        category: '🎯 Core & Abs',
+        color: '#C084FC',
+        items: [
+          { id: 'crunches', legacyId: 'abs', label: 'Crunch' },
+          { id: 'russian_twists', legacyId: 'abs', label: 'Russian Twist' },
+          { id: 'leg_raises', legacyId: 'abs', label: 'Hanging Leg Raise' },
+        ]
+      }
     ];
 
     const sportsOptions = [
@@ -310,26 +319,8 @@ export class WorkoutPlanManager {
           <!-- Target Checkboxes Section -->
           <div class="day-targets-box" id="targets-box-${d}" style="display: ${existing.activity_type === 'rest' ? 'none' : 'block'}; margin-top: 0.75rem; border-top: 1px dashed rgba(255,255,255,0.08); padding-top: 0.75rem;">
             
-            <!-- Category 1: Gym Muscle Groups -->
-            <div style="margin-bottom: 0.75rem;">
-              <div style="font-size: 0.75rem; color: var(--accent-health); font-weight: 700; margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.3rem;">
-                <span>🏋️ Muscle Groups (Gym / Strength)</span>
-              </div>
-              <div class="target-checkboxes-grid" style="display: flex; flex-wrap: wrap; gap: 0.4rem 0.65rem; font-size: 0.8rem;">
-                ${muscleOptions.map(opt => {
-                  const checked = (existing.targets || []).includes(opt.id);
-                  return `
-                    <label style="display: inline-flex; align-items: center; gap: 0.3rem; color: var(--text-primary); cursor: pointer; background: rgba(255,255,255,0.04); padding: 0.2rem 0.5rem; border-radius: 6px; border: 1px solid var(--border-glass);">
-                      <input type="checkbox" name="target-${d}" value="${opt.id}" ${checked ? 'checked' : ''} />
-                      <span>${opt.label}</span>
-                    </label>
-                  `;
-                }).join('')}
-              </div>
-            </div>
-
-            <!-- Category 2: Sports & Games -->
-            <div style="margin-bottom: 0.75rem;">
+            <!-- Category 1: Sports & Games -->
+            <div style="margin-bottom: 0.85rem;">
               <div style="font-size: 0.75rem; color: #3B82F6; font-weight: 700; margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.3rem;">
                 <span>⚽ Field Sports & Games</span>
               </div>
@@ -346,8 +337,8 @@ export class WorkoutPlanManager {
               </div>
             </div>
 
-            <!-- Category 3: Cardio & Movement -->
-            <div>
+            <!-- Category 2: Cardio & Movement -->
+            <div style="margin-bottom: 0.85rem;">
               <div style="font-size: 0.75rem; color: #F59E0B; font-weight: 700; margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.3rem;">
                 <span>🏃 Cardio & General Movement</span>
               </div>
@@ -361,6 +352,34 @@ export class WorkoutPlanManager {
                     </label>
                   `;
                 }).join('')}
+              </div>
+            </div>
+
+            <!-- Category 3: Gym Exercises Categorized by Muscle Group -->
+            <div>
+              <div style="font-size: 0.75rem; color: var(--accent-health); font-weight: 700; margin-bottom: 0.6rem; display: flex; align-items: center; gap: 0.3rem;">
+                <span>🏋️ Target Exercises & Muscle Groups (Gym / Strength)</span>
+              </div>
+
+              <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                ${muscleCategories.map(cat => `
+                  <div style="background: rgba(22,27,34,0.5); border: 1px solid var(--border-glass); border-radius: 8px; padding: 0.6rem 0.75rem;">
+                    <div style="font-size: 0.73rem; font-weight: 800; color: ${cat.color}; margin-bottom: 0.4rem; text-transform: uppercase; letter-spacing: 0.04em;">
+                      ${cat.category}
+                    </div>
+                    <div class="target-checkboxes-grid" style="display: flex; flex-wrap: wrap; gap: 0.35rem 0.55rem; font-size: 0.78rem;">
+                      ${cat.items.map(opt => {
+                        const checked = (existing.targets || []).includes(opt.id) || (existing.targets || []).includes(opt.legacyId);
+                        return `
+                          <label style="display: inline-flex; align-items: center; gap: 0.3rem; color: var(--text-primary); cursor: pointer; background: rgba(255,255,255,0.04); padding: 0.2rem 0.5rem; border-radius: 6px; border: 1px solid var(--border-glass);">
+                            <input type="checkbox" name="target-${d}" value="${opt.id}" ${checked ? 'checked' : ''} />
+                            <span>${opt.label}</span>
+                          </label>
+                        `;
+                      }).join('')}
+                    </div>
+                  </div>
+                `).join('')}
               </div>
             </div>
 
@@ -396,7 +415,7 @@ export class WorkoutPlanManager {
     const modal = document.getElementById('workout-plan-modal');
     if (!modal) return;
 
-    const selectedFocus = modal.querySelector('input[name="plan-fitness-focus"]:checked')?.value || 'athletic';
+    const selectedFocus = this.planData?.fitness_focus || 'general_health';
     const daysList = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 
     const newSchedule = [];
@@ -443,7 +462,7 @@ export class WorkoutPlanManager {
       const saveBtn = document.getElementById('btn-save-plan-modal');
       if (saveBtn) {
         saveBtn.disabled = false;
-        saveBtn.textContent = '💾 Save Weekly Routine & Focus';
+        saveBtn.textContent = '💾 Save Weekly Routine';
       }
     }
   }

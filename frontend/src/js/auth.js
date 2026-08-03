@@ -30,9 +30,9 @@ export class AuthManager {
               <label class="form-label">Password</label>
               <input type="password" id="auth-password" class="form-input" placeholder="••••••••" required />
               
-              <!-- Floating Password Constraints Tooltip -->
-              <div id="password-tooltip" class="password-tooltip" style="display: none;">
-                <div style="font-weight: 700; font-size: 0.75rem; color: var(--text-primary); margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;">
+              <!-- In-Flow Password Requirements Card -->
+              <div id="password-tooltip" class="password-requirements-card" style="display: none;">
+                <div style="font-weight: 700; font-size: 0.75rem; color: var(--accent-health); margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;">
                   Password Requirements
                 </div>
                 <div class="req-item" id="req-length"><span>⚪</span> Minimum 8 characters</div>
@@ -71,24 +71,6 @@ export class AuthManager {
     const errorBox = document.getElementById('auth-error');
     const passInput = document.getElementById('auth-password');
     const tooltip = document.getElementById('password-tooltip');
-
-    const showTooltip = () => {
-      if (isSignUp && tooltip) tooltip.style.display = 'block';
-    };
-
-    const hideTooltip = () => {
-      if (tooltip && document.activeElement !== passInput) {
-        tooltip.style.display = 'none';
-      }
-    };
-
-    // Hover & Focus Event Listeners for Password Field
-    passInput.addEventListener('mouseenter', showTooltip);
-    passInput.addEventListener('mouseleave', hideTooltip);
-    passInput.addEventListener('focus', showTooltip);
-    passInput.addEventListener('blur', () => {
-      if (tooltip) tooltip.style.display = 'none';
-    });
 
     // Real-time Live Password Validation Checkers
     passInput.addEventListener('input', () => {
