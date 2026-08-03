@@ -1,9 +1,10 @@
-/* Dashboard Manager: Hero Calorie Budget Gauge, Embedded Macros & Activity Sidebar with Scrollbar */
 import { APIClient } from './api_client.js';
 import { ENDPOINTS } from './config.js';
+import { LoggingManager } from './logging.js';
 
 export class DashboardManager {
   static async render(container) {
+
     container.innerHTML = `
       <div class="dashboard-grid">
         <!-- Main Left Column: Hero Gauge + Embedded Macros + Logger Cards -->
@@ -338,7 +339,7 @@ export class DashboardManager {
     }
 
     container.innerHTML = combined.map(item => `
-      <div class="activity-card-row" style="background: rgba(9, 12, 16, 0.6); border: 1px solid var(--border-glass); border-radius: 10px; padding: 0.65rem 0.85rem; display: flex; justify-content: space-between; align-items: center; position: relative;">
+      <div class="activity-card-row" data-id="${item.id}" data-type="${item.type}" style="background: rgba(9, 12, 16, 0.6); border: 1px solid var(--border-glass); border-radius: 10px; padding: 0.65rem 0.85rem; display: flex; justify-content: space-between; align-items: center; position: relative; ${item.type === 'meal' ? 'cursor: pointer;' : ''}">
         <div>
           <div style="font-weight: 600; font-size: 0.85rem; display: flex; align-items: center; gap: 0.35rem;">
             <span>${item.type === 'meal' ? '🥗' : '⚡'}</span> ${item.title}
@@ -357,18 +358,47 @@ export class DashboardManager {
             <button class="kebab-btn" style="background: transparent; border: none; color: var(--text-secondary); font-size: 1.1rem; cursor: pointer; padding: 0 0.25rem;" title="Options">
               &#8942;
             </button>
-            <div class="kebab-menu" style="display: none; position: absolute; right: 0; top: 110%; background: #161B22; border: 1px solid var(--border-glass); border-radius: 10px; padding: 0.35rem; min-width: 110px; box-shadow: var(--shadow-card); z-index: 100;">
+            <div class="kebab-menu" style="display: none; position: absolute; right: 0; top: 110%; background: #161B22; border: 1px solid var(--border-glass); border-radius: 10px; padding: 0.35rem; min-width: 135px; box-shadow: var(--shadow-card); z-index: 100;">
+              ${item.type === 'meal' ? `
+                <button class="kebab-item action-view-detail" data-id="${item.id}" style="width: 100%; text-align: left; background: transparent; border: none; color: var(--accent-health); padding: 0.35rem 0.5rem; font-size: 0.8rem; cursor: pointer; border-radius: 6px; display: flex; align-items: center; gap: 0.35rem; font-weight: 600;">
+                  🔍 Details
+                </button>
+              ` : ''}
               <button class="kebab-item action-edit" data-id="${item.id}" data-type="${item.type}" style="width: 100%; text-align: left; background: transparent; border: none; color: var(--text-primary); padding: 0.35rem 0.5rem; font-size: 0.8rem; cursor: pointer; border-radius: 6px; display: flex; align-items: center; gap: 0.35rem;">
                 ✏️ Edit
               </button>
-              <button class="kebab-item action-delete" data-id="${item.id}" data-type="${item.type}" style="width: 100%; text-align: left; background: transparent; border: none; color: #EF4444; padding: 0.35rem 0.5rem; font-size: 0.8rem; cursor: pointer; border-radius: 6px; display: flex; align-items: center; gap: 0.35rem;">
+              <button class="kebab-item action-delete-prompt" data-id="${item.id}" data-type="${item.type}" style="width: 100%; text-align: left; background: transparent; border: none; color: #EF4444; padding: 0.35rem 0.5rem; font-size: 0.8rem; cursor: pointer; border-radius: 6px; display: flex; align-items: center; gap: 0.35rem;">
                 🗑️ Delete
               </button>
+              
+              <!-- Kebab Inline Delete Confirmation -->
+              <div class="kebab-delete-confirm" style="display: none; padding: 0.4rem 0.3rem; text-align: center; background: rgba(239,68,68,0.12); border-radius: 6px; margin-top: 0.2rem;">
+                <div style="font-size: 0.7rem; font-weight: 700; color: #EF4444; margin-bottom: 0.35rem;">Delete this ${item.type}?</div>
+                <div style="display: flex; gap: 0.3rem; justify-content: center;">
+                  <button class="btn-cancel-kebab-delete" style="background: rgba(255,255,255,0.08); color: var(--text-secondary); border: none; padding: 0.2rem 0.45rem; border-radius: 4px; font-size: 0.7rem; cursor: pointer;">No</button>
+                  <button class="btn-confirm-kebab-delete" data-id="${item.id}" data-type="${item.type}" style="background: #EF4444; color: white; border: none; padding: 0.2rem 0.45rem; border-radius: 4px; font-size: 0.7rem; font-weight: 700; cursor: pointer;">Yes</button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
     `).join('');
+
+    // Row click listener for meals
+    container.querySelectorAll('.activity-card-row').forEach(row => {
+      row.addEventListener('click', (e) => {
+        if (e.target.closest('.kebab-wrapper')) return;
+        const type = row.getAttribute('data-type');
+        const id = row.getAttribute('data-id');
+        if (type === 'meal') {
+          const meal = (this.rawMeals || []).find(m => m.id === id);
+          if (meal) {
+            LoggingManager.openMealDetailModal(meal);
+          }
+        }
+      });
+    });
 
     this.bindKebabHandlers();
   }
@@ -380,7 +410,11 @@ export class DashboardManager {
         e.stopPropagation();
         const menu = btn.nextElementSibling;
         document.querySelectorAll('.kebab-menu').forEach(m => {
-          if (m !== menu) m.style.display = 'none';
+          if (m !== menu) {
+            m.style.display = 'none';
+            const confirmBox = m.querySelector('.kebab-delete-confirm');
+            if (confirmBox) confirmBox.style.display = 'none';
+          }
         });
         menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
       });
@@ -388,12 +422,50 @@ export class DashboardManager {
 
     // Close menus when clicking outside
     document.addEventListener('click', () => {
-      document.querySelectorAll('.kebab-menu').forEach(m => m.style.display = 'none');
+      document.querySelectorAll('.kebab-menu').forEach(m => {
+        m.style.display = 'none';
+        const confirmBox = m.querySelector('.kebab-delete-confirm');
+        if (confirmBox) confirmBox.style.display = 'none';
+      });
     });
 
-    // Handle Delete Click
-    document.querySelectorAll('.action-delete').forEach(btn => {
+    // Handle View Details Click
+    document.querySelectorAll('.action-view-detail').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const id = btn.getAttribute('data-id');
+        const meal = (this.rawMeals || []).find(m => m.id === id);
+        if (meal) {
+          LoggingManager.openMealDetailModal(meal);
+        }
+      });
+    });
+
+    // Handle Delete Prompt Toggle
+    document.querySelectorAll('.action-delete-prompt').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const menu = btn.closest('.kebab-menu');
+        const confirmBox = menu ? menu.querySelector('.kebab-delete-confirm') : null;
+        if (confirmBox) {
+          confirmBox.style.display = confirmBox.style.display === 'block' ? 'none' : 'block';
+        }
+      });
+    });
+
+    // Handle Cancel Kebab Delete
+    document.querySelectorAll('.btn-cancel-kebab-delete').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const menu = btn.closest('.kebab-menu');
+        if (menu) menu.style.display = 'none';
+      });
+    });
+
+    // Handle Confirm Kebab Delete Click
+    document.querySelectorAll('.btn-confirm-kebab-delete').forEach(btn => {
       btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
         const id = btn.getAttribute('data-id');
         const type = btn.getAttribute('data-type');
         if (!id || !type) return;
@@ -405,8 +477,13 @@ export class DashboardManager {
         }
 
         try {
-          const endpoint = type === 'meal' ? `${ENDPOINTS.MEALS}/${id}` : `${ENDPOINTS.EXERCISES}/${id}`;
+          const endpoint = type === 'meal' ? `${ENDPOINTS.MEALS}/${id}` : `${ENDPOINTS.WORKOUTS_BASE}/${id}`;
           await APIClient.request(endpoint, { method: 'DELETE' });
+          if (type === 'meal') {
+            window.dispatchEvent(new CustomEvent('meal:logged'));
+          } else {
+            window.dispatchEvent(new CustomEvent('exercise:logged'));
+          }
           await DashboardManager.fetchAndRenderData();
         } catch (err) {
           console.error(`Failed to delete ${type}:`, err);
@@ -421,6 +498,7 @@ export class DashboardManager {
     // Handle Edit Click
     document.querySelectorAll('.action-edit').forEach(btn => {
       btn.addEventListener('click', (e) => {
+        e.stopPropagation();
         const id = btn.getAttribute('data-id');
         const type = btn.getAttribute('data-type');
         if (!id || !type) return;
@@ -429,4 +507,6 @@ export class DashboardManager {
       });
     });
   }
+
+
 }

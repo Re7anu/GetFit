@@ -36,6 +36,7 @@ def create_profile_entry(db: Session, user: UserAuth, profile_in: UserProfileCre
         activity_level=profile_in.activity_level,
         target_weight_kg=profile_in.target_weight_kg,
         timeline_weeks=profile_in.timeline_weeks,
+        fitness_focus=getattr(profile_in, "fitness_focus", "athletic") or "athletic",
     )
 
     db_profile = UserProfile(
@@ -48,6 +49,7 @@ def create_profile_entry(db: Session, user: UserAuth, profile_in: UserProfileCre
         target_weight_kg=profile_in.target_weight_kg,
         timeline_weeks=profile_in.timeline_weeks,
         activity_level=profile_in.activity_level,
+        fitness_focus=getattr(profile_in, "fitness_focus", "athletic") or "athletic",
         bmr=targets["bmr"],
         tdee=targets["tdee"],
         caloric_pace_kcal_per_day=targets["caloric_pace_kcal_per_day"],
@@ -118,6 +120,7 @@ def update_profile_entry(db: Session, user: UserAuth, profile_in: UserProfileUpd
         activity_level=profile.activity_level,
         target_weight_kg=profile.target_weight_kg,
         timeline_weeks=profile.timeline_weeks,
+        fitness_focus=profile.fitness_focus or "athletic",
     )
 
     profile.bmr = targets["bmr"]

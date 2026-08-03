@@ -20,6 +20,17 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title=settings.PROJECT_NAME, version="1.0.0", lifespan=lifespan)
 
+from fastapi import Request
+from fastapi.responses import JSONResponse
+from sqlalchemy.exc import OperationalError
+
+@app.exception_handler(OperationalError)
+async def db_operational_exception_handler(request: Request, exc: OperationalError):
+    return JSONResponse(
+        status_code=503,
+        content={"detail": "Database service unavailable. Please check that PostgreSQL container/service is active."},
+    )
+
 # Mount API Routers
 app.include_router(auth.router, prefix=f"{settings.API_V1_STR}/auth", tags=["auth"])
 app.include_router(users.router, prefix=f"{settings.API_V1_STR}/users", tags=["users"])

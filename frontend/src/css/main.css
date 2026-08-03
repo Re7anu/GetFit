@@ -113,3 +113,16 @@ h1, h2, h3, h4 {
     grid-template-columns: 1fr;
   }
 }
+
+/* Date Input Calendar Picker Icon Styling for Dark Theme */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1) hue-rotate(180deg);
+  cursor: pointer;
+  opacity: 0.85;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+  transform: scale(1.1);
+}

@@ -4,6 +4,8 @@ from datetime import date, datetime, time, timedelta
 from typing import List, Dict, Any
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
+from app.core.constants import FITNESS_FOCUS_CONFIG
+from app.core.formulas import calculate_workout_macro_additions
 from app.db.models.nutrition_log import FoodLog
 from app.db.models.workout_log import WorkoutLog
 from app.db.models.user_auth import UserAuth
@@ -62,7 +64,14 @@ def get_user_nutrition_history(db: Session, user: UserAuth, days: int = 30) -> A
         exercise_burn = sum(w.calories_burned for w in workouts)
 
         adjusted_target = profile.calculated_calorie_target + exercise_burn
-        target_protein = profile.calculated_protein_target_g
+        macro_additions = calculate_workout_macro_additions(workouts)
+
+        focus_key = (profile.fitness_focus or "athletic").lower()
+        focus_cfg = FITNESS_FOCUS_CONFIG.get(focus_key, FITNESS_FOCUS_CONFIG["athletic"])
+        max_protein_cap_g = profile.weight_kg * focus_cfg["max_protein_per_kg"]
+
+        raw_target_protein = profile.calculated_protein_target_g + macro_additions["extra_protein_g"]
+        target_protein = round(min(raw_target_protein, max_protein_cap_g), 1)
 
         is_goal_hit = False
         reason = ""
@@ -192,7 +201,16 @@ def get_day_detail_summary(db: Session, user: UserAuth, target_date_str: str) ->
     remaining_cals = adjusted_target - consumed_cals
 
     goal_type = profile.goal_type
-    target_protein = profile.calculated_protein_target_g
+    macro_additions = calculate_workout_macro_additions(workouts)
+
+    focus_key = (profile.fitness_focus or "athletic").lower()
+    focus_cfg = FITNESS_FOCUS_CONFIG.get(focus_key, FITNESS_FOCUS_CONFIG["athletic"])
+    max_protein_cap_g = profile.weight_kg * focus_cfg["max_protein_per_kg"]
+
+    raw_target_protein = profile.calculated_protein_target_g + macro_additions["extra_protein_g"]
+    target_protein = round(min(raw_target_protein, max_protein_cap_g), 1)
+    target_carb = round(profile.calculated_carb_target_g + macro_additions["extra_carbs_g"], 1)
+    target_fat = round(profile.calculated_fat_target_g + macro_additions["extra_fat_g"], 1)
 
     is_goal_hit = False
     reason = ""
@@ -236,9 +254,9 @@ def get_day_detail_summary(db: Session, user: UserAuth, target_date_str: str) ->
         remaining_calories=remaining_cals,
         target_protein_g=target_protein,
         consumed_protein_g=round(consumed_protein, 1),
-        target_carb_g=profile.calculated_carb_target_g,
+        target_carb_g=target_carb,
         consumed_carb_g=round(consumed_carbs, 1),
-        target_fat_g=profile.calculated_fat_target_g,
+        target_fat_g=target_fat,
         consumed_fat_g=round(consumed_fat, 1),
         is_goal_hit=is_goal_hit,
         status_reason=reason,

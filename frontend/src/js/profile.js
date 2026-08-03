@@ -13,79 +13,106 @@ export class ProfileManager {
 
     const modalHTML = `
       <div id="profile-modal" class="modal-overlay">
-        <div class="modal-content" style="max-width: 600px; position: relative;">
+        <div class="modal-content" style="max-width: 850px; width: 94%; max-height: 92vh; padding: 1.25rem 1.5rem; position: relative;">
           
           <!-- Header with High-Visibility Circle Close Button -->
-          <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; border-bottom: 1px solid var(--border-glass); padding-bottom: 0.75rem; margin-bottom: 1rem;">
-            <h2 id="profile-modal-title" style="margin: 0; font-size: 1.25rem; font-family: var(--font-heading);">Physical Profile & Caloric Pace</h2>
-            <button type="button" id="close-profile-modal" style="background: rgba(255,255,255,0.08); border: 1px solid var(--border-glass); color: var(--text-primary); font-size: 1.25rem; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.2s;" title="Close Modal">&times;</button>
+          <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; border-bottom: 1px solid var(--border-glass); padding-bottom: 0.5rem; margin-bottom: 0.75rem;">
+            <h2 id="profile-modal-title" style="margin: 0; font-size: 1.2rem; font-family: var(--font-heading);">Physical Profile & Caloric Pace</h2>
+            <button type="button" id="close-profile-modal" style="background: rgba(255,255,255,0.08); border: 1px solid var(--border-glass); color: var(--text-primary); font-size: 1.25rem; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.2s;" title="Close Modal">&times;</button>
           </div>
 
-          <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.25rem;">
+          <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.75rem;">
             We calculate your BMR, TDEE, and exact daily caloric pace automatically based on your physical metrics.
           </p>
 
-          <div id="profile-error" style="display:none; margin-bottom:1rem; font-size:0.85rem; color:#EF4444;"></div>
+          <div id="profile-error" style="display:none; margin-bottom:0.5rem; font-size:0.8rem; color:#EF4444;"></div>
 
           <form id="profile-form">
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-              <div class="form-group">
-                <label class="form-label">Full Name</label>
-                <input type="text" id="prof-name" class="form-input" placeholder="Alex Morgan" required />
+            <!-- 2-Column Spacious Grid Layout -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;">
+              
+              <!-- Left Column: Personal & Physical Metrics -->
+              <div style="display: flex; flex-direction: column; gap: 0.6rem;">
+                <div style="display: grid; grid-template-columns: 1.4fr 1fr; gap: 0.6rem;">
+                  <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label" style="font-size: 0.75rem; margin-bottom: 0.25rem;">Full Name</label>
+                    <input type="text" id="prof-name" class="form-input" style="padding: 0.4rem 0.6rem; font-size: 0.85rem;" placeholder="Alex Morgan" required />
+                  </div>
+
+                  <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label" style="font-size: 0.75rem; margin-bottom: 0.25rem;">Gender</label>
+                    <select id="prof-gender" class="form-input" style="padding: 0.4rem 0.6rem; font-size: 0.85rem;" required>
+                      <option value="male">Male</option>
+                      <option value="female">Female</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1.2fr 1fr 1.1fr; gap: 0.6rem;">
+                  <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label" style="font-size: 0.75rem; margin-bottom: 0.25rem;">Birth Date</label>
+                    <input type="date" id="prof-birthdate" class="form-input" style="padding: 0.4rem 0.4rem; font-size: 0.8rem;" required />
+                  </div>
+
+                  <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label" style="font-size: 0.75rem; margin-bottom: 0.25rem;">Height (cm)</label>
+                    <input type="number" step="0.1" id="prof-height" class="form-input" style="padding: 0.4rem 0.5rem; font-size: 0.85rem;" placeholder="175" required />
+                  </div>
+
+                  <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label" style="font-size: 0.75rem; margin-bottom: 0.25rem;">Weight (kg)</label>
+                    <input type="number" step="0.1" id="prof-weight" class="form-input" style="padding: 0.4rem 0.5rem; font-size: 0.85rem;" placeholder="80" required />
+                  </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem;">
+                  <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label" style="font-size: 0.75rem; margin-bottom: 0.25rem;">Target Weight (kg)</label>
+                    <input type="number" step="0.1" id="prof-target-weight" class="form-input" style="padding: 0.4rem 0.6rem; font-size: 0.85rem;" placeholder="75" required />
+                  </div>
+
+                  <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label" style="font-size: 0.75rem; margin-bottom: 0.25rem;">Timeline (Weeks)</label>
+                    <input type="number" min="1" max="52" id="prof-timeline" class="form-input" style="padding: 0.4rem 0.6rem; font-size: 0.85rem;" placeholder="10" required />
+                  </div>
+                </div>
               </div>
 
-              <div class="form-group">
-                <label class="form-label">Gender</label>
-                <select id="prof-gender" class="form-input" required>
-                  <option value="male">Male</option>
-                  <option value="female">Female</option>
-                </select>
+              <!-- Right Column: Activity Level & Fitness Philosophy -->
+              <div style="display: flex; flex-direction: column; gap: 0.6rem;">
+                <div class="form-group" style="margin-bottom: 0;">
+                  <label class="form-label" style="font-size: 0.75rem; margin-bottom: 0.25rem;">Daily Occupation / Activity (Excludes Workouts)</label>
+                  <select id="prof-activity" class="form-input" style="padding: 0.4rem 0.6rem; font-size: 0.8rem;" required>
+                    <option value="sedentary">Sedentary (Desk job, office worker, student)</option>
+                    <option value="lightly_active">Lightly Active (Teacher, retail, standing & walking)</option>
+                    <option value="moderately_active">Moderately Active (Waiter, nurse, active on feet)</option>
+                    <option value="very_active">Very Active (Construction, physical labor)</option>
+                    <option value="extra_active">Extra Active (Heavy manual labor, pro athlete)</option>
+                  </select>
+                  <p class="text-muted" style="font-size: 0.7rem; margin-top: 0.25rem; color: var(--accent-health); line-height: 1.2;">
+                    💡 Log gym or sports workouts separately for 100% Net MET accuracy!
+                  </p>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 0;">
+                  <label class="form-label" style="font-size: 0.75rem; margin-bottom: 0.25rem;">Fitness Philosophy / Goal</label>
+                  <select id="prof-fitness-focus" class="form-input" style="padding: 0.4rem 0.6rem; font-size: 0.8rem;" required>
+                    <option value="general_health" selected>🌿 General Health, Fat Loss & Longevity</option>
+                    <option value="athletic">⚡ Athletic Build & Functional Power</option>
+                    <option value="sports_endurance">⚽ Sports & High Endurance</option>
+                    <option value="bodybuilding">🏆 Bodybuilding & Muscle Mass</option>
+                  </select>
+                  <p class="text-muted" style="font-size: 0.7rem; margin-top: 0.25rem; color: var(--text-secondary); line-height: 1.2;">
+                    Customizes baseline protein & macro budgets to match your philosophy!
+                  </p>
+                </div>
               </div>
+
             </div>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
-              <div class="form-group">
-                <label class="form-label">Birth Date</label>
-                <input type="date" id="prof-birthdate" class="form-input" required />
-              </div>
-
-              <div class="form-group">
-                <label class="form-label">Height (cm)</label>
-                <input type="number" step="0.1" id="prof-height" class="form-input" placeholder="175" required />
-              </div>
-
-              <div class="form-group">
-                <label class="form-label">Current Weight (kg)</label>
-                <input type="number" step="0.1" id="prof-weight" class="form-input" placeholder="80" required />
-              </div>
-            </div>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-              <div class="form-group">
-                <label class="form-label">Target Weight (kg)</label>
-                <input type="number" step="0.1" id="prof-target-weight" class="form-input" placeholder="75" required />
-              </div>
-
-              <div class="form-group">
-                <label class="form-label">Timeline (Weeks)</label>
-                <input type="number" min="1" max="52" id="prof-timeline" class="form-input" placeholder="10" required />
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label class="form-label">Activity Level</label>
-              <select id="prof-activity" class="form-input" required>
-                <option value="sedentary">Sedentary (Office job, little exercise)</option>
-                <option value="lightly_active">Lightly Active (1-3 days/week exercise)</option>
-                <option value="moderately_active">Moderately Active (3-5 days/week exercise)</option>
-                <option value="very_active">Very Active (6-7 days/week hard exercise)</option>
-                <option value="extra_active">Extra Active (Physical job or 2x daily workouts)</option>
-              </select>
-            </div>
-
-            <div style="display: flex; gap: 0.75rem; margin-top: 1.25rem;">
-              <button type="button" id="btn-cancel-profile" class="btn" style="flex: 1; padding: 0.6rem;">Cancel</button>
-              <button type="submit" id="prof-submit-btn" class="btn btn-primary" style="flex: 2; padding: 0.6rem;">
+            <div style="display: flex; gap: 0.75rem; margin-top: 0.85rem;">
+              <button type="button" id="btn-cancel-profile" class="btn" style="flex: 1; padding: 0.5rem; font-size: 0.85rem;">Cancel</button>
+              <button type="submit" id="prof-submit-btn" class="btn btn-primary" style="flex: 2; padding: 0.5rem; font-size: 0.85rem;">
                 Save Physical Profile
               </button>
             </div>
@@ -131,6 +158,7 @@ export class ProfileManager {
           target_weight_kg: parseFloat(document.getElementById('prof-target-weight').value),
           timeline_weeks: parseInt(document.getElementById('prof-timeline').value, 10),
           activity_level: document.getElementById('prof-activity').value,
+          fitness_focus: document.getElementById('prof-fitness-focus').value,
         };
 
         try {
@@ -171,27 +199,30 @@ export class ProfileManager {
       try {
         const profile = await APIClient.request(ENDPOINTS.PROFILE_ME);
         if (profile && form) {
-        document.getElementById('prof-name').value = profile.name || '';
-        document.getElementById('prof-gender').value = profile.gender || profile.sex || 'male';
-        if (profile.birth_date) {
-          document.getElementById('prof-birthdate').value = String(profile.birth_date).substring(0, 10);
-        }
-        document.getElementById('prof-height').value = profile.height_cm || '';
-        document.getElementById('prof-weight').value = profile.weight_kg || '';
-        document.getElementById('prof-target-weight').value = profile.target_weight_kg || '';
-        document.getElementById('prof-timeline').value = profile.timeline_weeks || '';
-        document.getElementById('prof-activity').value = profile.activity_level || 'sedentary';
+          document.getElementById('prof-name').value = profile.name || '';
+          document.getElementById('prof-gender').value = profile.gender || profile.sex || 'male';
+          if (profile.birth_date) {
+            document.getElementById('prof-birthdate').value = String(profile.birth_date).substring(0, 10);
+          }
+          document.getElementById('prof-height').value = profile.height_cm || '';
+          document.getElementById('prof-weight').value = profile.weight_kg || '';
+          document.getElementById('prof-target-weight').value = profile.target_weight_kg || '';
+          document.getElementById('prof-timeline').value = profile.timeline_weeks || '';
+          document.getElementById('prof-activity').value = profile.activity_level || 'sedentary';
+          if (document.getElementById('prof-fitness-focus')) {
+            document.getElementById('prof-fitness-focus').value = profile.fitness_focus || profile.fitness_philosophy || 'general_health';
+          }
 
-        form.setAttribute('data-is-edit', 'true');
+          form.setAttribute('data-is-edit', 'true');
+          const titleEl = document.getElementById('profile-modal-title');
+          if (titleEl) titleEl.textContent = 'Edit Physical Profile';
+        }
+      } catch (err) {
+        console.warn('First time profile setup or load error:', err.message);
+        if (form) form.removeAttribute('data-is-edit');
         const titleEl = document.getElementById('profile-modal-title');
-        if (titleEl) titleEl.textContent = 'Edit Physical Profile';
+        if (titleEl) titleEl.textContent = 'Set Up Your Physical Profile';
       }
-    } catch (err) {
-      console.warn('First time profile setup or load error:', err.message);
-      if (form) form.removeAttribute('data-is-edit');
-      const titleEl = document.getElementById('profile-modal-title');
-      if (titleEl) titleEl.textContent = 'Set Up Your Physical Profile';
-    }
     }
   }
 }

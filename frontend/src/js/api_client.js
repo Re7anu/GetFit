@@ -32,6 +32,10 @@ export class APIClient {
       ...options.headers,
     };
 
+    if (options.body instanceof FormData) {
+      delete headers['Content-Type'];
+    }
+
     const token = this.getAccessToken();
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
@@ -41,6 +45,7 @@ export class APIClient {
       ...options,
       headers,
     };
+
 
     try {
       let response = await fetch(url, config);

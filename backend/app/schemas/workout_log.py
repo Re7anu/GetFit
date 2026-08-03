@@ -11,6 +11,7 @@ class WorkoutLogBase(BaseModel):
     exercise_name: str = Field(..., min_length=1, description="Exercise name or sport")
     duration_minutes: float = Field(..., gt=0, description="Workout duration in minutes")
     met_value: float = Field(3.5, gt=0, description="Scientific MET value of workout")
+    calories_burned: Optional[int] = Field(None, ge=0, description="Manual calories burned in kcal")
     additional_weight_kg: float = Field(0.0, ge=0.0)
     input_method: str = Field("structured", description="'structured', 'manual', or 'ai_vision'")
     notes: Optional[str] = None
@@ -56,3 +57,32 @@ class DailyWorkoutSummary(BaseModel):
     total_duration_minutes: float
     total_net_calories_burned: int
     workouts_logged_today: List[WorkoutLogResponse]
+
+
+class DayScheduleItem(BaseModel):
+    """Schema representing a single day in the weekly routine plan."""
+
+    day: str  # "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"
+    activity_type: str  # "rest", "gym", "sports", "cardio"
+    targets: List[str] = Field(default_factory=list)  # ["chest", "shoulders"], ["football"], ["walking"]
+    is_completed: bool = False
+
+
+class WorkoutPlanUpdate(BaseModel):
+    """Schema for updating fitness focus and weekly schedule."""
+
+    fitness_focus: str = Field("athletic", description="'bodybuilding', 'athletic', or 'sports_endurance'")
+    schedule: List[DayScheduleItem]
+
+
+class WorkoutPlanResponse(BaseModel):
+    """Schema for returning full weekly routine blueprint and protein cap thresholds."""
+
+    fitness_focus: str
+    weekly_schedule: List[DayScheduleItem]
+    base_protein_g_per_kg: float
+    max_protein_cap_g_per_kg: float
+    user_weight_kg: float
+    calculated_base_protein_g: float
+    calculated_max_protein_cap_g: float
+

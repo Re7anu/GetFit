@@ -1,7 +1,7 @@
 """Nutrition & Meal Logging API endpoints module."""
 
-from typing import List
-from fastapi import APIRouter, Depends, status
+from typing import List, Optional
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
 from sqlalchemy.orm import Session
 from app.core.auth_dependencies import get_current_user
 from app.db.models.user_auth import UserAuth
@@ -35,6 +35,40 @@ def create_meal_log_via_ai(
 ):
     """Parses natural language meal text using Gemini AI and logs the extracted calories and macros."""
     return nutrition_service.create_meal_entry_via_ai(db=db, user=current_user, prompt_in=prompt_in)
+
+
+@router.post("/meals/ai-scan-image", response_model=FoodLogResponse, status_code=status.HTTP_201_CREATED)
+async def create_meal_log_via_image_ai(
+    file: UploadFile = File(...),
+    meal_type_hint: Optional[str] = Form(None),
+    notes: Optional[str] = Form(None),
+    current_user: UserAuth = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Scans and analyzes an uploaded food image using Gemini Vision AI to extract calories, macros, and micros."""
+    mime_type = file.content_type or "image/jpeg"
+    if not mime_type.startswith("image/"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Uploaded file must be a valid image format (JPEG, PNG, WebP, GIF).",
+        )
+
+    image_bytes = await file.read()
+    if not image_bytes:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Uploaded image file is empty.",
+        )
+
+    return nutrition_service.create_meal_entry_via_image_ai(
+        db=db,
+        user=current_user,
+        image_bytes=image_bytes,
+        mime_type=mime_type,
+        meal_type_hint=meal_type_hint,
+        notes=notes,
+    )
+
 
 
 @router.get("/meals/today", response_model=List[FoodLogResponse])

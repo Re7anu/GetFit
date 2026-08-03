@@ -1,0 +1,46 @@
+services:
+  # 1. PostgreSQL Database Service (Persistent Data + Exposed Host Port 5433 for DBeaver)
+  db:
+    image: postgres:15-alpine
+    container_name: getfit-db
+    restart: always
+    environment:
+      POSTGRES_DB: getfit
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgrespassword
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d getfit"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # 2. FastAPI Backend & Frontend Static Server Service
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: getfit-backend
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://postgres:postgrespassword@db:5432/getfit
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      SECRET_KEY: ${SECRET_KEY:-supersecretkey123456789012345678901234567890}
+      API_V1_STR: /api/v1
+    volumes:
+      - ./backend:/app
+      - ./frontend:/frontend
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+    driver: local
