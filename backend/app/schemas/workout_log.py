@@ -11,6 +11,7 @@ class WorkoutLogBase(BaseModel):
     exercise_name: str = Field(..., min_length=1, description="Exercise name or sport")
     duration_minutes: float = Field(..., gt=0, description="Workout duration in minutes")
     met_value: float = Field(3.5, gt=0, description="Scientific MET value of workout")
+    calories_burned: Optional[int] = Field(None, ge=0, description="Manual calories burned in kcal")
     additional_weight_kg: float = Field(0.0, ge=0.0)
     input_method: str = Field("structured", description="'structured', 'manual', or 'ai_vision'")
     notes: Optional[str] = None
