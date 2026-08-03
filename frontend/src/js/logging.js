@@ -382,6 +382,8 @@ export class LoggingManager {
         musclePillsContainer.style.display = cat === 'reps' ? 'flex' : 'none';
       }
 
+      const currentSelectedId = itemSelect.value;
+
       const q = filterQuery.toLowerCase().trim();
       let filtered = (this.catalog || []).filter(x => x.category === cat);
 
@@ -398,6 +400,9 @@ export class LoggingManager {
       // Keep hidden select options up to date for form handling
       itemSelect.innerHTML = `<option value="">Select Exercise...</option>` +
         (this.catalog || []).map(x => `<option value="${x.id}">${x.name}</option>`).join('');
+      if (currentSelectedId) {
+        itemSelect.value = currentSelectedId;
+      }
 
       if (filtered.length === 0) {
         optionsList.innerHTML = `<div style="font-size: 0.8rem; color: var(--text-muted); padding: 0.75rem; text-align: center;">No exercises found matching filter.</div>`;
@@ -421,6 +426,7 @@ export class LoggingManager {
           const exId = btn.getAttribute('data-id');
           itemSelect.value = exId;
           populateItemOptions(cat, filterQuery);
+          itemSelect.value = exId;
           itemSelect.dispatchEvent(new Event('change', { bubbles: true }));
         });
       });
