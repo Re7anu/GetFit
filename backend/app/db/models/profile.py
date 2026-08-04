@@ -63,6 +63,9 @@ class UserProfile(Base):
     fitness_focus = Column(String, default="general_health", nullable=False)
     weekly_schedule_json = Column(String, nullable=True)
 
+    enable_daily_email_report = Column(Boolean, default=True, nullable=False)
+    preferred_email_time = Column(String, default="21:00", nullable=False)
+
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
 
     user_auth = relationship("UserAuth", back_populates="profile")

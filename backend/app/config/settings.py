@@ -32,6 +32,10 @@ class Settings(BaseSettings):
     DATABASE_URL: str = "postgresql://postgres:postgrespassword@localhost:5433/getfit"
     GEMINI_API_KEY: Optional[str] = None
     GEMINI_MODEL_NAME: str = "gemini-flash-latest"
+    RESEND_API_KEY: Optional[str] = None
+    RESEND_FROM_EMAIL: str = "GetFit Daily <onboarding@resend.dev>"
+    NIGHTLY_REPORT_HOUR: int = 21
+    NIGHTLY_REPORT_MINUTE: int = 0
     EMAIL_SMTP_HOST: str = "smtp.gmail.com"
     EMAIL_SMTP_PORT: int = 587
     EMAIL_SMTP_USER: str = ""

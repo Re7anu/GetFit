@@ -17,6 +17,8 @@ class UserProfileBase(BaseModel):
     timeline_weeks: int = Field(12, ge=1, le=104, description="Target timeline in weeks (1-104)")
     activity_level: str = Field(..., description="sedentary, lightly_active, moderately_active, very_active, extra_active")
     fitness_focus: Optional[str] = Field("general_health", description="general_health, athletic, sports_endurance, bodybuilding")
+    enable_daily_email_report: bool = Field(True, description="Enable automated nightly health summary email report")
+    preferred_email_time: str = Field("21:00", description="Preferred email dispatch time in 24-hour HH:MM format e.g. '21:00'")
 
 
 class UserProfileCreate(UserProfileBase):
@@ -37,6 +39,8 @@ class UserProfileUpdate(BaseModel):
     timeline_weeks: Optional[int] = Field(None, ge=1, le=104)
     activity_level: Optional[str] = None
     fitness_focus: Optional[str] = None
+    enable_daily_email_report: Optional[bool] = None
+    preferred_email_time: Optional[str] = None
 
 
 class UserProfileResponse(UserProfileBase):

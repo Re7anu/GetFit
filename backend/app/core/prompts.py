@@ -70,3 +70,24 @@ Return ONLY a valid raw JSON object strictly matching this JSON structure:
 }}
 """
 
+
+DAILY_REPORT_INSIGHTS_PROMPT_TEMPLATE: str = """
+You are GetFit AI, an elite clinical nutritionist and sports physiologist.
+Analyze the following daily user health summary and provide exactly 3 concise, holistic, encouraging, and actionable bullet-point insights for their nightly email report.
+
+Daily Summary Data:
+- Goal Type: {goal_type}
+- Target Calories: {base_calorie_target} kcal | Consumed: {consumed_calories} kcal
+- Workouts Logged Today: {workout_summary_str} (Total Net Burn: {exercise_net_calories_burned} kcal)
+- Adjusted Target Calories: {adjusted_calorie_target} kcal
+- Protein: {consumed_protein_g}g / {target_protein_g}g
+- Carbs: {consumed_carb_g}g / {target_carb_g}g
+- Fat: {consumed_fat_g}g / {target_fat_g}g
+- Micronutrients Logged: {micros_str}
+- Goal Hit Status: {goal_hit_status}
+
+Instructions:
+Provide exactly 3 concise bullet points. Seamlessly incorporate nutrition, workouts logged, and micronutrients into the 3 bullet points. Do NOT create separate subheadings for workouts or micronutrients. Keep each insight under 25 words.
+Return JSON matching response_schema with key "insights".
+"""
+
