@@ -86,7 +86,24 @@ def create_structured_workout_entry(db: Session, user: UserAuth, structured_in: 
             detail="Physical profile not found. Please complete profile onboarding via POST /profiles.",
         )
 
-    item = EXERCISE_CATALOG.get(structured_in.exercise_id)
+    from app.db.models.exercise_catalog import ExerciseCatalogItem
+    db_item = db.query(ExerciseCatalogItem).filter(ExerciseCatalogItem.id == structured_in.exercise_id).first()
+    if db_item:
+        item = {
+            "id": db_item.id,
+            "name": db_item.name,
+            "category": db_item.category,
+            "met": db_item.met,
+            "cadence_sec_per_rep": db_item.cadence_sec_per_rep,
+            "calories_per_km_per_kg": db_item.calories_per_km_per_kg,
+            "avg_speed_kmh": db_item.avg_speed_kmh,
+            "unit": db_item.unit,
+            "default_sets": db_item.default_sets,
+            "default_reps": db_item.default_reps,
+        }
+    else:
+        item = EXERCISE_CATALOG.get(structured_in.exercise_id)
+
     if not item:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

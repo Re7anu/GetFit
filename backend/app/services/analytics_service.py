@@ -74,11 +74,18 @@ def get_user_nutrition_history(db: Session, user: UserAuth, days: int = 30) -> A
         target_protein = round(min(raw_target_protein, max_protein_cap_g), 1)
 
         is_goal_hit = False
+        is_empty_day = False
         reason = ""
+
+        user_created_date = user.created_at.date() if hasattr(user, "created_at") and user.created_at else None
 
         if len(meals) == 0 and len(workouts) == 0:
             is_goal_hit = False
-            reason = "No meals or workouts logged on this date."
+            is_empty_day = True
+            if user_created_date and current_date < user_created_date:
+                reason = "Account was created after this date."
+            else:
+                reason = "No meals or workouts logged on this date."
         elif goal_type == "lose_weight":
             hit_cals = consumed_cals <= adjusted_target
             hit_protein = consumed_protein >= target_protein
@@ -114,6 +121,7 @@ def get_user_nutrition_history(db: Session, user: UserAuth, days: int = 30) -> A
                 target_protein_g=target_protein,
                 consumed_protein_g=round(consumed_protein, 1),
                 is_goal_hit=is_goal_hit,
+                is_empty_day=is_empty_day,
                 status_reason=reason,
             )
         )
@@ -194,6 +202,15 @@ def get_day_detail_summary(db: Session, user: UserAuth, target_date_str: str) ->
     consumed_carbs = sum(m.carbs_g for m in meals)
     consumed_fat = sum(m.fat_g for m in meals)
 
+    total_micros = {
+        "fiber_g": round(sum(getattr(m, "fiber_g", 0.0) or 0.0 for m in meals), 1),
+        "sodium_mg": round(sum(getattr(m, "sodium_mg", 0.0) or 0.0 for m in meals), 1),
+        "potassium_mg": round(sum(getattr(m, "potassium_mg", 0.0) or 0.0 for m in meals), 1),
+        "vitamin_c_mg": round(sum(getattr(m, "vitamin_c_mg", 0.0) or 0.0 for m in meals), 1),
+        "calcium_mg": round(sum(getattr(m, "calcium_mg", 0.0) or 0.0 for m in meals), 1),
+        "iron_mg": round(sum(getattr(m, "iron_mg", 0.0) or 0.0 for m in meals), 1),
+    }
+
     exercise_burn = sum(w.calories_burned for w in workouts)
 
     base_target = profile.calculated_calorie_target
@@ -258,6 +275,7 @@ def get_day_detail_summary(db: Session, user: UserAuth, target_date_str: str) ->
         consumed_carb_g=round(consumed_carbs, 1),
         target_fat_g=target_fat,
         consumed_fat_g=round(consumed_fat, 1),
+        total_micronutrients=total_micros,
         is_goal_hit=is_goal_hit,
         status_reason=reason,
         meals=[

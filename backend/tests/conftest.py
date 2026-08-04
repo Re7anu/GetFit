@@ -13,10 +13,13 @@ engine = create_engine(settings.DATABASE_URL, pool_pre_ping=True)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
+from app.db.init_db import init_db
+
+
 @pytest.fixture(scope="function", autouse=True)
 def init_test_db():
-    """Autouse fixture ensuring tables are initialized for testing."""
-    Base.metadata.create_all(bind=engine)
+    """Autouse fixture ensuring tables and schema columns are initialized for testing."""
+    init_db()
     yield
 
 

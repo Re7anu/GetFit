@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from app.api import analytics, auth, workouts, nutrition, profiles, users
 from app.config.settings import settings
-from app.db.init_db import init_db
+from app.core.scheduler import start_scheduler, stop_scheduler
 
 
 @asynccontextmanager
@@ -15,7 +15,18 @@ async def lifespan(app: FastAPI):
         init_db()
     except Exception as e:
         print(f"Database initialization failed: {e}")
+    
+    try:
+        start_scheduler()
+    except Exception as e:
+        print(f"Scheduler startup failed: {e}")
+        
     yield
+    
+    try:
+        stop_scheduler()
+    except Exception as e:
+        print(f"Scheduler shutdown failed: {e}")
 
 
 app = FastAPI(title=settings.PROJECT_NAME, version="1.0.0", lifespan=lifespan)

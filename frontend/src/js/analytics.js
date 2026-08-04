@@ -258,8 +258,11 @@ export class AnalyticsManager {
   static renderCalendarView(container) {
     const list = Array.isArray(this.historyData) ? this.historyData : [];
     const totalDays = list.length;
+    const activeDaysList = list.filter(x => x && !x.is_empty_day);
+    const evalDaysCount = activeDaysList.length > 0 ? activeDaysList.length : totalDays;
+
     const goalsHit = this.totalGoalsHit !== undefined ? this.totalGoalsHit : list.filter(x => x && x.is_goal_hit).length;
-    const successRate = totalDays > 0 ? Math.round((goalsHit / totalDays) * 100) : 0;
+    const successRate = evalDaysCount > 0 ? Math.round((goalsHit / evalDaysCount) * 100) : 0;
     const currentStreak = this.currentStreak || 0;
     const bestStreak = this.bestStreak || 0;
 
@@ -313,9 +316,9 @@ export class AnalyticsManager {
           </div>
 
           <div class="glass-card" style="text-align: center; padding: 1.25rem;">
-            <div class="text-muted" style="font-size: 0.75rem; text-transform: uppercase;">🎯 Goals Hit (${totalDays}d)</div>
+            <div class="text-muted" style="font-size: 0.75rem; text-transform: uppercase;">🎯 Goals Hit (${activeDaysList.length > 0 ? `${activeDaysList.length} Active Days` : `${totalDays}d`})</div>
             <div style="font-size: 2rem; font-family: var(--font-heading); font-weight: 900; color: var(--accent-health); margin-top: 0.25rem;">
-              ${goalsHit} / ${totalDays}
+              ${goalsHit} / ${evalDaysCount}
             </div>
             <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">${successRate}% success rate</div>
           </div>
@@ -332,23 +335,36 @@ export class AnalyticsManager {
               const d = new Date(day.date + 'T00:00:00');
               const dateStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
+              const isEmpty = day.is_empty_day || (day.consumed_calories === 0 && day.status_reason && (day.status_reason.includes('No meals') || day.status_reason.includes('created after')));
               const isSuccess = day.is_goal_hit;
-              const borderColor = isSuccess ? 'var(--accent-health)' : 'rgba(239, 68, 68, 0.4)';
-              const bgGlow = isSuccess ? 'rgba(16, 185, 129, 0.08)' : 'rgba(239, 68, 68, 0.05)';
-              const badgeBg = isSuccess ? 'var(--accent-health)' : '#EF4444';
+
+              const borderColor = isEmpty 
+                ? 'rgba(255, 255, 255, 0.1)' 
+                : (isSuccess ? 'var(--accent-health)' : 'rgba(239, 68, 68, 0.4)');
+
+              const bgGlow = isEmpty 
+                ? 'rgba(255, 255, 255, 0.02)' 
+                : (isSuccess ? 'rgba(16, 185, 129, 0.08)' : 'rgba(239, 68, 68, 0.05)');
+
+              const badgeBg = isEmpty 
+                ? 'rgba(255, 255, 255, 0.12)' 
+                : (isSuccess ? 'var(--accent-health)' : '#EF4444');
+
+              const badgeColor = isEmpty ? 'var(--text-muted)' : (isSuccess ? '#000' : '#fff');
+              const badgeSymbol = isEmpty ? '—' : (isSuccess ? '✔' : '✖');
 
               return `
-                <div class="analytics-day-tile" data-date="${day.date}" style="background: ${bgGlow}; border: 1px solid ${borderColor}; border-radius: 12px; padding: 0.75rem; display: flex; flex-direction: column; gap: 0.4rem; position: relative; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;" title="Click to view full logs for ${dateStr}">
+                <div class="analytics-day-tile" data-date="${day.date}" style="background: ${bgGlow}; border: 1px solid ${borderColor}; border-radius: 12px; padding: 0.75rem; display: flex; flex-direction: column; gap: 0.4rem; position: relative; cursor: pointer; opacity: ${isEmpty ? '0.65' : '1.0'}; transition: transform 0.2s, box-shadow 0.2s;" title="Click to view full logs for ${dateStr}">
                   <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <span style="font-weight: 700; font-size: 0.85rem;">${dateStr}</span>
-                    <span style="background: ${badgeBg}; color: ${isSuccess ? '#000' : '#fff'}; font-size: 0.65rem; font-weight: 800; padding: 0.15rem 0.4rem; border-radius: 999px;">
-                      ${isSuccess ? '✔' : '✖'}
+                    <span style="font-weight: 700; font-size: 0.85rem; color: ${isEmpty ? 'var(--text-muted)' : 'var(--text-primary)'}">${dateStr}</span>
+                    <span style="background: ${badgeBg}; color: ${badgeColor}; font-size: 0.65rem; font-weight: 800; padding: 0.15rem 0.4rem; border-radius: 999px;">
+                      ${badgeSymbol}
                     </span>
                   </div>
 
                   <div style="font-size: 0.75rem; margin-top: 0.25rem;">
-                    <div style="color: var(--text-secondary);">Cals: <span style="font-weight:600; color:var(--text-primary);">${day.consumed_calories} / ${day.adjusted_calorie_target}</span></div>
-                    <div style="color: var(--text-secondary);">Prot: <span style="font-weight:600; color:var(--text-primary);">${day.consumed_protein_g}g / ${day.target_protein_g}g</span></div>
+                    <div style="color: var(--text-secondary);">Cals: <span style="font-weight:600; color:${isEmpty ? 'var(--text-muted)' : 'var(--text-primary)'};">${isEmpty ? '—' : `${day.consumed_calories} / ${day.adjusted_calorie_target}`}</span></div>
+                    <div style="color: var(--text-secondary);">Prot: <span style="font-weight:600; color:${isEmpty ? 'var(--text-muted)' : 'var(--text-primary)'};">${isEmpty ? '—' : `${day.consumed_protein_g}g / ${day.target_protein_g}g`}</span></div>
                   </div>
 
                   <!-- Goal Status Caption -->

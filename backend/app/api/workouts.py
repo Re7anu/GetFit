@@ -16,14 +16,15 @@ from app.schemas.workout_log import (
     WorkoutPlanUpdate,
 )
 from app.services import workout_service
+from app.services.exercise_catalog_service import get_exercise_catalog_list
 
 router = APIRouter()
 
 
 @router.get("/catalog")
-def get_exercise_catalog():
-    """Retrieves the list of supported structured exercise catalog items."""
-    return get_exercise_catalog_list()
+def get_exercise_catalog(db: Session = Depends(get_db)):
+    """Retrieves the list of supported structured exercise catalog items from database."""
+    return get_exercise_catalog_list(db=db)
 
 
 @router.post("/logs/structured", response_model=WorkoutLogResponse, status_code=status.HTTP_201_CREATED)
