@@ -14,6 +14,7 @@ class DailyHistorySnapshot(BaseModel):
     target_protein_g: float
     consumed_protein_g: float
     is_goal_hit: bool
+    is_empty_day: bool = False
     status_reason: str
 
 
@@ -67,6 +68,7 @@ class DayDetailResponse(BaseModel):
     consumed_carb_g: float
     target_fat_g: float
     consumed_fat_g: float
+    total_micronutrients: Optional[dict] = None
     is_goal_hit: bool
     status_reason: str
     meals: List[DayDetailMealItem]
