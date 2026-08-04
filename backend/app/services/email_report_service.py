@@ -56,6 +56,9 @@ def generate_daily_report_insights(summary_data: Any) -> List[str]:
     micros = data.get('total_micronutrients', {}) or {}
     micros_str = f"Fiber: {micros.get('fiber_g', 0)}g, Sodium: {micros.get('sodium_mg', 0)}mg, Potassium: {micros.get('potassium_mg', 0)}mg, Vitamin C: {micros.get('vitamin_c_mg', 0)}mg, Calcium: {micros.get('calcium_mg', 0)}mg, Iron: {micros.get('iron_mg', 0)}mg"
 
+    meals_list = data.get('meals', [])
+    meal_names_str = ", ".join([m.get('description', '') for m in meals_list if m.get('description')]) or "No meals logged"
+
     prompt = DAILY_REPORT_INSIGHTS_PROMPT_TEMPLATE.format(
         goal_type=data.get('goal_type'),
         base_calorie_target=data.get('base_calorie_target'),
@@ -70,17 +73,40 @@ def generate_daily_report_insights(summary_data: Any) -> List[str]:
         consumed_fat_g=data.get('consumed_fat_g'),
         target_fat_g=data.get('target_fat_g'),
         micros_str=micros_str,
+        meal_names_str=meal_names_str,
         goal_hit_status='SUCCESSFUL (Goal Hit)' if data.get('is_goal_hit') else 'IN PROGRESS',
     )
-    # Build dynamic data-driven fallback insights using exact user context
-    meals_list = data.get('meals', [])
-    meal_names_str = ", ".join([m.get('description', '') for m in meals_list if m.get('description')]) or "No meals logged"
-    
-    dynamic_fallback = [
-        f"Today's Nutrition: Consumed {data.get('consumed_calories', 0)} kcal & {data.get('consumed_protein_g', 0)}g protein against your target of {data.get('target_protein_g', 0)}g ({meal_names_str}).",
-        f"Workout Performance: Logged {len(workouts_list)} workout session(s) ({workout_summary_str}) for a net burn of {data.get('exercise_net_calories_burned', 0)} kcal.",
-        f"Micronutrient Check: Recorded {micros.get('fiber_g', 0)}g dietary fiber & {micros.get('sodium_mg', 0)}mg sodium to support digestion and electrolyte balance.",
-    ]
+
+    # Smart Analytical Fallback Insights (evaluated when Gemini is offline or rate-limited)
+    consumed_cals = data.get('consumed_calories', 0)
+    adj_target_cals = data.get('adjusted_calorie_target', 2000)
+    consumed_prot = data.get('consumed_protein_g', 0)
+    target_prot = data.get('target_protein_g', 100)
+    goal = data.get('goal_type', 'maintenance')
+    sodium_mg = micros.get('sodium_mg', 0)
+    fiber_g = micros.get('fiber_g', 0)
+
+    cal_diff = consumed_cals - adj_target_cals
+    if cal_diff > 300:
+        insight_1 = f"Caloric Surplus Analysis: Total intake of {consumed_cals} kcal exceeded your adjusted target of {adj_target_cals} kcal by {cal_diff} kcal. To stay aligned with your {goal} goal, focus on moderating heavy meal portion sizes tomorrow."
+    elif cal_diff < -300:
+        insight_1 = f"Energy Deficit Notice: Intake of {consumed_cals} kcal fell below your adjusted target of {adj_target_cals} kcal by {abs(cal_diff)} kcal. Ensure adequate energy intake to prevent metabolic slowdown and preserve lean muscle."
+    else:
+        insight_1 = f"Optimal Energy Balance: Intake of {consumed_cals} kcal hit your adjusted daily target zone ({adj_target_cals} kcal), maintaining steady energy and supporting your {goal} strategy."
+
+    if consumed_prot >= target_prot:
+        insight_2 = f"Protein & Recovery Synthesis: Excellent protein intake ({consumed_prot}g vs target {target_prot}g), providing optimal amino acid availability for muscle tissue repair and synthesis after your logged workout(s)."
+    else:
+        insight_2 = f"Protein Synthesis Alert: Protein intake reached {consumed_prot}g (short of your {target_prot}g target). Prioritize high-quality protein sources like eggs, poultry, or legumes early tomorrow."
+
+    if sodium_mg > 3500:
+        insight_3 = f"Hydration & Electrolyte Recommendation: Elevated sodium intake recorded ({sodium_mg}mg). Increase fluid intake to 3+ liters tomorrow to maintain cellular hydration and flush out excess sodium."
+    elif fiber_g < 25:
+        insight_3 = f"Micronutrient Recommendation: Dietary fiber reached {fiber_g}g. Incorporate more whole grains, leafy greens, or legumes tomorrow to improve gut microbiota health and digestive satiety."
+    else:
+        insight_3 = f"Holistic Action Plan: Solid tracking today with {fiber_g}g fiber logged! Maintain consistent hydration, quality sleep, and balanced meal timing tomorrow."
+
+    dynamic_fallback = [insight_1, insight_2, insight_3]
 
     try:
         parsed = generate_structured_output(prompt=prompt, response_schema=DailyInsightsSchema)
@@ -93,7 +119,7 @@ def generate_daily_report_insights(summary_data: Any) -> List[str]:
             parsed = generate_structured_output(prompt=prompt, response_schema=DailyInsightsSchema)
             return parsed.insights
         except Exception as retry_err:
-            logger.error(f"Gemini API retry failed: {retry_err}. Using dynamic data-driven insights fallback.")
+            logger.error(f"Gemini API retry failed: {retry_err}. Using smart analytical fallback.")
             return dynamic_fallback
 
 
@@ -139,9 +165,9 @@ def generate_daily_html_report(db: Session, user: UserAuth, target_date: Optiona
     micros = day_detail.get("total_micronutrients", {}) or {}
 
     status_badge = (
-        '<span style="background: rgba(16, 185, 129, 0.2); color: #10B981; padding: 4px 12px; border-radius: 20px; font-weight: 700; font-size: 0.85rem; border: 1px solid rgba(16, 185, 129, 0.4);">🎉 GOAL ACHIEVED</span>'
+        '<span style="display: inline-block; white-space: nowrap; background: rgba(16, 185, 129, 0.2); color: #10B981; padding: 5px 14px; border-radius: 20px; font-weight: 700; font-size: 0.8rem; border: 1px solid rgba(16, 185, 129, 0.4);">🎉 GOAL ACHIEVED</span>'
         if goal_hit
-        else '<span style="background: rgba(245, 158, 11, 0.2); color: #F59E0B; padding: 4px 12px; border-radius: 20px; font-weight: 700; font-size: 0.85rem; border: 1px solid rgba(245, 158, 11, 0.4);">📊 DAY IN PROGRESS</span>'
+        else '<span style="display: inline-block; white-space: nowrap; background: rgba(245, 158, 11, 0.2); color: #F59E0B; padding: 5px 14px; border-radius: 20px; font-weight: 700; font-size: 0.8rem; border: 1px solid rgba(245, 158, 11, 0.4);">📊 DAY IN PROGRESS</span>'
     )
 
     insights_html = "".join(
@@ -171,17 +197,19 @@ def generate_daily_html_report(db: Session, user: UserAuth, target_date: Optiona
     <!-- Main Container -->
     <div style="padding: 28px 24px;">
       
-      <!-- Top Status Card -->
-      <div style="display: flex; justify-content: space-between; align-items: center; background: #0F172A; padding: 16px 20px; border-radius: 12px; border: 1px solid #334155; margin-bottom: 24px;">
-        <div>
-          <div style="font-size: 0.8rem; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.05em;">Daily Status</div>
-          <div style="margin-top: 4px;">{status_badge}</div>
-        </div>
-        <div style="text-align: right;">
-          <div style="font-size: 0.8rem; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.05em;">Net Calories</div>
-          <div style="font-size: 1.4rem; font-weight: 800; color: #38BDF8;">{cals_consumed} <span style="font-size: 0.85rem; color: #94A3B8;">/ {adj_target} kcal</span></div>
-        </div>
-      </div>
+      <!-- Top Status Card (Table Layout for Universal Email Client Compatibility) -->
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width: 100%; background-color: #0F172A; border: 1px solid #334155; border-radius: 12px; margin-bottom: 24px; border-collapse: separate;">
+        <tr>
+          <td style="padding: 16px 20px; vertical-align: middle; text-align: left; width: 50%;">
+            <div style="font-size: 0.75rem; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; margin-bottom: 6px;">Daily Status</div>
+            <div>{status_badge}</div>
+          </td>
+          <td style="padding: 16px 20px; vertical-align: middle; text-align: right; width: 50%;">
+            <div style="font-size: 0.75rem; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; margin-bottom: 4px;">Net Calories</div>
+            <div style="font-size: 1.35rem; font-weight: 800; color: #38BDF8; line-height: 1.2;">{cals_consumed} <span style="font-size: 0.85rem; color: #94A3B8; font-weight: 600;">/ {adj_target} kcal</span></div>
+          </td>
+        </tr>
+      </table>
 
       <!-- AI Insights Box -->
       <div style="background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 12px; padding: 20px; margin-bottom: 24px;">

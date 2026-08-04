@@ -24,6 +24,7 @@ export const ENDPOINTS = {
   // Health & Workout Analytics
   ANALYTICS_HISTORY: `${API_BASE_URL}/analytics/history`,
   ANALYTICS_DAY_DETAIL: `${API_BASE_URL}/analytics/day-detail`,
+  SEND_DAILY_REPORT: `${API_BASE_URL}/analytics/send-daily-report`,
   NUTRITION_HISTORY: `${API_BASE_URL}/analytics/history`,
   DAY_DETAIL: `${API_BASE_URL}/analytics/day-detail`,
   

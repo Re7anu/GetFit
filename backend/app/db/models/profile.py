@@ -65,6 +65,7 @@ class UserProfile(Base):
 
     enable_daily_email_report = Column(Boolean, default=True, nullable=False)
     preferred_email_time = Column(String, default="21:00", nullable=False)
+    day_cutoff_time = Column(String, default="00:00", nullable=False)
 
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
 
