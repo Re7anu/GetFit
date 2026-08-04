@@ -19,6 +19,7 @@ class UserProfileBase(BaseModel):
     fitness_focus: Optional[str] = Field("general_health", description="general_health, athletic, sports_endurance, bodybuilding")
     enable_daily_email_report: bool = Field(True, description="Enable automated nightly health summary email report")
     preferred_email_time: str = Field("21:00", description="Preferred email dispatch time in 24-hour HH:MM format e.g. '21:00'")
+    day_cutoff_time: str = Field("00:00", description="Day rollover/cutoff time in 24-hour HH:MM format e.g. '03:00'")
 
 
 class UserProfileCreate(UserProfileBase):
@@ -41,6 +42,7 @@ class UserProfileUpdate(BaseModel):
     fitness_focus: Optional[str] = None
     enable_daily_email_report: Optional[bool] = None
     preferred_email_time: Optional[str] = None
+    day_cutoff_time: Optional[str] = None
 
 
 class UserProfileResponse(UserProfileBase):

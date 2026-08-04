@@ -3,6 +3,7 @@ import { APIClient } from './api_client.js';
 import { ENDPOINTS } from './config.js';
 import { AuthManager } from './auth.js';
 import { ProfileManager } from './profile.js';
+import { SettingsManager } from './settings.js';
 import { DashboardManager } from './dashboard.js';
 import { LoggingManager } from './logging.js';
 import { AnalyticsManager } from './analytics.js';
@@ -13,6 +14,7 @@ export class App {
     try {
       AuthManager.init();
       ProfileManager.init();
+      SettingsManager.init();
       LoggingManager.init();
       AnalyticsManager.init();
       WorkoutPlanManager.init();
@@ -726,6 +728,11 @@ export class App {
       // Menu Actions
       if (e.target.closest('#p-menu-profile') || e.target.closest('#p-header-setup-btn')) {
         ProfileManager.showModal();
+        if (dropdown) dropdown.style.display = 'none';
+      }
+
+      if (e.target.closest('#p-menu-settings')) {
+        SettingsManager.showModal();
         if (dropdown) dropdown.style.display = 'none';
       }
 

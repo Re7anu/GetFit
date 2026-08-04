@@ -23,6 +23,7 @@ def init_db() -> None:
             conn.execute(text("ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS weekly_schedule_json TEXT;"))
             conn.execute(text("ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS enable_daily_email_report BOOLEAN DEFAULT TRUE;"))
             conn.execute(text("ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS preferred_email_time VARCHAR DEFAULT '21:00';"))
+            conn.execute(text("ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS day_cutoff_time VARCHAR DEFAULT '00:00';"))
             conn.commit()
     except Exception as e:
         print(f"[Schema Migration Info]: {e}")

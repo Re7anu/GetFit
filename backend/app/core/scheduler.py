@@ -14,6 +14,9 @@ logger = logging.getLogger(__name__)
 scheduler = BackgroundScheduler()
 
 
+from app.core.date_utils import get_effective_user_date
+
+
 def dispatch_nightly_email_reports_cron() -> None:
     """Cron job function that checks active user email preferences and dispatches nightly health summary reports."""
     now_time_str = datetime.now().strftime("%H:%M")
@@ -37,11 +40,13 @@ def dispatch_nightly_email_reports_cron() -> None:
         for user in users:
             profile = user.profile
             user_pref_time = (profile.preferred_email_time if profile and profile.preferred_email_time else global_default_time_str).strip()
+            cutoff_time = profile.day_cutoff_time if profile and profile.day_cutoff_time else "00:00"
 
             # Trigger if current minute matches user's preferred time or global system default
             if now_time_str == user_pref_time or (current_hour == settings.NIGHTLY_REPORT_HOUR and current_minute == settings.NIGHTLY_REPORT_MINUTE):
                 try:
-                    res = send_nightly_email_report(db=db, user=user, target_date=date.today())
+                    target_date = get_effective_user_date(cutoff_time)
+                    res = send_nightly_email_report(db=db, user=user, target_date=target_date)
                     sent_count += 1
                     logger.info(f"[Cron Dispatch] Email sent to {user.email}: {res.get('status')}")
                 except Exception as e:

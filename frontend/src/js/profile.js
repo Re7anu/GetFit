@@ -110,7 +110,7 @@ export class ProfileManager {
 
             </div>
 
-            <div style="display: flex; gap: 0.75rem; margin-top: 0.85rem;">
+            <div style="display: flex; gap: 0.75rem; margin-top: 1rem;">
               <button type="button" id="btn-cancel-profile" class="btn" style="flex: 1; padding: 0.5rem; font-size: 0.85rem;">Cancel</button>
               <button type="submit" id="prof-submit-btn" class="btn btn-primary" style="flex: 2; padding: 0.5rem; font-size: 0.85rem;">
                 Save Physical Profile
