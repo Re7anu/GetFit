@@ -90,8 +90,7 @@ def create_meal_entry_via_ai(db: Session, user: UserAuth, prompt_in: AIFoodParse
         response_schema=AIFoodParseResult,
     )
 
-    desc_lower = (parsed_result.description or "").lower()
-    if getattr(parsed_result, "is_food_item", True) is False or parsed_result.calories == 0 or "no food" in desc_lower or "not food" in desc_lower:
+    if not parsed_result.is_food_item or parsed_result.calories == 0:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"No edible food item detected. ({parsed_result.description})",
@@ -136,14 +135,7 @@ def create_meal_entry_via_image_ai(
         response_schema=AIFoodParseResult,
     )
 
-    desc_lower = (parsed_result.description or "").lower()
-    if (
-        getattr(parsed_result, "is_food_item", True) is False
-        or parsed_result.calories == 0
-        or "no food" in desc_lower
-        or "not food" in desc_lower
-        or "non-food" in desc_lower
-    ):
+    if not parsed_result.is_food_item or parsed_result.calories == 0:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"No edible food item detected. ({parsed_result.description})",
