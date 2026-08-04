@@ -37,40 +37,59 @@ Built with **FastAPI**, **PostgreSQL**, **SQLAlchemy 2.0**, **Pydantic v2**, and
 
 ## Scientific Calculation Sources & Scientific Formulations
 
-GetFit relies on peer-reviewed clinical guidelines, sports physiology literature, and international health standards for all metabolic, macro, micro, and workout calculations:
+GetFit relies on peer-reviewed clinical guidelines, sports physiology literature, biomechanical load models, and international health standards for all metabolic, macro, micro, and workout calculations:
 
 ### 🔬 1. Metabolic Engine (BMR & TDEE)
-- **Mifflin-St Jeor Equation (1990):** Standard BMR baseline for non-bodyfat inputs.
+- **Mifflin-St Jeor Equation (1990):** Standard BMR baseline for non-bodyfat inputs:
+  $$\text{BMR}_{\text{male}} = (10 \times \text{weight}_{\text{kg}}) + (6.25 \times \text{height}_{\text{cm}}) - (5 \times \text{age}) + 5$$
+  $$\text{BMR}_{\text{female}} = (10 \times \text{weight}_{\text{kg}}) + (6.25 \times \text{height}_{\text{cm}}) - (5 \times \text{age}) - 161$$
   - *Reference:* Mifflin MD, St Jeor ST, et al. *"A new predictive equation for resting energy expenditure in healthy individuals."* Am J Clin Nutr. 1990;51(2):241-247.
 - **Katch-McArdle Formula (1996):** LBM-based BMR equation applied when body fat percentage is provided:
   $$\text{BMR} = 370 + 21.6 \times (1 - \text{body\_fat\_fraction}) \times \text{weight\_kg}$$
   - *Reference:* Katch WD, McArdle WD. *"Nutrition, Weight Control, and Exercise."* Lea & Febiger, 1996.
-- **Physical Activity Level (PAL) Multipliers:**
-  - *Reference:* FAO/WHO/UNU Expert Consultation. *"Human Energy Requirements."* Food and Nutrition Technical Report Series, 2004.
+- **Physical Activity Level (PAL) Multipliers:** `sedentary: 1.200`, `lightly_active: 1.375`, `moderately_active: 1.550`, `very_active: 1.725`, `extra_active: 1.900`.
+  - *Reference:* FAO/WHO/UNU Expert Consultation. *"Human Energy Requirements."* WHO Technical Report Series 925, 2004.
 
-### 🥩 2. Macronutrient Target Splits
-- **Protein Intake Targets ($1.6\text{g/kg}$ to $2.2\text{g/kg}$):** Preserves lean tissue during caloric deficit ($2.2\text{g/kg}$) and optimizes muscle protein synthesis ($2.0\text{g/kg}$).
+### 🥩 2. Macronutrient Target Splits & Hormone Guardrails
+- **Protein Intake Targets ($1.2\text{ g/kg}$ to $2.5\text{ g/kg}$):** Customized by fitness focus (`bodybuilding: 1.8g/kg`, `athletic: 1.6g/kg`, `sports_endurance: 1.4g/kg`, `general_health: 1.2g/kg`).
   - *Reference:* Jäger R, Kerksick CM, et al. *"International Society of Sports Nutrition Position Stand: protein and exercise."* J Int Soc Sports Nutr. 2017;14:20.
-  - *Reference:* Thomas DT, Erdman KA, Burke LM. *"American College of Sports Medicine Joint Position Statement: Nutrition and Athletic Performance."* Med Sci Sports Exerc. 2016;48(3):543-568.
-- **Fat & Carbohydrate Distribution:** $25\%$ of TDEE allocated to essential fatty acids; remaining caloric balance allocated to complex carbohydrates ($1\text{g fat} = 9\text{ kcal}$, $1\text{g carb} = 4\text{ kcal}$).
+  - *Reference:* Morton RW, et al. *"A systematic review, meta-analysis and trial of dietary protein supplementation during resistance training."* Br J Sports Med. 2018;52(6):376-384.
+- **Deficit Protein Scaling:** Elevates protein intake during weight loss deficits ($\ge 0.5\text{ kg/week}$) to protect lean body mass from catabolism.
+  - *Reference:* Helms ER, Zinn C, et al. *"A systematic review of dietary protein during caloric restriction in resistance-trained lean athletes."* Int J Sport Nutr Exerc Metab. 2014;24(2):127-138.
+- **Fat & Hormone Safety Floors:** Enforces a minimum fat threshold of $25\%$ calorie split, capped at a minimum of $0.6\text{ g/kg}$ or $35\text{ g/day}$ to prevent endocrine dysfunction and steroidogenesis impairment.
+  - *Reference:* World Health Organization (WHO). *"Dietary fats and fatty acids in human nutrition."* FAO Food and Nutrition Paper 91, 2010.
 
 ### 🥗 3. Essential Micronutrient Standards (RDAs & DRIs)
-GetFit monitors 6 essential micronutrients using Recommended Dietary Allowances (RDA) and Dietary Reference Intakes (DRI):
-- **Dietary Fiber ($30\text{ g/day}$):** WHO guideline for cardiovascular and gut metabolic health.
+Monitors 6 essential micronutrients using Recommended Dietary Allowances (RDA) and Dietary Reference Intakes (DRI):
+- **Dietary Fiber ($30\text{ g/day}$):** WHO guideline for cardiovascular, metabolic, and gut microbiome health.
   - *Reference:* World Health Organization (WHO). *"Diet, Nutrition and the Prevention of Chronic Diseases."* WHO Technical Report Series 916, 2003.
-- **Sodium ($2,300\text{ mg/day}$ upper limit):** NIH / American Heart Association upper intake threshold.
-- **Potassium ($3,400\text{ mg/day}$ RDA):** National Academy of Medicine DRI for adults.
+- **Sodium ($2,300\text{ mg/day}$ upper limit):** AHA / NIH Chronic Disease Risk Reduction threshold.
+- **Potassium ($3,400\text{ mg/day}$ RDA):** National Academy of Medicine DRI for adult blood pressure regulation.
 - **Vitamin C ($90\text{ mg/day}$ RDA):** NIH Office of Dietary Supplements recommended daily allowance.
 - **Calcium ($1,000\text{ mg/day}$ RDA):** NIH DRI for adult bone mineral density maintenance.
-- **Iron ($18\text{ mg/day}$ RDA):** NIH DRI standard for adult intake.
-- **Food Data Reference:** Nutritional profiles parsed by Gemini AI are validated against the **USDA FoodData Central Foundation Database** (*U.S. Department of Agriculture, Agricultural Research Service*).
+- **Iron ($18\text{ mg/day}$ RDA):** NIH DRI standard for hemoglobin synthesis and oxygen transport.
+- **Food Data Reference:** Validated against the **USDA FoodData Central Foundation Database** (*U.S. Department of Agriculture, Agricultural Research Service*).
 
-### 🏃 4. Exercise Calorie Expenditure & MET Calculations
-- **Ainsworth Compendium of Physical Activities (2011 Revision):** Scientific source for baseline Metabolic Equivalent of Task (MET) values across activities.
+### 🏃 4. Exercise MET & Net Calorie Expenditure
+- **Ainsworth Compendium of Physical Activities (2011/2024 Revision):** Scientific source for baseline Metabolic Equivalent of Task (MET) values across activities (Codes 02010–02050).
   - *Reference:* Ainsworth BE, Haskell WL, et al. *"2011 Compendium of Physical Activities: a second update of codes and MET values."* Med Sci Sports Exerc. 2011;43(8):1575-1581.
 - **Solution A Net MET Energy Expenditure:** Subtracts baseline resting metabolism ($1.2\text{ MET}$) to prevent double-counting resting calories during exercise:
   $$\text{Net Burn} = (\text{Active MET} - 1.2) \times \text{User Weight (kg)} \times \left(\frac{\text{Duration (mins)}}{60}\right)$$
   - *Reference:* Swartz AM, et al. *"Estimation of energy expenditure using METs during physical activity."* Med Sci Sports Exerc. 2000.
+
+### 🏋️ 5. Strength Training Mass Load & Session MET Engine
+- **Mass Load Multiplier:** Scales MET intensity dynamically based on external barbell/dumbbell load:
+  $$\text{Mass Multiplier} = \frac{\text{Body Weight} + \text{External Weight}}{\text{Body Weight}}$$
+  - *Reference:* US Army Research Institute of Environmental Medicine (USARIEM) Load Carriage Energy Cost Models (*Pandolf KB et al. J Appl Physiol 1977*).
+- **Session Rest-Weighted MET Equation:** Combines active rep exertion at **Active MET** with 60s inter-set rest intervals at **3.0 METs** (Ainsworth Code 02050 standing/resting recovery):
+  $$\text{Session MET} = \frac{(\text{Active MET} \times \text{Active Mins}) + (3.0 \text{ METs} \times \text{Rest Mins})}{\text{Total Session Mins}}$$
+  - *Reference:* NSCA Essentials of Strength Training and Conditioning (4th Ed.) & Schoenfeld BJ et al. *Sports Med 2015*.
+
+### 🔄 6. Post-Exercise Recovery Macro Allocation Ratios
+- **Cardio / Endurance Recovery:** `75% Carbs`, `15% Protein`, `10% Fat` (3:1 to 4:1 Carb-to-Protein ratio for rapid muscle glycogen resynthesis via GLUT4 translocation).
+- **Strength / Resistance Recovery:** `45% Protein`, `45% Carbs`, `10% Fat` (1:1 Carb-to-Protein ratio for hypertrophic muscle protein synthesis and glycogen recovery).
+- **General Fitness Recovery:** `20% Protein`, `50% Carbs`, `30% Fat` (balanced physiological recovery).
+  - *Reference:* Thomas DT, Erdman KA, Burke LM. *"American College of Sports Medicine Joint Position Statement: Nutrition and Athletic Performance."* Med Sci Sports Exerc. 2016;48(3):543-568.
 
 ---
 
