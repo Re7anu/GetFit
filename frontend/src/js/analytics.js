@@ -64,7 +64,7 @@ export class AnalyticsManager {
         <div class="glass-card" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
           <div>
             <h2 style="font-size: 1.5rem; font-family: var(--font-heading); margin-bottom: 0.25rem;">
-              📊 Health Analytics & Goal History
+              Health Analytics & Goal History
             </h2>
             <p class="text-muted" style="font-size: 0.85rem;">
               Click on any day card in the calendar to inspect full meal and exercise details.
@@ -75,10 +75,10 @@ export class AnalyticsManager {
             <!-- View Mode Switch -->
             <div style="background: rgba(9, 12, 16, 0.7); border: 1px solid var(--border-glass); padding: 0.25rem; border-radius: 999px; display: flex;">
               <button id="an-view-cal" class="btn" style="padding: 0.4rem 0.85rem; font-size: 0.8rem; border-radius: 999px; background: ${this.currentView === 'calendar' ? 'var(--accent-health)' : 'transparent'}; color: ${this.currentView === 'calendar' ? '#000' : 'var(--text-secondary)'}; font-weight: 700;">
-                📅 Calendar
+                Calendar View
               </button>
               <button id="an-view-graph" class="btn" style="padding: 0.4rem 0.85rem; font-size: 0.8rem; border-radius: 999px; background: ${this.currentView === 'graph' ? 'var(--accent-health)' : 'transparent'}; color: ${this.currentView === 'graph' ? '#000' : 'var(--text-secondary)'}; font-weight: 700;">
-                📈 Line Graph
+                Line Graph
               </button>
             </div>
 

@@ -122,7 +122,7 @@ export class App {
                 <!-- Supporting Text / Ingredients Input -->
                 <div style="margin-top: 0.75rem;">
                   <label style="font-size: 0.75rem; color: var(--text-secondary); display: block; margin-bottom: 0.35rem; font-weight: 600;">
-                    ✍️ Supporting Details / Custom Notes (Optional)
+                    Supporting Details / Custom Notes (Optional)
                   </label>
                   <input type="text" id="ai-food-image-notes" class="form-input" placeholder="e.g. 2 fried eggs cooked in olive oil, sourdough toast, half avocado..." style="padding: 0.55rem 0.75rem; font-size: 0.85rem; background: rgba(22,27,34,0.8); width: 100%;" />
                 </div>
@@ -132,15 +132,15 @@ export class App {
                   <div style="flex: 1; min-width: 160px;">
                     <select id="ai-food-meal-hint" class="form-input" style="padding: 0.55rem; font-size: 0.85rem; background: rgba(22,27,34,0.8);">
                       <option value="">Auto-detect Meal Type</option>
-                      <option value="breakfast">🍳 Breakfast</option>
-                      <option value="lunch">🥗 Lunch</option>
-                      <option value="dinner">🥩 Dinner</option>
-                      <option value="snack">🍎 Snack</option>
+                      <option value="breakfast">Breakfast</option>
+                      <option value="lunch">Lunch</option>
+                      <option value="dinner">Dinner</option>
+                      <option value="snack">Snack</option>
                     </select>
                   </div>
 
                   <button type="submit" id="ai-food-image-btn" class="btn btn-primary" style="padding: 0.6rem 1.4rem; font-size: 0.85rem; font-weight: 700; white-space: nowrap;" disabled>
-                    ✨ Scan & Log Meal Image
+                    Scan & Log Meal
                   </button>
                 </div>
 
@@ -165,7 +165,7 @@ export class App {
           <!-- Right Column: Today's Logged Meals List (Positioned Side-by-Side) -->
           <div class="glass-card">
             <h3 style="margin-bottom: 1rem; font-size: 1.1rem; display: flex; align-items: center; justify-content: space-between;">
-              <span>🥗 Today's Logged Meals</span>
+              <span>Today's Logged Meals</span>
               <span id="food-tab-cals-count" class="text-muted" style="font-size: 0.85rem;"></span>
             </h3>
             <div id="food-tab-meals-list" class="scrollable-timeline" style="display: flex; flex-direction: column; gap: 0.75rem; max-height: 500px; overflow-y: auto;">
@@ -343,7 +343,7 @@ export class App {
           </div>
           <div>
             <button id="btn-open-workout-plan" class="btn" style="background: rgba(255,255,255,0.06); color: var(--text-primary); border: 1px solid var(--border-glass); padding: 0.55rem 1rem; font-size: 0.8rem; font-weight: 600; white-space: nowrap; display: flex; align-items: center; gap: 0.4rem;">
-              ⚙️ Edit Routine Blueprint
+              Edit Routine Blueprint
             </button>
           </div>
         </div>
@@ -351,23 +351,23 @@ export class App {
         <!-- Tier 1: Primary Functional Category Switcher (Log Workout vs 7-Day Planner) -->
         <div style="display: flex; gap: 0.75rem; margin-bottom: 1rem; flex-wrap: wrap;">
           <button id="ex-primary-tab-logging" type="button" class="btn" style="flex: 1; min-width: 200px; padding: 0.75rem; font-size: 0.9rem; font-weight: 800; border-radius: 12px; background: rgba(56, 189, 248, 0.15); color: #38BDF8; border: 1px solid var(--accent-workout); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5rem; transition: all 0.2s ease;">
-            📝 Log Workout Activity
+            Log Workout Activity
           </button>
           <button id="ex-primary-tab-planner" type="button" class="btn" style="flex: 1; min-width: 200px; padding: 0.75rem; font-size: 0.9rem; font-weight: 700; border-radius: 12px; background: rgba(15, 23, 42, 0.6); color: var(--text-secondary); border: 1px solid var(--border-glass); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5rem; transition: all 0.2s ease;">
-            🗓️ 7-Day Routine Planner
+            7-Day Routine Planner
           </button>
         </div>
 
         <!-- Tier 2: Secondary Logging Mode Sub-Pills (Visible inside "Log Workout Activity" mode) -->
         <div id="ex-logging-mode-bar" style="display: flex; gap: 0.5rem; background: rgba(13, 17, 23, 0.8); border: 1px solid var(--border-glass); padding: 0.35rem; border-radius: 12px; margin-bottom: 1.25rem; flex-wrap: wrap;">
           <button id="ex-subtab-catalog" type="button" style="flex: 1; min-width: 120px; padding: 0.5rem 0.65rem; border-radius: 8px; border: none; font-size: 0.82rem; font-weight: 700; background: var(--accent-workout); color: #fff; cursor: pointer; transition: all 0.2s ease;">
-            ⚡ MET Catalog
+            MET Catalog
           </button>
           <button id="ex-subtab-pose" type="button" style="flex: 1; min-width: 120px; padding: 0.5rem 0.65rem; border-radius: 8px; border: none; font-size: 0.82rem; font-weight: 600; background: transparent; color: var(--text-secondary); cursor: pointer; transition: all 0.2s ease;">
-            📷 AI Pose Counter
+            AI Pose Counter
           </button>
           <button id="ex-subtab-manual" type="button" style="flex: 1; min-width: 120px; padding: 0.5rem 0.65rem; border-radius: 8px; border: none; font-size: 0.82rem; font-weight: 600; background: transparent; color: var(--text-secondary); cursor: pointer; transition: all 0.2s ease;">
-            ✏️ Quick Manual Entry
+            Quick Manual Entry
           </button>
         </div>
 
@@ -418,7 +418,7 @@ export class App {
                 <div id="dash-ex-dynamic-fields" style="display: none;"></div>
 
                 <button type="submit" id="dash-ex-btn" class="btn btn-cobalt" style="padding: 0.65rem; font-size: 0.85rem; display: none; width: 100%; font-weight: 700;">
-                  ⚡ Calculate & Log Net MET Workout
+                  Calculate & Log Net MET Workout
                 </button>
               </form>
               <div id="dash-ex-status" style="display:none; font-size: 0.85rem; margin-top: 0.75rem; color: var(--accent-workout);"></div>
@@ -435,13 +435,13 @@ export class App {
                   </label>
                   <div style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
                     <button type="button" class="pose-ex-selector-btn active" data-exercise="squats" style="flex: 1; min-width: 90px; padding: 0.4rem 0.65rem; border-radius: 8px; border: 1px solid var(--accent-workout); background: rgba(56, 189, 248, 0.15); color: #38BDF8; font-size: 0.8rem; font-weight: 700; cursor: pointer;">
-                      🦵 Squats
+                      Squats
                     </button>
                     <button type="button" class="pose-ex-selector-btn" data-exercise="pushups" style="flex: 1; min-width: 90px; padding: 0.4rem 0.65rem; border-radius: 8px; border: 1px solid var(--border-glass); background: rgba(255,255,255,0.05); color: var(--text-secondary); font-size: 0.8rem; font-weight: 600; cursor: pointer;">
-                      🧱 Push-ups
+                      Push-ups
                     </button>
                     <button type="button" class="pose-ex-selector-btn" data-exercise="bicep_curls" style="flex: 1; min-width: 90px; padding: 0.4rem 0.65rem; border-radius: 8px; border: 1px solid var(--border-glass); background: rgba(255,255,255,0.05); color: var(--text-secondary); font-size: 0.8rem; font-weight: 600; cursor: pointer;">
-                      🦾 Bicep Curls
+                      Bicep Curls
                     </button>
                   </div>
                 </div>
@@ -548,7 +548,7 @@ export class App {
 
                 <!-- Save Set Action Button -->
                 <button type="button" id="btn-save-pose-workout" class="btn btn-primary" style="width: 100%; padding: 0.65rem; font-size: 0.85rem; font-weight: 700; opacity: 0.5;" disabled>
-                  💾 Save Workout Set (0 Reps)
+                  Save Workout Set (0 Reps)
                 </button>
               </div>
             </div>
@@ -557,7 +557,7 @@ export class App {
             <div id="ex-section-manual" style="display: none;">
               <form id="tab-manual-exercise-form" style="display: flex; flex-direction: column; gap: 0.85rem;">
                 <p style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.25rem;">
-                  💡 Log exact workout calories from Apple Watch, Garmin, Whoop, or unlisted niche activities.
+                  Log exact workout calories from Apple Watch, Garmin, Whoop, or unlisted niche activities.
                 </p>
                 <div class="form-group" style="margin-bottom: 0;">
                   <label class="form-label" style="font-size: 0.8rem; color: var(--text-secondary);">Exercise Name</label>
@@ -584,7 +584,7 @@ export class App {
           <!-- Right Column: Today's Active Logged Workouts List -->
           <div class="glass-card" style="padding: 1.25rem;">
             <h3 style="margin-bottom: 1rem; font-size: 1.05rem; display: flex; align-items: center; justify-content: space-between;">
-              <span>⚡ Today's Logged Workouts</span>
+              <span>Today's Logged Workouts</span>
               <span id="ex-tab-burn-count" class="text-muted" style="font-size: 0.85rem;"></span>
             </h3>
             <div id="ex-tab-workouts-list" class="scrollable-timeline" style="display: flex; flex-direction: column; gap: 0.75rem; max-height: 480px; overflow-y: auto;">
@@ -599,12 +599,12 @@ export class App {
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.1rem; flex-wrap: wrap; gap: 0.5rem;">
             <div>
               <h3 style="font-size: 1.1rem; font-family: var(--font-heading); margin: 0; display: flex; align-items: center; gap: 0.4rem;">
-                <span>🗓️ 7-Day Routine Blueprint</span>
+                <span>7-Day Routine Blueprint</span>
               </h3>
               <p class="text-muted" style="font-size: 0.8rem; margin-top: 0.2rem;">Your active weekly workout schedule & target exercise blueprint.</p>
             </div>
             <button id="btn-edit-plan-planner" class="btn btn-primary" style="padding: 0.55rem 1.1rem; font-size: 0.8rem; font-weight: 700;">
-              ⚙️ Edit 7-Day Blueprint
+              Edit 7-Day Blueprint
             </button>
           </div>
           <div id="weekly-plan-schedule-box"></div>

@@ -98,7 +98,7 @@ export class DashboardManager {
                   <!-- Fiber -->
                   <div class="macro-group" style="margin-top: 0;">
                     <div class="macro-header">
-                      <span style="font-weight: 600; font-size: 0.8rem; color: #34D399;">🌾 Fiber</span>
+                      <span style="font-weight: 600; font-size: 0.8rem; color: #34D399;">Fiber</span>
                       <span id="micro-fiber-label" class="text-muted" style="font-size: 0.75rem;">0g / 30g</span>
                     </div>
                     <div class="macro-bar-bg">
@@ -109,7 +109,7 @@ export class DashboardManager {
                   <!-- Sodium -->
                   <div class="macro-group" style="margin-top: 0;">
                     <div class="macro-header">
-                      <span style="font-weight: 600; font-size: 0.8rem; color: #FBBF24;">🧂 Sodium</span>
+                      <span style="font-weight: 600; font-size: 0.8rem; color: #FBBF24;">Sodium</span>
                       <span id="micro-sodium-label" class="text-muted" style="font-size: 0.75rem;">0mg / 2300mg</span>
                     </div>
                     <div class="macro-bar-bg">
@@ -120,7 +120,7 @@ export class DashboardManager {
                   <!-- Potassium -->
                   <div class="macro-group" style="margin-top: 0;">
                     <div class="macro-header">
-                      <span style="font-weight: 600; font-size: 0.8rem; color: #60A5FA;">🥑 Potassium</span>
+                      <span style="font-weight: 600; font-size: 0.8rem; color: #60A5FA;">Potassium</span>
                       <span id="micro-potassium-label" class="text-muted" style="font-size: 0.75rem;">0mg / 3400mg</span>
                     </div>
                     <div class="macro-bar-bg">
@@ -131,7 +131,7 @@ export class DashboardManager {
                   <!-- Vitamin C -->
                   <div class="macro-group" style="margin-top: 0;">
                     <div class="macro-header">
-                      <span style="font-weight: 600; font-size: 0.8rem; color: #F472B6;">🍊 Vitamin C</span>
+                      <span style="font-weight: 600; font-size: 0.8rem; color: #F472B6;">Vitamin C</span>
                       <span id="micro-vitamin_c-label" class="text-muted" style="font-size: 0.75rem;">0mg / 90mg</span>
                     </div>
                     <div class="macro-bar-bg">
@@ -142,7 +142,7 @@ export class DashboardManager {
                   <!-- Calcium -->
                   <div class="macro-group" style="margin-top: 0;">
                     <div class="macro-header">
-                      <span style="font-weight: 600; font-size: 0.8rem; color: #A7F3D0;">🥛 Calcium</span>
+                      <span style="font-weight: 600; font-size: 0.8rem; color: #A7F3D0;">Calcium</span>
                       <span id="micro-calcium-label" class="text-muted" style="font-size: 0.75rem;">0mg / 1000mg</span>
                     </div>
                     <div class="macro-bar-bg">
@@ -153,7 +153,7 @@ export class DashboardManager {
                   <!-- Iron -->
                   <div class="macro-group" style="margin-top: 0;">
                     <div class="macro-header">
-                      <span style="font-weight: 600; font-size: 0.8rem; color: #C084FC;">🥩 Iron</span>
+                      <span style="font-weight: 600; font-size: 0.8rem; color: #C084FC;">Iron</span>
                       <span id="micro-iron-label" class="text-muted" style="font-size: 0.75rem;">0mg / 18mg</span>
                     </div>
                     <div class="macro-bar-bg">
