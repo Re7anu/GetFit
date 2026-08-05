@@ -8,6 +8,7 @@ import { DashboardManager } from './dashboard.js';
 import { LoggingManager } from './logging.js';
 import { AnalyticsManager } from './analytics.js';
 import { WorkoutPlanManager } from './workout_plan.js';
+import { PoseTrackerManager } from './pose_tracker.js';
 
 export class App {
   static async init() {
@@ -18,6 +19,7 @@ export class App {
       LoggingManager.init();
       AnalyticsManager.init();
       WorkoutPlanManager.init();
+      PoseTrackerManager.init();
     } catch (err) {
       console.error('[App Init Warning]:', err.message);
     }
@@ -346,23 +348,26 @@ export class App {
           </div>
         </div>
 
-        <!-- Sub-Navigation 3-Tab Bar -->
-        <div style="display: flex; gap: 0.5rem; background: rgba(13, 17, 23, 0.8); border: 1px solid var(--border-glass); padding: 0.35rem; border-radius: 12px; margin-bottom: 1.25rem;">
-          <button id="ex-subtab-catalog" type="button" style="flex: 1; padding: 0.55rem; border-radius: 8px; border: none; font-size: 0.85rem; font-weight: 700; background: var(--accent-workout); color: #fff; cursor: pointer; transition: all 0.2s ease;">
-            ⚡ Scientific MET Catalog
+        <!-- Sub-Navigation 4-Tab Bar -->
+        <div style="display: flex; gap: 0.5rem; background: rgba(13, 17, 23, 0.8); border: 1px solid var(--border-glass); padding: 0.35rem; border-radius: 12px; margin-bottom: 1.25rem; flex-wrap: wrap;">
+          <button id="ex-subtab-catalog" type="button" style="flex: 1; min-width: 140px; padding: 0.55rem; border-radius: 8px; border: none; font-size: 0.85rem; font-weight: 700; background: var(--accent-workout); color: #fff; cursor: pointer; transition: all 0.2s ease;">
+            ⚡ MET Catalog
           </button>
-          <button id="ex-subtab-manual" type="button" style="flex: 1; padding: 0.55rem; border-radius: 8px; border: none; font-size: 0.85rem; font-weight: 600; background: transparent; color: var(--text-secondary); cursor: pointer; transition: all 0.2s ease;">
+          <button id="ex-subtab-pose" type="button" style="flex: 1; min-width: 140px; padding: 0.55rem; border-radius: 8px; border: none; font-size: 0.85rem; font-weight: 600; background: transparent; color: var(--text-secondary); cursor: pointer; transition: all 0.2s ease;">
+            📷 AI Pose Counter
+          </button>
+          <button id="ex-subtab-manual" type="button" style="flex: 1; min-width: 140px; padding: 0.55rem; border-radius: 8px; border: none; font-size: 0.85rem; font-weight: 600; background: transparent; color: var(--text-secondary); cursor: pointer; transition: all 0.2s ease;">
             ✏️ Quick Manual Entry
           </button>
-          <button id="ex-subtab-planner" type="button" style="flex: 1; padding: 0.55rem; border-radius: 8px; border: none; font-size: 0.85rem; font-weight: 600; background: transparent; color: var(--text-secondary); cursor: pointer; transition: all 0.2s ease;">
-            🗓️ 7-Day Weekly Planner
+          <button id="ex-subtab-planner" type="button" style="flex: 1; min-width: 140px; padding: 0.55rem; border-radius: 8px; border: none; font-size: 0.85rem; font-weight: 600; background: transparent; color: var(--text-secondary); cursor: pointer; transition: all 0.2s ease;">
+            🗓️ 7-Day Planner
           </button>
         </div>
 
-        <!-- VIEW 1: Main 2-Column Interactive Workout Hub (Catalog / Manual Logging + Today's Logged Workouts) -->
+        <!-- VIEW 1: Main 2-Column Interactive Workout Hub (Catalog / Pose Tracker / Manual Logging + Today's Logged Workouts) -->
         <div id="ex-view-logging-hub" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 1.5rem; align-items: start;">
 
-          <!-- Left Column: Interactive Logging Form (Catalog Mode or Manual Mode) -->
+          <!-- Left Column: Interactive Logging Form (Catalog Mode, Pose Mode, or Manual Mode) -->
           <div class="glass-card" style="padding: 1.25rem;">
 
             <!-- Sub-Mode 1: Scientific 2-Step Workout Catalog Form (Default Active) -->
@@ -412,7 +417,136 @@ export class App {
               <div id="dash-ex-status" style="display:none; font-size: 0.85rem; margin-top: 0.75rem; color: var(--accent-workout);"></div>
             </div>
 
-            <!-- Sub-Mode 2: Quick Manual Entry Form -->
+            <!-- Sub-Mode 2: AI Camera Motion Pose Tracker -->
+            <div id="ex-section-pose-tracker" style="display: none;">
+              <div style="display: flex; flex-direction: column; gap: 1rem;">
+                
+                <!-- Exercise Selectors -->
+                <div class="pose-fs-hide">
+                  <label style="font-size: 0.75rem; color: var(--text-secondary); font-weight: 700; display: block; margin-bottom: 0.4rem; text-transform: uppercase; letter-spacing: 0.05em;">
+                    Select Motion Tracked Exercise:
+                  </label>
+                  <div style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
+                    <button type="button" class="pose-ex-selector-btn active" data-exercise="squats" style="flex: 1; min-width: 90px; padding: 0.4rem 0.65rem; border-radius: 8px; border: 1px solid var(--accent-workout); background: rgba(56, 189, 248, 0.15); color: #38BDF8; font-size: 0.8rem; font-weight: 700; cursor: pointer;">
+                      🦵 Squats
+                    </button>
+                    <button type="button" class="pose-ex-selector-btn" data-exercise="pushups" style="flex: 1; min-width: 90px; padding: 0.4rem 0.65rem; border-radius: 8px; border: 1px solid var(--border-glass); background: rgba(255,255,255,0.05); color: var(--text-secondary); font-size: 0.8rem; font-weight: 600; cursor: pointer;">
+                      🧱 Push-ups
+                    </button>
+                    <button type="button" class="pose-ex-selector-btn" data-exercise="bicep_curls" style="flex: 1; min-width: 90px; padding: 0.4rem 0.65rem; border-radius: 8px; border: 1px solid var(--border-glass); background: rgba(255,255,255,0.05); color: var(--text-secondary); font-size: 0.8rem; font-weight: 600; cursor: pointer;">
+                      🦾 Bicep Curls
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Active Exercise Banner Info & Added Weight Field -->
+                <div class="pose-fs-hide" style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-glass); padding: 0.75rem 0.85rem; border-radius: 10px; display: flex; flex-direction: column; gap: 0.6rem;">
+                  <div>
+                    <div id="pose-ex-title" style="font-size: 0.9rem; font-weight: 800; color: var(--text-primary); margin-bottom: 0.2rem;">Bodyweight Squats</div>
+                    <div id="pose-ex-desc" style="font-size: 0.75rem; color: var(--text-secondary);">Stand facing camera. Lower hips until knees reach 90° depth.</div>
+                  </div>
+
+                  <!-- Added External Weight Field (Dumbbells, Barbell, Vest) -->
+                  <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(0, 0, 0, 0.3); border: 1px solid var(--border-glass); padding: 0.45rem 0.65rem; border-radius: 8px;">
+                    <label for="pose-added-weight-input" style="font-size: 0.78rem; font-weight: 600; color: var(--text-secondary); display: flex; align-items: center; gap: 0.35rem; margin: 0;">
+                      <span>🏋️</span> Added Weight (Dumbbells / Barbell):
+                    </label>
+                    <div style="display: flex; align-items: center; gap: 0.35rem;">
+                      <input type="number" id="pose-added-weight-input" min="0" step="0.5" value="0" style="width: 70px; padding: 0.25rem 0.45rem; background: rgba(15, 23, 42, 0.8); border: 1px solid var(--border-glass); border-radius: 6px; color: #38BDF8; font-size: 0.85rem; font-weight: 800; text-align: center;" placeholder="0" />
+                      <span style="font-size: 0.78rem; color: var(--text-muted); font-weight: 700;">kg</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Camera Viewport with Overlay Canvas & HUD -->
+                <div class="pose-camera-viewport" style="position: relative; width: 100%; border-radius: 12px; overflow: hidden; background: #000; border: 1px solid var(--border-glass); aspect-ratio: 4/3; display: flex; align-items: center; justify-content: center;">
+                  <video id="pose-video" style="width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1);" autoplay playsinline muted></video>
+                  <canvas id="pose-canvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; transform: scaleX(-1); pointer-events: none;"></canvas>
+                  
+                  <!-- Top Overlay HUD -->
+                  <div style="position: absolute; top: 10px; left: 10px; right: 10px; display: flex; justify-content: space-between; gap: 0.5rem; pointer-events: none; z-index: 10;">
+                    <!-- Rep Counter Badge -->
+                    <div style="background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(8px); border: 1px solid rgba(56, 189, 248, 0.4); border-radius: 10px; padding: 0.4rem 0.75rem; text-align: center;">
+                      <div style="font-size: 0.65rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">REPS</div>
+                      <div id="pose-hud-rep-count" style="font-size: 1.5rem; font-weight: 900; color: #38BDF8; line-height: 1;">0</div>
+                    </div>
+
+                    <!-- Angle Badge -->
+                    <div style="background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(8px); border: 1px solid var(--border-glass); border-radius: 10px; padding: 0.4rem 0.75rem; text-align: center;">
+                      <div style="font-size: 0.65rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">ANGLE</div>
+                      <div id="pose-hud-angle" style="font-size: 1.25rem; font-weight: 800; color: var(--text-primary); line-height: 1.2;">0°</div>
+                    </div>
+
+                    <!-- Stage Badge -->
+                    <div style="background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(8px); border: 1px solid var(--border-glass); border-radius: 10px; padding: 0.4rem 0.75rem; text-align: center;">
+                      <div style="font-size: 0.65rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">STAGE</div>
+                      <div id="pose-hud-stage" style="font-size: 1rem; font-weight: 800; color: var(--accent-workout); line-height: 1.3;">UP</div>
+                    </div>
+                  </div>
+
+                  <!-- Fullscreen Floating Left Dock: Exercise Switcher (Appears in empty side space) -->
+                  <div class="pose-fs-side-dock pose-fs-left-dock">
+                    <div style="font-size: 0.65rem; color: var(--text-muted); font-weight: 800; text-transform: uppercase; margin-bottom: 0.2rem; letter-spacing: 0.05em; text-shadow: 0 1px 4px #000;">EXERCISE</div>
+                    <button type="button" class="pose-ex-selector-btn active" data-exercise="squats" style="padding: 0.5rem 0.75rem; border-radius: 8px; border: 1px solid var(--accent-workout); background: rgba(56, 189, 248, 0.2); color: #38BDF8; font-size: 0.85rem; font-weight: 800; cursor: pointer; text-align: left; backdrop-filter: blur(8px);">
+                      🦵 Squats
+                    </button>
+                    <button type="button" class="pose-ex-selector-btn" data-exercise="pushups" style="padding: 0.5rem 0.75rem; border-radius: 8px; border: 1px solid var(--border-glass); background: rgba(15, 23, 42, 0.85); color: var(--text-secondary); font-size: 0.85rem; font-weight: 700; cursor: pointer; text-align: left; backdrop-filter: blur(8px);">
+                      🧱 Push-ups
+                    </button>
+                    <button type="button" class="pose-ex-selector-btn" data-exercise="bicep_curls" style="padding: 0.5rem 0.75rem; border-radius: 8px; border: 1px solid var(--border-glass); background: rgba(15, 23, 42, 0.85); color: var(--text-secondary); font-size: 0.85rem; font-weight: 700; cursor: pointer; text-align: left; backdrop-filter: blur(8px);">
+                      🦾 Bicep Curls
+                    </button>
+                  </div>
+
+                  <!-- Fullscreen Floating Right Dock: Added Weight Adjuster (Appears in empty side space) -->
+                  <div class="pose-fs-side-dock pose-fs-right-dock">
+                    <div style="font-size: 0.65rem; color: var(--text-muted); font-weight: 800; text-transform: uppercase; margin-bottom: 0.2rem; letter-spacing: 0.05em; text-shadow: 0 1px 4px #000;">ADDED WEIGHT</div>
+                    <div style="display: flex; align-items: center; gap: 0.4rem; background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(12px); border: 1px solid var(--border-glass); border-radius: 10px; padding: 0.4rem 0.6rem; box-shadow: 0 4px 16px rgba(0,0,0,0.5);">
+                      <button type="button" id="btn-pose-fs-weight-minus" style="background: rgba(255,255,255,0.1); border: 1px solid var(--border-glass); color: #fff; width: 32px; height: 32px; border-radius: 8px; font-size: 1.1rem; font-weight: 900; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s ease;" title="Decrease Weight (-2.5 kg)">-</button>
+                      <div style="display: flex; align-items: center; gap: 0.2rem;">
+                        <input type="number" id="pose-fs-weight-input" min="0" step="0.5" value="0" style="width: 65px; padding: 0.25rem 0.35rem; background: rgba(15, 23, 42, 0.95); border: 1px solid var(--border-glass); border-radius: 6px; color: #38BDF8; font-size: 1rem; font-weight: 900; text-align: center; outline: none;" placeholder="0" />
+                        <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 800;">kg</span>
+                      </div>
+                      <button type="button" id="btn-pose-fs-weight-plus" style="background: rgba(255,255,255,0.1); border: 1px solid var(--border-glass); color: #fff; width: 32px; height: 32px; border-radius: 8px; font-size: 1.1rem; font-weight: 900; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s ease;" title="Increase Weight (+2.5 kg)">+</button>
+                    </div>
+                  </div>
+
+                  <!-- Bottom Overlay Real-time Form Banner -->
+                  <div id="pose-form-banner" style="position: absolute; bottom: 12px; left: 12px; right: 12px; background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(12px); border: 1px solid var(--border-glass); border-radius: 10px; padding: 0.65rem 1rem; text-align: center; font-size: 1.15rem; font-weight: 900; color: var(--text-primary); z-index: 10; letter-spacing: 0.02em; box-shadow: 0 4px 20px rgba(0,0,0,0.4);">
+                    Get into position & begin!
+                  </div>
+                </div>
+
+                <!-- Hidden File Input for Uploading Recorded Video -->
+                <input type="file" id="pose-video-file-input" accept="video/*" style="display: none;" />
+
+                <!-- Controls Toolbar -->
+                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                  <button type="button" id="btn-start-pose-cam" class="btn btn-cobalt" style="flex: 1; padding: 0.6rem; font-size: 0.85rem; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; gap: 0.35rem;">
+                    📷 Start Camera
+                  </button>
+                  <button type="button" id="btn-stop-pose-cam" class="btn" style="flex: 1; padding: 0.6rem; font-size: 0.85rem; font-weight: 700; background: rgba(239, 68, 68, 0.2); color: #EF4444; border: 1px solid rgba(239, 68, 68, 0.4); display: none; align-items: center; justify-content: center; gap: 0.35rem;">
+                    ⏹️ Stop
+                  </button>
+                  <button type="button" id="btn-trigger-upload-pose-video" class="btn pose-fs-hide" style="flex: 1; padding: 0.6rem; font-size: 0.85rem; font-weight: 700; background: rgba(56, 189, 248, 0.15); color: #38BDF8; border: 1px solid rgba(56, 189, 248, 0.4); display: inline-flex; align-items: center; justify-content: center; gap: 0.35rem; cursor: pointer;">
+                    📁 Upload Video
+                  </button>
+                  <button type="button" id="btn-reset-pose-reps" class="btn" style="padding: 0.6rem 0.85rem; font-size: 0.85rem; background: rgba(255,255,255,0.08); color: var(--text-secondary); border: 1px solid var(--border-glass);" title="Reset Rep Counter">
+                    🔄 Reset
+                  </button>
+                  <button type="button" id="btn-toggle-pose-fullscreen" class="btn" style="padding: 0.6rem 0.85rem; font-size: 0.85rem; background: rgba(255,255,255,0.08); color: var(--text-secondary); border: 1px solid var(--border-glass); cursor: pointer;" title="Toggle Fullscreen View">
+                    ⤢ Fullscreen
+                  </button>
+                </div>
+
+                <!-- Save Set Action Button -->
+                <button type="button" id="btn-save-pose-workout" class="btn btn-primary" style="width: 100%; padding: 0.65rem; font-size: 0.85rem; font-weight: 700; opacity: 0.5;" disabled>
+                  💾 Save Workout Set (0 Reps)
+                </button>
+              </div>
+            </div>
+
+            <!-- Sub-Mode 3: Quick Manual Entry Form -->
             <div id="ex-section-manual" style="display: none;">
               <form id="tab-manual-exercise-form" style="display: flex; flex-direction: column; gap: 0.85rem;">
                 <p style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.25rem;">
@@ -472,17 +606,19 @@ export class App {
       </div>
     `;
 
-    // Bind Sub-Tab Navigation (Catalog, Quick Manual, 7-Day Planner)
+    // Bind Sub-Tab Navigation (Catalog, AI Pose Counter, Quick Manual, 7-Day Planner)
     const subtabCatalog = document.getElementById('ex-subtab-catalog');
+    const subtabPose = document.getElementById('ex-subtab-pose');
     const subtabManual = document.getElementById('ex-subtab-manual');
     const subtabPlanner = document.getElementById('ex-subtab-planner');
     const viewHub = document.getElementById('ex-view-logging-hub');
     const viewPlanner = document.getElementById('ex-view-weekly-planner');
     const secCatalog = document.getElementById('ex-section-catalog');
+    const secPose = document.getElementById('ex-section-pose-tracker');
     const secManual = document.getElementById('ex-section-manual');
 
     const setSubtabActive = (activeBtn) => {
-      [subtabCatalog, subtabManual, subtabPlanner].forEach(btn => {
+      [subtabCatalog, subtabPose, subtabManual, subtabPlanner].forEach(btn => {
         if (!btn) return;
         if (btn === activeBtn) {
           btn.style.background = 'var(--accent-workout)';
@@ -501,8 +637,20 @@ export class App {
         setSubtabActive(subtabCatalog);
         viewHub.style.display = 'grid';
         viewPlanner.style.display = 'none';
-        secCatalog.style.display = 'block';
-        secManual.style.display = 'none';
+        if (secCatalog) secCatalog.style.display = 'block';
+        if (secPose) secPose.style.display = 'none';
+        if (secManual) secManual.style.display = 'none';
+      });
+    }
+
+    if (subtabPose) {
+      subtabPose.addEventListener('click', () => {
+        setSubtabActive(subtabPose);
+        viewHub.style.display = 'grid';
+        viewPlanner.style.display = 'none';
+        if (secCatalog) secCatalog.style.display = 'none';
+        if (secPose) secPose.style.display = 'block';
+        if (secManual) secManual.style.display = 'none';
       });
     }
 
@@ -511,8 +659,9 @@ export class App {
         setSubtabActive(subtabManual);
         viewHub.style.display = 'grid';
         viewPlanner.style.display = 'none';
-        secCatalog.style.display = 'none';
-        secManual.style.display = 'block';
+        if (secCatalog) secCatalog.style.display = 'none';
+        if (secPose) secPose.style.display = 'none';
+        if (secManual) secManual.style.display = 'block';
       });
     }
 

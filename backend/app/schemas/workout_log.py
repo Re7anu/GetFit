@@ -86,3 +86,42 @@ class WorkoutPlanResponse(BaseModel):
     calculated_base_protein_g: float
     calculated_max_protein_cap_g: float
 
+
+class PoseLandmarkPoint(BaseModel):
+    """3D Landmark point from Pose Estimation framework."""
+
+    x: float
+    y: float
+    z: float = 0.0
+    visibility: float = 1.0
+
+
+class PoseFrameEvaluationRequest(BaseModel):
+    """Request payload for server-side pose joint angle & state machine evaluation."""
+
+    exercise: str = Field(..., description="'squats', 'pushups', or 'bicep_curls'")
+    landmarks: List[PoseLandmarkPoint]
+    current_stage: str = Field("UP", description="'UP' or 'DOWN'")
+    reached_bottom: bool = Field(False)
+    rep_count: int = Field(0, ge=0)
+    last_rep_timestamp: float = Field(0.0)
+
+
+class FormFeedbackResponse(BaseModel):
+    """Form feedback banner response status and message text."""
+
+    status: str  # 'good', 'warning', 'danger'
+    text: str
+
+
+class PoseFrameEvaluationResponse(BaseModel):
+    """Response returned after evaluating joint angles and rep state machine."""
+
+    current_angle: int
+    stage: str
+    reached_bottom: bool
+    rep_count: int
+    rep_incremented: bool
+    last_rep_timestamp: float
+    form_feedback: FormFeedbackResponse
+

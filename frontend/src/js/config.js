@@ -38,6 +38,7 @@ export const ENDPOINTS = {
   WORKOUT_SUMMARY: `${API_BASE_URL}/workouts/summary/today`,
   WORKOUT_PLAN: `${API_BASE_URL}/workouts/plan`,
   WORKOUT_PLAN_TOGGLE: `${API_BASE_URL}/workouts/plan/toggle-day`,
+  POSE_EVALUATE_FRAME: `${API_BASE_URL}/workouts/pose/evaluate-frame`,
   // Backward compatibility aliases
   EXERCISES: `${API_BASE_URL}/workouts/logs/manual`,
   EXERCISES_STRUCTURED: `${API_BASE_URL}/workouts/logs/structured`,

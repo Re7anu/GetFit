@@ -476,3 +476,115 @@
 .switch-input:checked::before {
   transform: translateX(20px);
 }
+
+/* AI Pose Tracker Fullscreen Mode Overlay */
+#ex-section-pose-tracker:fullscreen,
+#ex-section-pose-tracker.pose-fullscreen-mode {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  z-index: 999999 !important;
+  background: #0b0f17 !important;
+  padding: 1rem 1.25rem !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+  box-sizing: border-box !important;
+  overflow-y: auto !important;
+  box-shadow: 0 0 50px rgba(0,0,0,0.95);
+}
+
+#ex-section-pose-tracker:fullscreen > div,
+#ex-section-pose-tracker.pose-fullscreen-mode > div {
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+  gap: 0.75rem !important;
+}
+
+#ex-section-pose-tracker:fullscreen .pose-fs-hide,
+#ex-section-pose-tracker.pose-fullscreen-mode .pose-fs-hide {
+  display: none !important;
+}
+
+#ex-section-pose-tracker:fullscreen .pose-camera-viewport,
+#ex-section-pose-tracker.pose-fullscreen-mode .pose-camera-viewport {
+  flex: 1 1 auto !important;
+  width: 100% !important;
+  height: 78vh !important;
+  min-height: 420px !important;
+  aspect-ratio: unset !important;
+  position: relative !important;
+}
+
+#ex-section-pose-tracker:fullscreen video#pose-video,
+#ex-section-pose-tracker.pose-fullscreen-mode video#pose-video,
+#ex-section-pose-tracker:fullscreen canvas#pose-canvas,
+#ex-section-pose-tracker.pose-fullscreen-mode canvas#pose-canvas {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+  display: block !important;
+}
+
+/* High-Visibility Fullscreen HUD & Form Guidance Typography */
+#ex-section-pose-tracker:fullscreen #pose-form-banner,
+#ex-section-pose-tracker.pose-fullscreen-mode #pose-form-banner {
+  font-size: 1.55rem !important;
+  font-weight: 900 !important;
+  padding: 0.95rem 1.35rem !important;
+  bottom: 20px !important;
+  left: 20px !important;
+  right: 20px !important;
+  border-radius: 14px !important;
+  letter-spacing: 0.03em !important;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.9) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6) !important;
+}
+
+#ex-section-pose-tracker:fullscreen #pose-hud-rep-count,
+#ex-section-pose-tracker.pose-fullscreen-mode #pose-hud-rep-count {
+  font-size: 2.4rem !important;
+  font-weight: 900 !important;
+}
+
+#ex-section-pose-tracker:fullscreen #pose-hud-angle,
+#ex-section-pose-tracker.pose-fullscreen-mode #pose-hud-angle {
+  font-size: 1.85rem !important;
+  font-weight: 900 !important;
+}
+
+#ex-section-pose-tracker:fullscreen #pose-hud-stage,
+#ex-section-pose-tracker.pose-fullscreen-mode #pose-hud-stage {
+  font-size: 1.5rem !important;
+  font-weight: 900 !important;
+}
+
+/* Fullscreen Floating Side Docks for Exercise Selection & Weight Adjustment */
+.pose-fs-side-dock {
+  display: none !important;
+  position: absolute !important;
+  top: 85px !important;
+  z-index: 25 !important;
+}
+
+#ex-section-pose-tracker:fullscreen .pose-fs-side-dock,
+#ex-section-pose-tracker.pose-fullscreen-mode .pose-fs-side-dock {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.5rem !important;
+}
+
+#ex-section-pose-tracker:fullscreen .pose-fs-left-dock,
+#ex-section-pose-tracker.pose-fullscreen-mode .pose-fs-left-dock {
+  left: 20px !important;
+  align-items: flex-start !important;
+}
+
+#ex-section-pose-tracker:fullscreen .pose-fs-right-dock,
+#ex-section-pose-tracker.pose-fullscreen-mode .pose-fs-right-dock {
+  right: 20px !important;
+  align-items: flex-end !important;
+}
