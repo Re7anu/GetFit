@@ -348,19 +348,26 @@ export class App {
           </div>
         </div>
 
-        <!-- Sub-Navigation 4-Tab Bar -->
-        <div style="display: flex; gap: 0.5rem; background: rgba(13, 17, 23, 0.8); border: 1px solid var(--border-glass); padding: 0.35rem; border-radius: 12px; margin-bottom: 1.25rem; flex-wrap: wrap;">
-          <button id="ex-subtab-catalog" type="button" style="flex: 1; min-width: 140px; padding: 0.55rem; border-radius: 8px; border: none; font-size: 0.85rem; font-weight: 700; background: var(--accent-workout); color: #fff; cursor: pointer; transition: all 0.2s ease;">
+        <!-- Tier 1: Primary Functional Category Switcher (Log Workout vs 7-Day Planner) -->
+        <div style="display: flex; gap: 0.75rem; margin-bottom: 1rem; flex-wrap: wrap;">
+          <button id="ex-primary-tab-logging" type="button" class="btn" style="flex: 1; min-width: 200px; padding: 0.75rem; font-size: 0.9rem; font-weight: 800; border-radius: 12px; background: rgba(56, 189, 248, 0.15); color: #38BDF8; border: 1px solid var(--accent-workout); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5rem; transition: all 0.2s ease;">
+            📝 Log Workout Activity
+          </button>
+          <button id="ex-primary-tab-planner" type="button" class="btn" style="flex: 1; min-width: 200px; padding: 0.75rem; font-size: 0.9rem; font-weight: 700; border-radius: 12px; background: rgba(15, 23, 42, 0.6); color: var(--text-secondary); border: 1px solid var(--border-glass); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5rem; transition: all 0.2s ease;">
+            🗓️ 7-Day Routine Planner
+          </button>
+        </div>
+
+        <!-- Tier 2: Secondary Logging Mode Sub-Pills (Visible inside "Log Workout Activity" mode) -->
+        <div id="ex-logging-mode-bar" style="display: flex; gap: 0.5rem; background: rgba(13, 17, 23, 0.8); border: 1px solid var(--border-glass); padding: 0.35rem; border-radius: 12px; margin-bottom: 1.25rem; flex-wrap: wrap;">
+          <button id="ex-subtab-catalog" type="button" style="flex: 1; min-width: 120px; padding: 0.5rem 0.65rem; border-radius: 8px; border: none; font-size: 0.82rem; font-weight: 700; background: var(--accent-workout); color: #fff; cursor: pointer; transition: all 0.2s ease;">
             ⚡ MET Catalog
           </button>
-          <button id="ex-subtab-pose" type="button" style="flex: 1; min-width: 140px; padding: 0.55rem; border-radius: 8px; border: none; font-size: 0.85rem; font-weight: 600; background: transparent; color: var(--text-secondary); cursor: pointer; transition: all 0.2s ease;">
+          <button id="ex-subtab-pose" type="button" style="flex: 1; min-width: 120px; padding: 0.5rem 0.65rem; border-radius: 8px; border: none; font-size: 0.82rem; font-weight: 600; background: transparent; color: var(--text-secondary); cursor: pointer; transition: all 0.2s ease;">
             📷 AI Pose Counter
           </button>
-          <button id="ex-subtab-manual" type="button" style="flex: 1; min-width: 140px; padding: 0.55rem; border-radius: 8px; border: none; font-size: 0.85rem; font-weight: 600; background: transparent; color: var(--text-secondary); cursor: pointer; transition: all 0.2s ease;">
+          <button id="ex-subtab-manual" type="button" style="flex: 1; min-width: 120px; padding: 0.5rem 0.65rem; border-radius: 8px; border: none; font-size: 0.82rem; font-weight: 600; background: transparent; color: var(--text-secondary); cursor: pointer; transition: all 0.2s ease;">
             ✏️ Quick Manual Entry
-          </button>
-          <button id="ex-subtab-planner" type="button" style="flex: 1; min-width: 140px; padding: 0.55rem; border-radius: 8px; border: none; font-size: 0.85rem; font-weight: 600; background: transparent; color: var(--text-secondary); cursor: pointer; transition: all 0.2s ease;">
-            🗓️ 7-Day Planner
           </button>
         </div>
 
@@ -606,19 +613,59 @@ export class App {
       </div>
     `;
 
-    // Bind Sub-Tab Navigation (Catalog, AI Pose Counter, Quick Manual, 7-Day Planner)
+    // Bind Tier-1 Primary Category Switcher & Tier-2 Sub-Mode Selector
+    const primaryTabLogging = document.getElementById('ex-primary-tab-logging');
+    const primaryTabPlanner = document.getElementById('ex-primary-tab-planner');
+    const loggingModeBar = document.getElementById('ex-logging-mode-bar');
+    const btnOpenPlannerHeader = document.getElementById('btn-open-workout-plan');
+
     const subtabCatalog = document.getElementById('ex-subtab-catalog');
     const subtabPose = document.getElementById('ex-subtab-pose');
     const subtabManual = document.getElementById('ex-subtab-manual');
-    const subtabPlanner = document.getElementById('ex-subtab-planner');
     const viewHub = document.getElementById('ex-view-logging-hub');
     const viewPlanner = document.getElementById('ex-view-weekly-planner');
     const secCatalog = document.getElementById('ex-section-catalog');
     const secPose = document.getElementById('ex-section-pose-tracker');
     const secManual = document.getElementById('ex-section-manual');
 
+    const setPrimaryCategory = (category) => {
+      if (category === 'logging') {
+        if (primaryTabLogging) {
+          primaryTabLogging.style.background = 'rgba(56, 189, 248, 0.15)';
+          primaryTabLogging.style.color = '#38BDF8';
+          primaryTabLogging.style.border = '1px solid var(--accent-workout)';
+          primaryTabLogging.style.fontWeight = '800';
+        }
+        if (primaryTabPlanner) {
+          primaryTabPlanner.style.background = 'rgba(15, 23, 42, 0.6)';
+          primaryTabPlanner.style.color = 'var(--text-secondary)';
+          primaryTabPlanner.style.border = '1px solid var(--border-glass)';
+          primaryTabPlanner.style.fontWeight = '700';
+        }
+        if (loggingModeBar) loggingModeBar.style.display = 'flex';
+        if (viewHub) viewHub.style.display = 'grid';
+        if (viewPlanner) viewPlanner.style.display = 'none';
+      } else {
+        if (primaryTabPlanner) {
+          primaryTabPlanner.style.background = 'rgba(56, 189, 248, 0.15)';
+          primaryTabPlanner.style.color = '#38BDF8';
+          primaryTabPlanner.style.border = '1px solid var(--accent-workout)';
+          primaryTabPlanner.style.fontWeight = '800';
+        }
+        if (primaryTabLogging) {
+          primaryTabLogging.style.background = 'rgba(15, 23, 42, 0.6)';
+          primaryTabLogging.style.color = 'var(--text-secondary)';
+          primaryTabLogging.style.border = '1px solid var(--border-glass)';
+          primaryTabLogging.style.fontWeight = '700';
+        }
+        if (loggingModeBar) loggingModeBar.style.display = 'none';
+        if (viewHub) viewHub.style.display = 'none';
+        if (viewPlanner) viewPlanner.style.display = 'block';
+      }
+    };
+
     const setSubtabActive = (activeBtn) => {
-      [subtabCatalog, subtabPose, subtabManual, subtabPlanner].forEach(btn => {
+      [subtabCatalog, subtabPose, subtabManual].forEach(btn => {
         if (!btn) return;
         if (btn === activeBtn) {
           btn.style.background = 'var(--accent-workout)';
@@ -632,11 +679,22 @@ export class App {
       });
     };
 
+    if (primaryTabLogging) {
+      primaryTabLogging.addEventListener('click', () => setPrimaryCategory('logging'));
+    }
+
+    if (primaryTabPlanner) {
+      primaryTabPlanner.addEventListener('click', () => setPrimaryCategory('planner'));
+    }
+
+    if (btnOpenPlannerHeader) {
+      btnOpenPlannerHeader.addEventListener('click', () => setPrimaryCategory('planner'));
+    }
+
     if (subtabCatalog) {
       subtabCatalog.addEventListener('click', () => {
         setSubtabActive(subtabCatalog);
-        viewHub.style.display = 'grid';
-        viewPlanner.style.display = 'none';
+        setPrimaryCategory('logging');
         if (secCatalog) secCatalog.style.display = 'block';
         if (secPose) secPose.style.display = 'none';
         if (secManual) secManual.style.display = 'none';
@@ -646,8 +704,7 @@ export class App {
     if (subtabPose) {
       subtabPose.addEventListener('click', () => {
         setSubtabActive(subtabPose);
-        viewHub.style.display = 'grid';
-        viewPlanner.style.display = 'none';
+        setPrimaryCategory('logging');
         if (secCatalog) secCatalog.style.display = 'none';
         if (secPose) secPose.style.display = 'block';
         if (secManual) secManual.style.display = 'none';
@@ -657,19 +714,10 @@ export class App {
     if (subtabManual) {
       subtabManual.addEventListener('click', () => {
         setSubtabActive(subtabManual);
-        viewHub.style.display = 'grid';
-        viewPlanner.style.display = 'none';
+        setPrimaryCategory('logging');
         if (secCatalog) secCatalog.style.display = 'none';
         if (secPose) secPose.style.display = 'none';
         if (secManual) secManual.style.display = 'block';
-      });
-    }
-
-    if (subtabPlanner) {
-      subtabPlanner.addEventListener('click', () => {
-        setSubtabActive(subtabPlanner);
-        viewHub.style.display = 'none';
-        viewPlanner.style.display = 'block';
       });
     }
 
