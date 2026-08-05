@@ -17,7 +17,7 @@ from app.schemas.workout_log import (
     PoseFrameEvaluationRequest,
     PoseFrameEvaluationResponse,
 )
-from app.services import workout_service
+from app.services import workout_service, pose_estimation_service
 from app.services.exercise_catalog_service import get_exercise_catalog_list
 
 router = APIRouter()
@@ -29,7 +29,7 @@ def evaluate_pose_frame(
     current_user: UserAuth = Depends(get_current_user),
 ):
     """Evaluates 3D joint angles, movement depth, and 2-phase rep state machine on backend."""
-    return workout_service.evaluate_pose_frame(req=eval_req)
+    return pose_estimation_service.evaluate_pose_frame(req=eval_req)
 
 
 @router.get("/catalog")
