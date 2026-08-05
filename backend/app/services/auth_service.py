@@ -1,7 +1,7 @@
 """Authentication domain service module handling user registration, authentication, and session tokens."""
 
 import hashlib
-from datetime import datetime
+from datetime import datetime, timezone
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 from app.core.auth_security import (
@@ -81,7 +81,7 @@ def authenticate_user(db: Session, user_in: UserAuthLogin) -> Token:
     refresh_token = create_refresh_token(user.id)
 
     payload = decode_token(refresh_token)
-    expires_at = datetime.utcfromtimestamp(payload["exp"])
+    expires_at = datetime.fromtimestamp(payload["exp"], tz=timezone.utc)
 
     token_hash = hash_token(refresh_token)
     db_refresh_token = RefreshToken(
@@ -118,13 +118,14 @@ def refresh_user_session(db: Session, refresh_in: TokenRefreshRequest) -> Token:
     user_id = payload.get("sub")
     token_hash = hash_token(refresh_in.refresh_token)
 
+    now_utc = datetime.now(timezone.utc)
     db_token = (
         db.query(RefreshToken)
         .filter(
             RefreshToken.token_hash == token_hash,
             RefreshToken.user_id == user_id,
             RefreshToken.revoked_at == None,
-            RefreshToken.expires_at > datetime.utcnow(),
+            RefreshToken.expires_at > now_utc,
         )
         .first()
     )
@@ -135,13 +136,13 @@ def refresh_user_session(db: Session, refresh_in: TokenRefreshRequest) -> Token:
             detail="Refresh token is expired, revoked, or invalid",
         )
 
-    db_token.revoked_at = datetime.utcnow()
+    db_token.revoked_at = now_utc
 
     access_token = create_access_token(user_id)
     new_refresh_token = create_refresh_token(user_id)
 
     new_payload = decode_token(new_refresh_token)
-    new_expires_at = datetime.utcfromtimestamp(new_payload["exp"])
+    new_expires_at = datetime.fromtimestamp(new_payload["exp"], tz=timezone.utc)
     new_token_hash = hash_token(new_refresh_token)
 
     db_new_token = RefreshToken(
