@@ -190,9 +190,16 @@ python seed_dummy_history.py
 
 ### 5. Run the Application Server
 
-Use `python -m uvicorn` to ensure it executes using your active virtual environment Python binary:
+Use `.\venv\Scripts\python.exe -m uvicorn` (Windows) or `python -m uvicorn` with your active virtual environment:
 
 ```powershell
+# Navigate to backend directory
+cd backend
+
+# Run with Windows Virtual Environment Python executable:
+.\venv\Scripts\python.exe -m uvicorn app.main:app --reload --port 8000
+
+# Or using activated virtual environment:
 python -m uvicorn app.main:app --reload --port 8000
 ```
 

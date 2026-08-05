@@ -128,14 +128,21 @@ export class AuthManager {
 
       try {
         if (isSignUp) {
-          // Register
-          await APIClient.request(ENDPOINTS.REGISTER, {
-            method: 'POST',
-            body: JSON.stringify({ email, password }),
-          });
+          // Register account
+          try {
+            await APIClient.request(ENDPOINTS.REGISTER, {
+              method: 'POST',
+              body: JSON.stringify({ email, password }),
+            });
+          } catch (regErr) {
+            // If email already exists, continue to login instead of throwing 500/400
+            if (!regErr.message.includes('already exists')) {
+              throw regErr;
+            }
+          }
         }
 
-        // Login
+        // Login to issue JWT access & refresh tokens
         const loginData = await APIClient.request(ENDPOINTS.LOGIN, {
           method: 'POST',
           body: JSON.stringify({ email, password }),
