@@ -1,8 +1,8 @@
 # GetFit: Personalized Health, Micronutrients & Caloric Pace Intelligence API
 
-**GetFit** is a high-performance application for personalized health tracking, dynamic caloric pace calculations, micronutrient intelligence (WHO/NIH RDAs), workout logging, and natural-language AI parsing powered by the official **Google GenAI SDK**.
+**GetFit** is a high-performance application for personalized health tracking, dynamic caloric pace calculations, micronutrient intelligence (WHO/NIH RDAs), workout logging, automated nightly email reporting, and natural-language AI parsing powered by **LiteLLM** (supporting multi-provider LLMs with fallback cascades).
 
-Built with **FastAPI**, **PostgreSQL**, **SQLAlchemy 2.0**, **Pydantic v2**, and **Google Gemini AI**, GetFit implements a clean **Layered Architecture** with $O(1)$ database read optimization.
+Built with **FastAPI**, **PostgreSQL**, **SQLAlchemy 2.0**, **Pydantic v2**, **LiteLLM**, and **Loguru**, GetFit implements a clean **Layered Architecture** with $O(1)$ database read optimization.
 
 ---
 
@@ -15,23 +15,24 @@ Built with **FastAPI**, **PostgreSQL**, **SQLAlchemy 2.0**, **Pydantic v2**, and
 ### 2. Physical Profile & Dynamic Caloric Pace Engine
 - **Single-Pass Calculation:** Mifflin-St Jeor BMR equation and TDEE activity multipliers (1.2 to 1.9).
 - **Dynamic Caloric Pace Equation:** Calculates exact daily calorie deficit/surplus required to reach a target weight within a specified timeline in weeks:
-  $$\text{Daily Caloric Pace} = \frac{(\text{target\_weight\_kg} - \text{weight\_kg}) \times 7,700 \text{ kcal}}{\text{timeline\_weeks} \times 7}$$
-- **Body-Weight Macro Target Split:** Evidence-based protein ($1.8\text{g/kg}$ to $2.0\text{g/kg}$ body mass), carbs, and fat target budgets.
+  $$\text{Daily Caloric Pace (kcal/day)} = \frac{(\text{Target Weight (kg)} - \text{Current Weight (kg)}) \times 7700}{\text{Timeline (weeks)} \times 7}$$
+- **Body-Weight Macro Target Split:** Evidence-based protein ($1.8\text{ g/kg}$ to $2.0\text{ g/kg}$ body mass), carbs, and fat target budgets.
 
 ### 3. Food & Meal Logging Engine (Macros + Micronutrient Intelligence)
 - **Essential Micronutrient Tracking:** Tracks **Fiber (g)**, **Sodium (mg)**, **Potassium (mg)**, **Vitamin C (mg)**, **Calcium (mg)**, and **Iron (mg)** using WHO / NIH RDA standards.
-- **Gemini AI Natural Language Parsing (`POST /api/v1/nutrition/meals/ai-parse`):** Parses natural text prompts (e.g. *"2 boiled eggs, whole wheat toast, and an orange"*) into structured JSON extracting both macronutrients and micronutrients.
+- **LiteLLM AI Natural Language Parsing (`POST /api/v1/nutrition/meals/ai-parse`):** Parses natural text prompts (e.g. *"2 boiled eggs, whole wheat toast, and an orange"*) into structured JSON extracting both macronutrients and micronutrients.
 
 ### 4. Exercise Logging & Net MET Burn Engine
 - **Solution A Net MET Formula:** Eliminates double-counting baseline resting calories during workouts:
-  $$\text{Net MET} = \max(\text{Exercise MET} - \text{Baseline Activity Multiplier}, 0.0)$$
-  $$\text{Net Calories Burned} = \text{Net MET} \times \text{User Weight (kg)} \times \left(\frac{\text{Duration (mins)}}{60}\right)$$
+  $$\text{Net MET} = \max(\text{Active MET} - \text{Baseline MET}, 0)$$
+  $$\text{Net Calories Burned} = \text{Net MET} \times \text{Weight (kg)} \times \left(\frac{\text{Duration (mins)}}{60}\right)$$
 - **Ainsworth Exercise Catalog (`GET /api/v1/workouts/catalog`):** 2-step structured dropdown supporting Distance, Reps & Sets (Pushups, Squats, Pullups, Lunges), and Time-based sports (Football, Cricket, Padel).
-- **Gemini AI Workout Parsing (`POST /api/v1/workouts/logs/ai-parse`):** Parses freeform workout descriptions to infer Ainsworth MET values and duration.
+- **LiteLLM AI Workout Parsing (`POST /api/v1/workouts/logs/ai-parse`):** Parses freeform workout descriptions to infer Ainsworth MET values and duration.
 
-### 5. Health & Workout Analytics System
+### 5. Unified Logging & Automated Email Reporting System
+- **Loguru Logging:** Centralized logging with standard library log interception, colorized console output, and 10MB / 14-day rotating file sinks (`backend/logs/`).
+- **APScheduler & Resend Reports:** Automated nightly background worker dispatches rich HTML health summaries and AI-generated progress insights directly to user emails.
 - **30-Day Goal Calendar & Caloric Graph (`GET /api/v1/analytics/history`):** Dedicated analytics domain evaluating daily goal performance snapshots (`is_goal_hit`).
-- **Granular Day Detail Breakdown (`GET /api/v1/analytics/day-detail`):** Interactive modal fetching historical meals and workouts for any selected past date.
 
 ---
 
@@ -41,11 +42,11 @@ GetFit relies on peer-reviewed clinical guidelines, sports physiology literature
 
 ### 🔬 1. Metabolic Engine (BMR & TDEE)
 - **Mifflin-St Jeor Equation (1990):** Standard BMR baseline for non-bodyfat inputs:
-  $$\text{BMR}_{\text{male}} = (10 \times \text{weight}_{\text{kg}}) + (6.25 \times \text{height}_{\text{cm}}) - (5 \times \text{age}) + 5$$
-  $$\text{BMR}_{\text{female}} = (10 \times \text{weight}_{\text{kg}}) + (6.25 \times \text{height}_{\text{cm}}) - (5 \times \text{age}) - 161$$
+  $$\text{BMR}_{\text{male}} = 10 \times \text{Weight (kg)} + 6.25 \times \text{Height (cm)} - 5 \times \text{Age (years)} + 5$$
+  $$\text{BMR}_{\text{female}} = 10 \times \text{Weight (kg)} + 6.25 \times \text{Height (cm)} - 5 \times \text{Age (years)} - 161$$
   - *Reference:* Mifflin MD, St Jeor ST, et al. *"A new predictive equation for resting energy expenditure in healthy individuals."* Am J Clin Nutr. 1990;51(2):241-247.
 - **Katch-McArdle Formula (1996):** LBM-based BMR equation applied when body fat percentage is provided:
-  $$\text{BMR} = 370 + 21.6 \times (1 - \text{body\_fat\_fraction}) \times \text{weight\_kg}$$
+  $$\text{BMR} = 370 + 21.6 \times (1 - \text{Body Fat Fraction}) \times \text{Weight (kg)}$$
   - *Reference:* Katch WD, McArdle WD. *"Nutrition, Weight Control, and Exercise."* Lea & Febiger, 1996.
 - **Physical Activity Level (PAL) Multipliers:** `sedentary: 1.200`, `lightly_active: 1.375`, `moderately_active: 1.550`, `very_active: 1.725`, `extra_active: 1.900`.
   - *Reference:* FAO/WHO/UNU Expert Consultation. *"Human Energy Requirements."* WHO Technical Report Series 925, 2004.
@@ -79,10 +80,10 @@ Monitors 6 essential micronutrients using Recommended Dietary Allowances (RDA) a
 
 ### 🏋️ 5. Strength Training Mass Load & Session MET Engine
 - **Mass Load Multiplier:** Scales MET intensity dynamically based on external barbell/dumbbell load:
-  $$\text{Mass Multiplier} = \frac{\text{Body Weight} + \text{External Weight}}{\text{Body Weight}}$$
+  $$\text{Mass Multiplier} = \frac{\text{Body Weight} + \text{External Load}}{\text{Body Weight}}$$
   - *Reference:* US Army Research Institute of Environmental Medicine (USARIEM) Load Carriage Energy Cost Models (*Pandolf KB et al. J Appl Physiol 1977*).
 - **Session Rest-Weighted MET Equation:** Combines active rep exertion at **Active MET** with 60s inter-set rest intervals at **3.0 METs** (Ainsworth Code 02050 standing/resting recovery):
-  $$\text{Session MET} = \frac{(\text{Active MET} \times \text{Active Mins}) + (3.0 \text{ METs} \times \text{Rest Mins})}{\text{Total Session Mins}}$$
+  $$\text{Session MET} = \frac{(\text{Active MET} \times \text{Active Mins}) + (3.0 \times \text{Rest Mins})}{\text{Total Session Mins}}$$
   - *Reference:* NSCA Essentials of Strength Training and Conditioning (4th Ed.) & Schoenfeld BJ et al. *Sports Med 2015*.
 
 ### 🔄 6. Post-Exercise Recovery Macro Allocation Ratios
@@ -107,17 +108,20 @@ GetFit/
 │   │   │   ├── users.py
 │   │   │   └── workouts.py
 │   │   ├── services/        <-- Domain Business Logic & AI Orchestration
+│   │   │   ├── ai_service.py
 │   │   │   ├── analytics_service.py
 │   │   │   ├── auth_service.py
-│   │   │   ├── gemini_service.py
+│   │   │   ├── email_report_service.py
 │   │   │   ├── nutrition_service.py
 │   │   │   ├── profile_service.py
 │   │   │   └── workout_service.py
-│   │   ├── core/            <-- Formulas, Catalog & Prompts
+│   │   ├── core/            <-- Core Config, Logging, Scheduler & Prompts
+│   │   │   ├── auth_security.py
 │   │   │   ├── exercise_catalog.py
 │   │   │   ├── formulas.py
-│   │   │   ├── auth_security.py
-│   │   │   └── prompts.py
+│   │   │   ├── logging_config.py
+│   │   │   ├── prompts.py
+│   │   │   └── scheduler.py
 │   │   ├── db/              <-- PostgreSQL Models & Session
 │   │   │   ├── models/
 │   │   │   │   ├── nutrition_log.py
@@ -147,17 +151,28 @@ GetFit/
 - PostgreSQL running on `localhost:5433` (or configured database URL)
 
 ### 2. Environment Configuration
-Ensure `.env` exists inside `backend/.env`:
+Ensure `.env` exists in the root directory (or `backend/.env`):
 
 ```env
-PROJECT_NAME=GetFit API
-API_V1_STR=/api/v1
-SECRET_KEY=your-super-secret-key-change-in-production
+# FastAPI Settings
+PROJECT_NAME="GetFit API"
+API_V1_STR="/api/v1"
+SECRET_KEY="your-super-secret-key-change-in-production"
 ACCESS_TOKEN_EXPIRE_MINUTES=30
 REFRESH_TOKEN_EXPIRE_DAYS=7
-DATABASE_URL=postgresql://postgres:postgrespassword@localhost:5433/getfit
-GEMINI_API_KEY=your_gemini_api_key_here
-GEMINI_MODEL_NAME=gemini-1.5-flash
+
+# Database Configuration
+DATABASE_URL="postgresql://postgres:postgrespassword@localhost:5433/getfit"
+
+# LLM AI Configuration (LiteLLM)
+LLM_API_KEY="your_primary_llm_api_key_here"
+LLM_API_KEY_SECONDARY=""
+LLM_MODEL_NAME="gemini/gemini-1.5-flash"
+LLM_FALLBACK_MODEL_NAME="gemini/gemini-1.5-pro"
+
+# Email Configuration (Resend)
+RESEND_API_KEY="your_resend_api_key_here"
+RESEND_FROM_EMAIL="GetFit Daily <onboarding@resend.dev>"
 ```
 
 ### 3. Setup Virtual Environment & Install Dependencies
@@ -216,4 +231,4 @@ Run the complete Pytest integration and unit test suite:
 ```powershell
 python -m pytest
 ```
-*(All 11 integration tests passing cleanly with transactional database isolation).*
+*(All 17 integration & unit tests passing cleanly with transactional database isolation).*
