@@ -32,8 +32,8 @@ class Settings(BaseSettings):
     DATABASE_URL: str = "postgresql://postgres:postgrespassword@localhost:5433/getfit"
     LLM_API_KEY: Optional[str] = None
     LLM_API_KEY_SECONDARY: Optional[str] = None
-    AI_MODEL_NAME: str = "gemini/gemini-1.5-flash"
-    AI_FALLBACK_MODEL_NAME: Optional[str] = "gemini/gemini-1.5-pro"
+    LLM_MODEL_NAME: str = "gemini/gemini-1.5-flash"
+    LLM_FALLBACK_MODEL_NAME: Optional[str] = "gemini/gemini-1.5-pro"
     RESEND_API_KEY: Optional[str] = None
     RESEND_FROM_EMAIL: str = "GetFit Daily <onboarding@resend.dev>"
     NIGHTLY_REPORT_HOUR: int = 21

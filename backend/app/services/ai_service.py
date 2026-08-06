@@ -33,11 +33,11 @@ def _build_fallbacks() -> Optional[list]:
     fallbacks = []
     if settings.LLM_API_KEY_SECONDARY and settings.LLM_API_KEY_SECONDARY != settings.LLM_API_KEY:
         fallbacks.append({
-            "model": settings.AI_MODEL_NAME,
+            "model": settings.LLM_MODEL_NAME,
             "api_key": settings.LLM_API_KEY_SECONDARY,
         })
-    if settings.AI_FALLBACK_MODEL_NAME:
-        fallbacks.append(settings.AI_FALLBACK_MODEL_NAME)
+    if settings.LLM_FALLBACK_MODEL_NAME:
+        fallbacks.append(settings.LLM_FALLBACK_MODEL_NAME)
     return fallbacks if fallbacks else None
 
 
@@ -52,7 +52,7 @@ def _execute_completion(messages: list, response_schema: Type[T], timeout: float
     Returns:
         Validated instance of response_schema.
     """
-    api_key = _get_api_key_for_model(settings.AI_MODEL_NAME)
+    api_key = _get_api_key_for_model(settings.LLM_MODEL_NAME)
     if not api_key:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -60,11 +60,11 @@ def _execute_completion(messages: list, response_schema: Type[T], timeout: float
         )
 
     fallbacks = _build_fallbacks()
-    logger.info("Executing LiteLLM completion (model='{}', fallbacks={})", settings.AI_MODEL_NAME, fallbacks)
+    logger.info("Executing LiteLLM completion (model='{}', fallbacks={})", settings.LLM_MODEL_NAME, fallbacks)
 
     try:
         response = litellm.completion(
-            model=settings.AI_MODEL_NAME,
+            model=settings.LLM_MODEL_NAME,
             messages=messages,
             response_format=response_schema,
             api_key=api_key,
