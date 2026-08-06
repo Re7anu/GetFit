@@ -1,18 +1,16 @@
 """Service module for generating and dispatching automated nightly health & nutrition HTML email reports with Gemini AI insights and Resend integration."""
 
-import logging
 from datetime import date, datetime, time
 from typing import Dict, Any, List, Optional
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
+from loguru import logger
 
 from app.config.settings import settings
 from app.core.prompts import DAILY_REPORT_INSIGHTS_PROMPT_TEMPLATE
 from app.db.models.user_auth import UserAuth
 from app.services import analytics_service
 from app.services.ai_service import generate_structured_output
-
-logger = logging.getLogger(__name__)
 
 # Try importing resend SDK dynamically
 try:

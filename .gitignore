@@ -24,3 +24,8 @@ getfit.db
 .vscode/
 .idea/
 *.swp
+
+# Logs
+logs/
+backend/logs/
+*.log

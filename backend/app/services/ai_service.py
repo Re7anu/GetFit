@@ -6,6 +6,7 @@ from typing import Optional, Type, TypeVar
 
 import litellm
 from fastapi import HTTPException, status
+from loguru import logger
 from pydantic import BaseModel
 
 from app.config.settings import settings
@@ -66,6 +67,7 @@ def generate_structured_output(prompt: str, response_schema: Type[T]) -> T:
         )
 
     fallbacks = _build_fallbacks()
+    logger.info("Executing LiteLLM structured completion with model='{}' (fallbacks={})", settings.AI_MODEL_NAME, fallbacks)
 
     def _call_litellm():
         return litellm.completion(
