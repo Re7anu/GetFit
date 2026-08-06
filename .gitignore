@@ -20,10 +20,11 @@ venv.bak/
 test.db
 getfit.db
 
-# IDEs
+# IDEs & Assistant Scratchpads
 .vscode/
 .idea/
 *.swp
+context.md
 
 # Logs
 logs/
