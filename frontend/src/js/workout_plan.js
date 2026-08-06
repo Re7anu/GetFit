@@ -31,7 +31,7 @@ export class WorkoutPlanManager {
         <div class="modal-content" style="max-width: 780px; max-height: 90vh; overflow-y: auto; padding: 1.5rem;">
           <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-glass); padding-bottom: 0.85rem; margin-bottom: 1.2rem;">
             <div>
-              <h2 style="font-size: 1.25rem; font-family: var(--font-heading); margin: 0;">📋 Weekly Routine Setup</h2>
+              <h2 style="font-size: 1.25rem; font-family: var(--font-heading); margin: 0;">Weekly Routine Setup</h2>
               <p class="text-muted" style="font-size: 0.8rem; margin-top: 0.2rem;">Configure your custom 7-day workout routine blueprint.</p>
             </div>
             <button class="close-btn" id="close-workout-plan-modal" style="background: transparent; border: none; font-size: 1.5rem; color: var(--text-muted); cursor: pointer;">&times;</button>
@@ -42,7 +42,7 @@ export class WorkoutPlanManager {
             <!-- 7-Day Weekly Schedule Builder -->
             <div class="glass-card" style="background: rgba(22, 27, 34, 0.7); padding: 1.1rem;">
               <h3 style="font-size: 0.95rem; font-family: var(--font-heading); margin-bottom: 0.75rem; color: var(--text-primary); display: flex; align-items: center; justify-content: space-between;">
-                <span>🗓️ Configure 7-Day Routine Blueprint</span>
+                <span>Configure 7-Day Routine Blueprint</span>
                 <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: normal;">Select day tab to customize target routine</span>
               </h3>
 

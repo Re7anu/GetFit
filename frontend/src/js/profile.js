@@ -90,17 +90,17 @@ export class ProfileManager {
                     <option value="extra_active">Extra Active (Heavy manual labor, pro athlete)</option>
                   </select>
                   <p class="text-muted" style="font-size: 0.7rem; margin-top: 0.25rem; color: var(--accent-health); line-height: 1.2;">
-                    💡 Log gym or sports workouts separately for 100% Net MET accuracy!
+                    Log gym or sports workouts separately for 100% Net MET accuracy!
                   </p>
                 </div>
 
                 <div class="form-group" style="margin-bottom: 0;">
                   <label class="form-label" style="font-size: 0.75rem; margin-bottom: 0.25rem;">Fitness Philosophy / Goal</label>
                   <select id="prof-fitness-focus" class="form-input" style="padding: 0.4rem 0.6rem; font-size: 0.8rem;" required>
-                    <option value="general_health" selected>🌿 General Health, Fat Loss & Longevity</option>
-                    <option value="athletic">⚡ Athletic Build & Functional Power</option>
-                    <option value="sports_endurance">⚽ Sports & High Endurance</option>
-                    <option value="bodybuilding">🏆 Bodybuilding & Muscle Mass</option>
+                    <option value="general_health" selected>General Health, Fat Loss & Longevity</option>
+                    <option value="athletic">Athletic Build & Functional Power</option>
+                    <option value="sports_endurance">Sports & High Endurance</option>
+                    <option value="bodybuilding">Bodybuilding & Muscle Mass</option>
                   </select>
                   <p class="text-muted" style="font-size: 0.7rem; margin-top: 0.25rem; color: var(--text-secondary); line-height: 1.2;">
                     Customizes baseline protein & macro budgets to match your philosophy!

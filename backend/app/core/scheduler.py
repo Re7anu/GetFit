@@ -1,15 +1,14 @@
 """Background APScheduler module for executing automated cron jobs and nightly email report dispatches."""
 
-import logging
 from datetime import datetime, date
 from apscheduler.schedulers.background import BackgroundScheduler
+from loguru import logger
+
 from app.config.settings import settings
 from app.db.session import SessionLocal
 from app.db.models.user_auth import UserAuth
 from app.db.models.profile import UserProfile
 from app.services.email_report_service import send_nightly_email_report
-
-logger = logging.getLogger(__name__)
 
 scheduler = BackgroundScheduler()
 

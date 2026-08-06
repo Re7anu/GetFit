@@ -1,7 +1,7 @@
 """Nutrition domain service module handling meal logging and daily budget calculations."""
 
 from datetime import date, datetime, time
-from typing import List
+from typing import List, Optional
 from fastapi import HTTPException, status
 from sqlalchemy import func
 from sqlalchemy.orm import Session
@@ -17,7 +17,7 @@ from app.db.models.workout_log import WorkoutLog
 from app.db.models.nutrition_log import FoodLog
 from app.db.models.user_auth import UserAuth
 from app.schemas.nutrition_log import AIFoodParseRequest, AIFoodParseResult, DailyNutritionSummary, FoodLogCreate, FoodLogResponse
-from app.services import gemini_service
+from app.services import ai_service
 
 
 def create_meal_entry(db: Session, user: UserAuth, meal_in: FoodLogCreate) -> FoodLog:
@@ -42,7 +42,7 @@ def create_meal_entry(db: Session, user: UserAuth, meal_in: FoodLogCreate) -> Fo
                 carbs_g=meal_in.carbs_g,
                 fat_g=meal_in.fat_g,
             )
-            parsed: AIFoodParseResult = gemini_service.generate_structured_output(
+            parsed: AIFoodParseResult = ai_service.generate_structured_output(
                 prompt=prompt,
                 response_schema=AIFoodParseResult,
             )
@@ -85,7 +85,7 @@ def create_meal_entry(db: Session, user: UserAuth, meal_in: FoodLogCreate) -> Fo
 def create_meal_entry_via_ai(db: Session, user: UserAuth, prompt_in: AIFoodParseRequest) -> FoodLog:
     """Parses natural language meal text using Gemini AI response_schema and creates a new FoodLog entry."""
     prompt = FOOD_PARSING_PROMPT_TEMPLATE.format(text_prompt=prompt_in.text_prompt)
-    parsed_result: AIFoodParseResult = gemini_service.generate_structured_output(
+    parsed_result: AIFoodParseResult = ai_service.generate_structured_output(
         prompt=prompt,
         response_schema=AIFoodParseResult,
     )
@@ -109,26 +109,39 @@ def create_meal_entry_via_ai(db: Session, user: UserAuth, prompt_in: AIFoodParse
         vitamin_c_mg=parsed_result.vitamin_c_mg,
         calcium_mg=parsed_result.calcium_mg,
         iron_mg=parsed_result.iron_mg,
-        quantity_g=parsed_result.quantity_g,
         input_method="ai_nlp",
     )
+
     return create_meal_entry(db=db, user=user, meal_in=meal_in)
 
 
-def create_meal_entry_via_image_ai(
+def parse_and_log_ai_food_image(
     db: Session,
     user: UserAuth,
     image_bytes: bytes,
     mime_type: str,
-    meal_type_hint: str = None,
-    notes: str = None,
-) -> FoodLog:
-    """Parses a food image using Gemini Vision AI structured output and creates a new FoodLog entry."""
-    hint = meal_type_hint or "Infer appropriate meal type from visual context"
-    user_notes = notes or "None provided"
-    prompt = FOOD_IMAGE_PARSING_PROMPT.format(meal_hint=hint, user_notes=user_notes)
-    
-    parsed_result: AIFoodParseResult = gemini_service.generate_multimodal_structured_output(
+    custom_notes: Optional[str] = None,
+    meal_type_hint: Optional[str] = None,
+) -> FoodLogResponse:
+    """Scans a food photo using AI Vision and commits entry to DB.
+
+    Args:
+        db: Database session.
+        user: Authenticated user model.
+        image_bytes: Raw bytes of uploaded food image.
+        mime_type: MIME type string.
+        custom_notes: Optional notes detailing ingredients.
+        meal_type_hint: Optional meal type string.
+
+    Returns:
+        Created FoodLogResponse.
+    """
+    prompt = FOOD_IMAGE_PARSING_PROMPT.format(
+        user_notes=custom_notes or "None provided",
+        meal_hint=meal_type_hint or "Auto-detect",
+    )
+
+    parsed_result: AIFoodParseResult = ai_service.generate_multimodal_structured_output(
         image_bytes=image_bytes,
         mime_type=mime_type,
         prompt=prompt,

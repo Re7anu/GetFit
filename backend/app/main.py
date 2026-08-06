@@ -7,26 +7,38 @@ from app.config.settings import settings
 from app.core.scheduler import start_scheduler, stop_scheduler
 
 
+from app.core.logging_config import setup_logging
+from app.db.init_db import init_db
+from loguru import logger
+
+# Initialize Loguru logging sinks
+setup_logging()
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Lifespan context manager that handles application startup and shutdown events."""
-    # Automatically initialize tables on start for ease of local development
+    logger.info("Starting GetFit API application...")
     try:
         init_db()
+        logger.info("Database tables initialized successfully")
     except Exception as e:
-        print(f"Database initialization failed: {e}")
+        logger.error("Database initialization failed: {}", e)
     
     try:
         start_scheduler()
+        logger.info("Nightly report scheduler started successfully")
     except Exception as e:
-        print(f"Scheduler startup failed: {e}")
+        logger.error("Scheduler startup failed: {}", e)
         
     yield
     
+    logger.info("Shutting down GetFit API application...")
     try:
         stop_scheduler()
+        logger.info("Nightly report scheduler stopped successfully")
     except Exception as e:
-        print(f"Scheduler shutdown failed: {e}")
+        logger.error("Scheduler shutdown failed: {}", e)
 
 
 app = FastAPI(title=settings.PROJECT_NAME, version="1.0.0", lifespan=lifespan)

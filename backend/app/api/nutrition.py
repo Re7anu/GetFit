@@ -60,13 +60,13 @@ async def create_meal_log_via_image_ai(
             detail="Uploaded image file is empty.",
         )
 
-    return nutrition_service.create_meal_entry_via_image_ai(
+    return nutrition_service.parse_and_log_ai_food_image(
         db=db,
         user=current_user,
         image_bytes=image_bytes,
         mime_type=mime_type,
         meal_type_hint=meal_type_hint,
-        notes=notes,
+        custom_notes=notes,
     )
 
 

@@ -146,13 +146,13 @@ export class PoseTrackerManager {
       const isNativeFS = !!document.fullscreenElement;
       if (isNativeFS) {
         container.classList.add('pose-fullscreen-mode');
-        btn.innerHTML = '🗗 Exit Fullscreen';
+        btn.innerHTML = 'Exit Fullscreen';
         btn.style.background = 'rgba(56, 189, 248, 0.2)';
         btn.style.color = '#38BDF8';
         btn.style.borderColor = 'rgba(56, 189, 248, 0.5)';
       } else {
         container.classList.remove('pose-fullscreen-mode');
-        btn.innerHTML = '⤢ Fullscreen';
+        btn.innerHTML = 'Fullscreen';
         btn.style.background = 'rgba(255, 255, 255, 0.08)';
         btn.style.color = 'var(--text-secondary)';
         btn.style.borderColor = 'var(--border-glass)';
@@ -192,7 +192,7 @@ export class PoseTrackerManager {
     const btn = document.getElementById('btn-toggle-pose-fullscreen');
     if (!container || !btn) return;
     container.classList.add('pose-fullscreen-mode');
-    btn.innerHTML = '🗗 Exit Fullscreen';
+    btn.innerHTML = 'Exit Fullscreen';
     btn.style.background = 'rgba(56, 189, 248, 0.2)';
     btn.style.color = '#38BDF8';
     btn.style.borderColor = 'rgba(56, 189, 248, 0.5)';
@@ -206,7 +206,7 @@ export class PoseTrackerManager {
     }
     if (container) container.classList.remove('pose-fullscreen-mode');
     if (btn) {
-      btn.innerHTML = '⤢ Fullscreen';
+      btn.innerHTML = 'Fullscreen';
       btn.style.background = 'rgba(255, 255, 255, 0.08)';
       btn.style.color = 'var(--text-secondary)';
       btn.style.borderColor = 'var(--border-glass)';
@@ -631,11 +631,11 @@ export class PoseTrackerManager {
         saveBtn.style.opacity = '1';
         const addedWeight = this.getAddedWeightKg();
         const weightLabel = addedWeight > 0 ? ` • +${addedWeight}kg` : '';
-        saveBtn.textContent = `💾 Save Workout Set (${this.repCount} Reps${weightLabel})`;
+        saveBtn.textContent = `Save Workout Set (${this.repCount} Reps${weightLabel})`;
       } else {
         saveBtn.disabled = true;
         saveBtn.style.opacity = '0.5';
-        saveBtn.textContent = '💾 Save Workout Set (0 Reps)';
+        saveBtn.textContent = 'Save Workout Set (0 Reps)';
       }
     }
   }
