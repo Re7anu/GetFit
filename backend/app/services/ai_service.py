@@ -41,7 +41,7 @@ def _build_fallbacks() -> Optional[list]:
     return fallbacks if fallbacks else None
 
 
-def _execute_completion(messages: list, response_schema: Type[T], timeout: float = 25.0) -> T:
+def _run_litellm_completion(messages: list, response_schema: Type[T], timeout: float = 25.0) -> T:
     """Helper that executes LiteLLM completion with parameter-driven messages, fallbacks, and error handling.
 
     Args:
@@ -110,7 +110,7 @@ def generate_structured_output(prompt: str, response_schema: Type[T]) -> T:
         Validated instance of response_schema.
     """
     messages = [{"role": "user", "content": prompt}]
-    return _execute_completion(messages=messages, response_schema=response_schema, timeout=25.0)
+    return _run_litellm_completion(messages=messages, response_schema=response_schema, timeout=25.0)
 
 
 def generate_multimodal_structured_output(
@@ -141,4 +141,4 @@ def generate_multimodal_structured_output(
             ],
         }
     ]
-    return _execute_completion(messages=messages, response_schema=response_schema, timeout=30.0)
+    return _run_litellm_completion(messages=messages, response_schema=response_schema, timeout=30.0)
