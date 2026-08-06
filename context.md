@@ -72,9 +72,9 @@ GetFit/
 │   │   │   ├── users.py
 │   │   │   └── workouts.py
 │   │   ├── services/                <-- Isolated Business Logic Services
-│   │   │   ├── analytics_service.py
+│   │   │   ├── ai_service.py        <-- Multi-provider LiteLLM completion service & structured fallback cascades
+│   │   │   ├── analytics_service.py <-- Trend analytics & daily progress computation
 │   │   │   ├── auth_service.py
-│   │   │   ├── gemini_service.py
 │   │   │   ├── nutrition_service.py
 │   │   │   ├── pose_estimation_service.py  <-- Dedicated 3D Pose Evaluation
 │   │   │   ├── profile_service.py

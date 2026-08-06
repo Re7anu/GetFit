@@ -10,7 +10,7 @@ from app.config.settings import settings
 from app.core.prompts import DAILY_REPORT_INSIGHTS_PROMPT_TEMPLATE
 from app.db.models.user_auth import UserAuth
 from app.services import analytics_service
-from app.services.gemini_service import generate_structured_output
+from app.services.ai_service import generate_structured_output
 
 logger = logging.getLogger(__name__)
 

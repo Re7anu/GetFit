@@ -31,7 +31,11 @@ class Settings(BaseSettings):
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
     DATABASE_URL: str = "postgresql://postgres:postgrespassword@localhost:5433/getfit"
     GEMINI_API_KEY: Optional[str] = None
+    GEMINI_API_KEY_SECONDARY: Optional[str] = None
     GEMINI_MODEL_NAME: str = "gemini-flash-latest"
+    GROQ_API_KEY: Optional[str] = None
+    AI_MODEL_NAME: str = "gemini/gemini-1.5-flash"
+    AI_FALLBACK_MODEL_NAME: Optional[str] = "gemini/gemini-1.5-pro"
     RESEND_API_KEY: Optional[str] = None
     RESEND_FROM_EMAIL: str = "GetFit Daily <onboarding@resend.dev>"
     NIGHTLY_REPORT_HOUR: int = 21

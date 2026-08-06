@@ -160,7 +160,7 @@ def test_ai_food_logging_flow(client, db_session, monkeypatch):
             quantity_g=180.0,
         )
 
-    monkeypatch.setattr("app.services.gemini_service.generate_structured_output", mock_food_gemini)
+    monkeypatch.setattr("app.services.ai_service.generate_structured_output", mock_food_gemini)
 
     res_food = client.post(
         "/api/v1/nutrition/meals/ai-parse",
@@ -235,7 +235,7 @@ def test_ai_image_food_scanning_flow(client, db_session, monkeypatch):
             quantity_g=350.0,
         )
 
-    monkeypatch.setattr("app.services.gemini_service.generate_multimodal_structured_output", mock_vision_gemini)
+    monkeypatch.setattr("app.services.ai_service.generate_multimodal_structured_output", mock_vision_gemini)
 
     # Fake 1x1 GIF / PNG byte array
     fake_image = b"GIF89a\x01\x00\x01\x00\x80\x00\x00\xff\xff\xff\x00\x00\x00!\xf9\x04\x01\x00\x00\x00\x00,\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;"
