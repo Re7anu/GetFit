@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from loguru import logger
 
 from app.config.settings import settings
+from app.core.constants import DEFAULT_NIGHTLY_REPORT_INSIGHTS
 from app.core.prompts import DAILY_REPORT_INSIGHTS_PROMPT_TEMPLATE
 from app.db.models.user_auth import UserAuth
 from app.services import analytics_service
@@ -42,11 +43,7 @@ def generate_daily_report_insights(summary_data: Any) -> List[str]:
     data = summary_data.model_dump() if hasattr(summary_data, "model_dump") else (summary_data if isinstance(summary_data, dict) else dict(summary_data))
 
     if not settings.LLM_API_KEY:
-        return [
-            "Great effort tracking your daily nutrition and physical activities today!",
-            "Consistent tracking is the #1 predictor of long-term metabolic health.",
-            "Make sure to get 7-8 hours of quality sleep to support recovery.",
-        ]
+        return DEFAULT_NIGHTLY_REPORT_INSIGHTS
 
     workouts_list = data.get('workouts', [])
     workout_summary_str = ", ".join([f"{w.get('exercise_name')} ({w.get('duration_minutes')}m, {w.get('calories_burned')} kcal)" for w in workouts_list]) if workouts_list else "None logged today"

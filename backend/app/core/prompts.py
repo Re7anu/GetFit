@@ -100,6 +100,5 @@ Instructions for Insights:
   2. **Protein & Recovery Synthesis**: Analyze how their logged workouts align with their food intake, protein synthesis, and muscle tissue recovery.
   3. **Actionable Coaching Recommendations**: Give 1-2 specific, high-impact recommendations for tomorrow (e.g., fluid/sodium management, adjusting portion sizes, meal timing, or active recovery).
 - Keep each insight focused, analytical, professional, and encouraging (1-2 sentences per point). Do NOT include markdown subheadings inside the bullet points.
-- Return JSON matching response_schema with key "insights".
 """
 

@@ -90,3 +90,11 @@ WORKOUT_RECOVERY_MACRO_SPLITS: Dict[str, Tuple[float, float, float]] = {
     "general": (0.20, 0.50, 0.30),   # Balanced baseline recovery (20% Protein, 50% Carbs, 30% Fat)
 }
 
+# Fallback insights for nightly email reports when LLM API key is unconfigured
+DEFAULT_NIGHTLY_REPORT_INSIGHTS = [
+    "Great effort tracking your daily nutrition and physical activities today!",
+    "Consistent tracking is the #1 predictor of long-term metabolic health.",
+    "Make sure to get 7-8 hours of quality sleep to support recovery.",
+]
+
+
