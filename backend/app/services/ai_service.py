@@ -25,20 +25,16 @@ def _get_api_key_for_model(model_name: str) -> Optional[str]:
     Returns:
         Configured API key string if available.
     """
-    if model_name.startswith("gemini") or "gemini" in model_name:
-        return settings.GEMINI_API_KEY
-    if model_name.startswith("groq") or "groq" in model_name:
-        return settings.GROQ_API_KEY
-    return settings.GEMINI_API_KEY
+    return settings.LLM_API_KEY
 
 
 def _build_fallbacks() -> Optional[list]:
     """Constructs model fallback cascade including secondary API key failover if configured."""
     fallbacks = []
-    if settings.GEMINI_API_KEY_SECONDARY and settings.GEMINI_API_KEY_SECONDARY != settings.GEMINI_API_KEY:
+    if settings.LLM_API_KEY_SECONDARY and settings.LLM_API_KEY_SECONDARY != settings.LLM_API_KEY:
         fallbacks.append({
             "model": settings.AI_MODEL_NAME,
-            "api_key": settings.GEMINI_API_KEY_SECONDARY,
+            "api_key": settings.LLM_API_KEY_SECONDARY,
         })
     if settings.AI_FALLBACK_MODEL_NAME:
         fallbacks.append(settings.AI_FALLBACK_MODEL_NAME)

@@ -41,7 +41,7 @@ def generate_daily_report_insights(summary_data: Any) -> List[str]:
     """
     data = summary_data.model_dump() if hasattr(summary_data, "model_dump") else (summary_data if isinstance(summary_data, dict) else dict(summary_data))
 
-    if not settings.GEMINI_API_KEY:
+    if not settings.LLM_API_KEY:
         return [
             "Great effort tracking your daily nutrition and physical activities today!",
             "Consistent tracking is the #1 predictor of long-term metabolic health.",
