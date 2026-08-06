@@ -29,9 +29,9 @@ Built with **FastAPI**, **PostgreSQL**, **SQLAlchemy 2.0**, **Pydantic v2**, **L
 - **Solution A Net MET Formula:** Eliminates double-counting baseline resting calories during workouts:
   $$\text{Net MET} = \max(\text{Active MET} - \text{Baseline MET}, 0)$$
   $$\text{Net Calories Burned} = \text{Net MET} \times \text{User Weight in kg} \times \left(\frac{\text{Duration in minutes}}{60}\right)$$
-- **Ainsworth Exercise Catalog (`GET /api/v1/workouts/catalog`):** 2-step structured catalog supporting Distance-based, Reps & Sets (Pushups, Squats, Pullups, Lunges), and Time-based sports (Football, Cricket, Padel).
-- **Strength Load Scaling:** Dynamically scales exercise intensity based on external barbell/dumbbell load added relative to body weight.
-- **LiteLLM AI Workout Parsing (`POST /api/v1/workouts/logs/ai-parse`):** Parses freeform text descriptions to infer MET values, set details, and duration.
+- **Ainsworth Exercise Catalog (`GET /api/v1/workouts/catalog`):** 2-step structured dropdown supporting Distance-based activities, Reps & Sets (Pushups, Squats, Pullups, Lunges), and Time-based sports (Football, Cricket, Padel).
+- **Structured Workout Logging (`POST /api/v1/workouts/logs/structured`):** Logs workouts from catalog with external weight load, sets, reps, and active duration.
+- **Computer Vision Pose Evaluation (`POST /api/v1/workouts/pose/evaluate-frame`):** Evaluates 3D joint angles, movement depth, and 2-phase rep state machine.
 
 ### 📊 5. Health & Workout Analytics System
 - **30-Day Goal Calendar & Caloric Graph (`GET /api/v1/analytics/history`):** Dedicated analytics domain evaluating daily goal performance snapshots (`is_goal_hit`).
