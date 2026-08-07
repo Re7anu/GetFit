@@ -6,6 +6,7 @@ from app.db.models.workout_log import WorkoutLog
 from app.db.models.nutrition_log import FoodLog
 from app.db.models.profile import UserProfile
 from app.db.models.exercise_catalog import ExerciseCatalogItem
+from app.db.models.fitbot import FitBotSession, FitBotChatMessage
 from app.services.exercise_catalog_service import seed_exercise_catalog
 from app.db.session import SessionLocal
 
