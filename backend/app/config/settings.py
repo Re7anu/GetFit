@@ -30,10 +30,12 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
     DATABASE_URL: str = "postgresql://postgres:postgrespassword@localhost:5433/getfit"
-    LLM_API_KEY: Optional[str] = None
-    LLM_API_KEY_SECONDARY: Optional[str] = None
-    LLM_MODEL_NAME: str = "gemini/gemini-1.5-flash"
-    LLM_FALLBACK_MODEL_NAME: Optional[str] = "gemini/gemini-1.5-pro"
+    GEMINI_API_KEY: Optional[str] = None
+    GEMINI_API_KEY_SECONDARY: Optional[str] = None
+    GROQ_API_KEY: Optional[str] = None
+    LLM_API_KEY: Optional[str] = None  # Generic fallback alias
+    LLM_MODEL_NAME: str = "groq/llama-3.3-70b-versatile"
+    LLM_FALLBACK_MODEL_NAME: Optional[str] = "gemini/gemini-2.0-flash"
     RESEND_API_KEY: Optional[str] = None
     RESEND_FROM_EMAIL: str = "GetFit Daily <onboarding@resend.dev>"
     NIGHTLY_REPORT_HOUR: int = 21

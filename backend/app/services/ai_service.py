@@ -20,25 +20,31 @@ def _get_api_key_for_model(model_name: str) -> Optional[str]:
     """Resolves API key based on configured model provider.
 
     Args:
-        model_name: Provider-prefixed model identifier (e.g. 'gemini/gemini-1.5-flash').
+        model_name: Provider-prefixed model identifier (e.g. 'groq/llama-3.3-70b-versatile' or 'gemini/gemini-2.0-flash').
 
     Returns:
         Configured API key string if available.
     """
-    return settings.LLM_API_KEY
+    if model_name.startswith("groq/"):
+        return settings.GROQ_API_KEY or settings.GEMINI_API_KEY or settings.LLM_API_KEY
+    if model_name.startswith("gemini/"):
+        return settings.GEMINI_API_KEY or settings.LLM_API_KEY
+    return settings.GEMINI_API_KEY or settings.LLM_API_KEY
 
 
 def _build_fallbacks() -> Optional[list]:
-    """Constructs model fallback cascade including secondary API key failover if configured."""
-    fallbacks = []
-    if settings.LLM_API_KEY_SECONDARY and settings.LLM_API_KEY_SECONDARY != settings.LLM_API_KEY:
-        fallbacks.append({
-            "model": settings.LLM_MODEL_NAME,
-            "api_key": settings.LLM_API_KEY_SECONDARY,
-        })
-    if settings.LLM_FALLBACK_MODEL_NAME:
-        fallbacks.append(settings.LLM_FALLBACK_MODEL_NAME)
-    return fallbacks if fallbacks else None
+    """Constructs model fallback cascade with provider-specific API keys."""
+    if not settings.LLM_FALLBACK_MODEL_NAME or settings.LLM_FALLBACK_MODEL_NAME == settings.LLM_MODEL_NAME:
+        return None
+
+    fallback_key = _get_api_key_for_model(settings.LLM_FALLBACK_MODEL_NAME)
+    if not fallback_key:
+        return None
+
+    return [{
+        "model": settings.LLM_FALLBACK_MODEL_NAME,
+        "api_key": fallback_key,
+    }]
 
 
 def _run_litellm_completion(messages: list, response_schema: Type[T], timeout: float = 25.0) -> T:
@@ -88,10 +94,15 @@ def _run_litellm_completion(messages: list, response_schema: Type[T], timeout: f
                 status_code=status.HTTP_504_GATEWAY_TIMEOUT,
                 detail=f"AI API request timed out ({int(timeout)}s limit reached). Please try again.",
             )
-        if "429" in err_msg or "RESOURCE_EXHAUSTED" in err_msg or "Quota exceeded" in err_msg:
+        if any(k in err_msg for k in ["429", "RESOURCE_EXHAUSTED", "Quota exceeded", "RateLimitError", "RateLimit"]):
             raise HTTPException(
                 status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                detail="AI API rate limit reached. Please wait 20-30 seconds before sending another request.",
+                detail="Gemini API rate limit / free quota exceeded. Please wait 30–60 seconds before sending another request.",
+            )
+        if "NotFoundError" in err_msg or "not found for API version" in err_msg:
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail="Gemini API rate limit reached on primary model and fallback model. Please wait 30–60 seconds.",
             )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
