@@ -9,6 +9,7 @@ import { LoggingManager } from './logging.js';
 import { AnalyticsManager } from './analytics.js';
 import { WorkoutPlanManager } from './workout_plan.js';
 import { PoseTrackerManager } from './pose_tracker.js';
+import { fitbotController } from './fitbot.js';
 
 export class App {
   static async init() {
@@ -20,6 +21,7 @@ export class App {
       AnalyticsManager.init();
       WorkoutPlanManager.init();
       PoseTrackerManager.init();
+      fitbotController.init();
     } catch (err) {
       console.error('[App Init Warning]:', err.message);
     }
@@ -51,6 +53,8 @@ export class App {
         this.renderExerciseTab(mainContainer);
       } else if (tab === 'analytics') {
         await AnalyticsManager.render(mainContainer);
+      } else if (tab === 'fitbot') {
+        await fitbotController.renderFullPageView(mainContainer);
       }
     });
   }
