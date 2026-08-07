@@ -3,6 +3,10 @@
 **/*.py[cod]
 **/*$py.class
 **/.pytest_cache/
+tests/
+**/tests/
+**/*_test.py
+**/test_*.py
 **/.venv/
 **/venv/
 
