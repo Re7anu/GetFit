@@ -2,7 +2,7 @@
 
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
-from app.api import analytics, auth, workouts, nutrition, profiles, users
+from app.api import analytics, auth, fitbot, nutrition, profiles, users, workouts
 from app.config.settings import settings
 from app.core.scheduler import start_scheduler, stop_scheduler
 
@@ -61,6 +61,7 @@ app.include_router(profiles.router, prefix=f"{settings.API_V1_STR}/profiles", ta
 app.include_router(nutrition.router, prefix=f"{settings.API_V1_STR}/nutrition", tags=["nutrition"])
 app.include_router(workouts.router, prefix=f"{settings.API_V1_STR}/workouts", tags=["workouts"])
 app.include_router(analytics.router, prefix=f"{settings.API_V1_STR}/analytics", tags=["analytics"])
+app.include_router(fitbot.router, prefix=f"{settings.API_V1_STR}/fitbot", tags=["fitbot"])
 
 
 import os
